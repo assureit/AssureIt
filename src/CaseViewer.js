@@ -439,11 +439,37 @@ function StartCaseViewer(url, id) {
 }
 
 $(function () {
-    var Case0 = new Case();
-    var goal = new CaseModel(Case0, null, CaseType.Goal, null, "Top Goal");
-    var str = new CaseModel(Case0, goal, CaseType.Strategy, null, "Strategy");
+    var JsonData = {
+        "DCaseName": "test",
+        "NodeCount": 2,
+        "TopGoalLabel": "G1",
+        "NodeList": [
+            {
+                "Children": [
+                    "S1"
+                ],
+                "Statement": "",
+                "NodeType": 0,
+                "Label": "G1",
+                "Annotations": [],
+                "Notes": []
+            },
+            {
+                "Children": [],
+                "Statement": "",
+                "NodeType": 2,
+                "Label": "S1",
+                "Annotations": [],
+                "Notes": []
+            }
+        ]
+    };
 
-    Case0.SetTopGoalLabel(goal.Label);
+    var Case0 = new Case();
+    var caseDecoder = new CaseDecoder();
+    var root = caseDecoder.ParseJson(Case0, JsonData);
+
+    Case0.SetTopGoalLabel(root.Label);
     var Viewer = new CaseViewer(Case0);
     var svgroot = $("#svg1");
     var divroot = $("#div1");
