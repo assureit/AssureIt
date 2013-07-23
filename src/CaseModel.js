@@ -35,47 +35,13 @@ var CaseModel = (function () {
         this.Children = [];
         this.Annotations = [];
         this.Notes = [];
+        this.x = 0;
+        this.y = 0;
+
         Case.ElementMap[this.Label] = this;
     }
     CaseModel.prototype.AppendChild = function (Node) {
         this.Children.push(Node);
-    };
-
-    CaseModel.prototype.GetAnnotation = function (Name) {
-        for (var a in this.Annotations) {
-            if (a.Name == Name) {
-                return a;
-            }
-        }
-        return a;
-    };
-
-    CaseModel.prototype.SetAnnotation = function (Name, Body) {
-        for (var a in this.Annotations) {
-            if (a.Name == Name) {
-                a.Body = Body;
-                return a;
-            }
-        }
-        this.Annotations.push(new CaseAnnotation(Name, Body));
-    };
-
-    /* plug-In */
-    CaseModel.prototype.InvokePlugInModifier = function (EventType, EventBody) {
-        var recall = false;
-        for (var a in this.Annotations) {
-            var f = this.Case.GetPlugInModifier(a.Name);
-            if (f != null) {
-                recall = f(Case, this, EventType, EventBody) || recall;
-            }
-        }
-        for (var a in this.Notes) {
-            var f = this.Case.GetPlugInModifier(a.Name);
-            if (f != null) {
-                recall = f(Case, this, EventType, EventBody) || recall;
-            }
-        }
-        return recall;
     };
     return CaseModel;
 })();
@@ -98,6 +64,10 @@ var Case = (function () {
         this.IsModified = false;
         this.ElementMap = {};
     }
+    Case.prototype.SetTopGoalLabel = function (Label) {
+        this.TopGoalLabel = Label;
+    };
+
     Case.prototype.NewLabel = function (Type) {
         this.Ids[Type] = this.Ids[Type] + 1;
         return CaseType[Type].charAt(0) + this.Ids[Type];
@@ -108,4 +78,82 @@ var Case = (function () {
     };
     return Case;
 })();
-//@ sourceMappingURL=CaseModel.js.map
+
+var X_MARGIN = 30;
+var Y_MARGIN = 50;
+
+var hasContext = function (Node, x, y) {
+    var i = 0;
+    for (; i < Node.Children.length; i++) {
+        if (Node.Children[i].Type == 1) {
+            return i;
+        }
+    }
+    return -1;
+};
+
+var emitOddNumberChildren = function (Node, x, y) {
+    var n = Node.Children.length;
+    for (var i in Node.Children) {
+        Node.Children[i].x += x;
+        Node.Children[i].y += y;
+        Node.Children[i].y += Y_MARGIN;
+    }
+    var num = (n - 1) / 2;
+    for (var j = -num; j <= num; j++) {
+        Node.Children[i].x += X_MARGIN * j;
+    }
+
+    for (var i in Node.Children) {
+        console.log(Node.Children[i].Label);
+        console.log("(" + Node.Children[i].x + ", " + Node.Children[i].y + ")");
+        traverse(Node.Children[i], Node.Children[i].x, Node.Children[i].y);
+    }
+};
+
+var emitEvenNumberChildren = function (Node, x, y) {
+    var n = Node.Children.length;
+    var num = n / 2;
+    var index = new Array();
+
+    for (var j = -num; j <= num; j++) {
+        if (j == 0) {
+            continue;
+        }
+        index.push(j);
+    }
+
+    for (var i in Node.Children) {
+        Node.Children[i].x += x;
+        Node.Children[i].y += y;
+        Node.Children[i].x += X_MARGIN * index[i];
+        Node.Children[i].y += Y_MARGIN;
+        console.log(Node.Children[i].Label);
+        console.log("(" + Node.Children[i].x + ", " + Node.Children[i].y + ")");
+        traverse(Node.Children[i], Node.Children[i].x, Node.Children[i].y);
+    }
+};
+
+var traverse = function (Node, x, y) {
+    if (Node.Children.length == 0) {
+        return;
+    }
+    var i = 0;
+    i = hasContext(Node, x, y);
+    if (i != -1) {
+        Node.Children[i].x += x;
+        Node.Children[i].y += y;
+        Node.Children[i].x += X_MARGIN;
+        console.log(Node.Children[i].Label);
+        console.log("(" + Node.Children[i].x + ", " + Node.Children[i].y + ")");
+        Node.Children = Node.Children.splice(i - 1, 1);
+        traverse(Node, x, y);
+    } else {
+        if (Node.Children.length % 2 == 1) {
+            emitOddNumberChildren(Node, x, y);
+        }
+        if (Node.Children.length % 2 == 0) {
+            emitEvenNumberChildren(Node, x, y);
+        }
+    }
+};

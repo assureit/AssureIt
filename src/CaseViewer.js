@@ -4,11 +4,6 @@ var __extends = this.__extends || function (d, b) {
     __.prototype = b.prototype;
     d.prototype = new __();
 };
-/// <reference path="CaseModel.ts" />
-/// <reference path="CaseDecoder.ts" />
-/// <reference path="../d.ts/jquery.d.ts" />
-// <reference path="../d.ts/jQuery.svg.d.ts" />
-/* VIEW (MVC) */
 var HTMLDoc = (function () {
     function HTMLDoc() {
         this.Width = 0;
@@ -28,6 +23,7 @@ var HTMLDoc = (function () {
         this.Resize(Viewer, CaseModel);
     };
 
+<<<<<<< HEAD
     HTMLDoc.prototype.UpdatePadding = function (Viewer, Source) {
         switch (Source.Type) {
             case CaseType.Goal:
@@ -44,6 +40,10 @@ var HTMLDoc = (function () {
                 this.DocBase.css("padding", "20px 20px");
                 break;
         }
+=======
+        this.Width = this.DocBase.width();
+        this.Height = this.DocBase.height();
+>>>>>>> 0688947... emit coordinate data from GSN
     };
 
     HTMLDoc.prototype.InvokePlugInRender = function (CaseViewer, CaseModel, DocBase) {
@@ -259,8 +259,6 @@ var ElementShape = (function () {
         this.HTMLDoc.SetPosition(this.AbsX, this.AbsY);
         this.Resize();
 
-        // TODO
-        // if it has an parent, add an arrow element.
         svgroot.append(this.SVGShape.ShapeGroup);
         this.SVGShape.SetPosition(this.AbsX, this.AbsY);
         this.SVGShape.SetColor("white", "black");
@@ -286,10 +284,101 @@ var CaseViewerConfig = (function () {
 
 var ViewerConfig = new CaseViewerConfig();
 
+var LayOut = (function () {
+    function LayOut(ViewMap) {
+        this.ViewMap = ViewMap;
+    }
+    LayOut.prototype.hasContext = function (Node, x, y) {
+        var i = 0;
+        for (; i < Node.Children.length; i++) {
+            if (Node.Children[i].Type == CaseType.Context) {
+                return i;
+            }
+        }
+        return -1;
+    };
+
+    LayOut.prototype.traverse = function (Element, x, y) {
+        if (Element.Children.length == 0) {
+            return;
+        }
+
+        var i = 0;
+        i = this.hasContext(Element, this.ViewMap[Element.Label].AbsX, this.ViewMap[Element.Label].AbsY);
+        if (i != -1) {
+            this.ViewMap[Element.Label].AbsX += x;
+            this.ViewMap[Element.Label].AbsY += y;
+            this.ViewMap[Element.Label].AbsX += 50;
+            console.log(Element.Label);
+            console.log("(" + this.ViewMap[Element.Label].AbsX + ", " + this.ViewMap[Element.Label].AbsY + ")");
+            Element.Children = Element.Children.splice(i - 1, 1);
+            this.traverse(Element, this.ViewMap[Element.Label].AbsX, this.ViewMap[Element.Label].AbsY);
+        } else {
+            this.ViewMap[Element.Label].AbsX += x;
+            this.ViewMap[Element.Label].AbsY += y;
+            if (Element.Children.length % 2 == 1) {
+                this.emitOddNumberChildren(Element, x, y);
+            }
+            if (Element.Children.length % 2 == 0) {
+                this.emitEvenNumberChildren(Element, x, y);
+            }
+        }
+    };
+
+    LayOut.prototype.emitOddNumberChildren = function (Node, x, y) {
+        var n = Node.Children.length;
+        for (var i in Node.Children) {
+            this.ViewMap[Node.Children[i].Label].AbsX = x;
+            this.ViewMap[Node.Children[i].Label].AbsY = y;
+            this.ViewMap[Node.Children[i].Label].AbsY += 120;
+        }
+        var num = (n - 1) / 2;
+        var k = 0;
+        for (var j = -num; j <= num; j++) {
+            this.ViewMap[Node.Children[k].Label].AbsX += 160 * j;
+            k++;
+        }
+
+        for (var i in Node.Children) {
+            console.log(Node.Children[i].Label);
+            console.log("(" + this.ViewMap[Node.Children[i].Label].AbsX + ", " + this.ViewMap[Node.Children[i].Label].AbsY + ")");
+            this.traverse(Node.Children[i], this.ViewMap[Node.Children[i].Label].AbsX, this.ViewMap[Node.Children[i].Label].AbsY);
+        }
+        return;
+    };
+
+    LayOut.prototype.emitEvenNumberChildren = function (Node, x, y) {
+        var n = Node.Children.length;
+        var num = n / 2;
+        var index = new Array();
+
+        for (var j = -num; j <= num; j++) {
+            if (j == 0) {
+                continue;
+            }
+            index.push(j);
+        }
+
+        for (var i in Node.Children) {
+            this.ViewMap[Node.Children[i].Label].AbsX += x;
+            this.ViewMap[Node.Children[i].Label].AbsY += y;
+            this.ViewMap[Node.Children[i].Label].AbsX += 160 * index[i];
+            this.ViewMap[Node.Children[i].Label].AbsY += 120;
+            console.log(Node.Children[i].Label);
+
+            console.log("(" + this.ViewMap[Node.Children[i].Label].AbsX + ", " + this.ViewMap[Node.Children[i].Label].AbsY + ")");
+            this.traverse(Node.Children[i], this.ViewMap[Node.Children[i].Label].AbsX, this.ViewMap[Node.Children[i].Label].AbsY);
+        }
+        return;
+    };
+    LayOut.X_MARGIN = 160;
+    LayOut.Y_MARGIN = 120;
+    return LayOut;
+})();
+
 var CaseViewer = (function () {
     function CaseViewer(Source) {
         this.ViewMap = [];
-        Source.ElementMap;
         for (var elementkey in Source.ElementMap) {
             var element = Source.ElementMap[elementkey];
             this.ViewMap[element.Label] = new ElementShape(this, element);
@@ -300,6 +389,7 @@ var CaseViewer = (function () {
                 this.ViewMap[element.Label].ParentShape = this.ViewMap[element.Parent.Label];
             }
         }
+        this.TopGoalLabel = Source.TopGoalLabel;
         this.Resize();
     }
     CaseViewer.prototype.GetPlugInRender = function (Name) {
@@ -314,11 +404,18 @@ var CaseViewer = (function () {
     };
 
     CaseViewer.prototype.LayoutElement = function () {
+<<<<<<< HEAD
         // TODO: ishii
         var i = 0;
         for (var shapekey in this.ViewMap) {
             this.ViewMap[shapekey].AbsY = (i++ * 200);
         }
+=======
+        var topElementShape = this.ViewMap[this.TopGoalLabel];
+        var topElement = topElementShape.Source;
+        var layout = new LayOut(this.ViewMap);
+        layout.traverse(topElement, 300, 0);
+>>>>>>> 0688947... emit coordinate data from GSN
     };
 
     CaseViewer.prototype.Draw = function (svg, div) {
@@ -354,10 +451,14 @@ $(function () {
     var Case0 = new Case();
     var goal = new CaseModel(Case0, null, CaseType.Goal, null, "Top Goal");
     var str = new CaseModel(Case0, goal, CaseType.Strategy, null, "Strategy");
-    var evi = new CaseModel(Case0, str, CaseType.Evidence, null, "Evidence");
+    var goal_a = new CaseModel(Case0, str, CaseType.Goal, null, "Goal_a");
+    var goal_b = new CaseModel(Case0, str, CaseType.Goal, null, "Goal_b");
+    var evi_a = new CaseModel(Case0, goal_a, CaseType.Evidence, null, "Evidence_a");
+    var evi_b = new CaseModel(Case0, goal_b, CaseType.Evidence, null, "Evidence_b");
+
+    Case0.SetTopGoalLabel(goal.Label);
     var Viewer = new CaseViewer(Case0);
     var svgroot = $("#svg1");
     var divroot = $("#div1");
     Viewer.Draw(svgroot, divroot);
 });
-//@ sourceMappingURL=CaseViewer.js.map

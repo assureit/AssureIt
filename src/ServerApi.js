@@ -1,4 +1,3 @@
-///<reference path='../d.ts/jquery.d.ts'/>
 var default_success_callback = function (result) {
 };
 
@@ -42,4 +41,3 @@ var ServerAPI = (function () {
     };
     return ServerAPI;
 })();
-//@ sourceMappingURL=ServerApi.js.map
