@@ -23,7 +23,6 @@ var HTMLDoc = (function () {
         this.Resize(Viewer, CaseModel);
     };
 
-<<<<<<< HEAD
     HTMLDoc.prototype.UpdatePadding = function (Viewer, Source) {
         switch (Source.Type) {
             case CaseType.Goal:
@@ -40,10 +39,6 @@ var HTMLDoc = (function () {
                 this.DocBase.css("padding", "20px 20px");
                 break;
         }
-=======
-        this.Width = this.DocBase.width();
-        this.Height = this.DocBase.height();
->>>>>>> 0688947... emit coordinate data from GSN
     };
 
     HTMLDoc.prototype.InvokePlugInRender = function (CaseViewer, CaseModel, DocBase) {
@@ -330,7 +325,7 @@ var LayOut = (function () {
         for (var i in Node.Children) {
             this.ViewMap[Node.Children[i].Label].AbsX = x;
             this.ViewMap[Node.Children[i].Label].AbsY = y;
-            this.ViewMap[Node.Children[i].Label].AbsY += 120;
+            this.ViewMap[Node.Children[i].Label].AbsY += 160;
         }
         var num = (n - 1) / 2;
         var k = 0;
@@ -404,18 +399,14 @@ var CaseViewer = (function () {
     };
 
     CaseViewer.prototype.LayoutElement = function () {
-<<<<<<< HEAD
-        // TODO: ishii
         var i = 0;
         for (var shapekey in this.ViewMap) {
             this.ViewMap[shapekey].AbsY = (i++ * 200);
         }
-=======
         var topElementShape = this.ViewMap[this.TopGoalLabel];
         var topElement = topElementShape.Source;
         var layout = new LayOut(this.ViewMap);
         layout.traverse(topElement, 300, 0);
->>>>>>> 0688947... emit coordinate data from GSN
     };
 
     CaseViewer.prototype.Draw = function (svg, div) {
@@ -451,10 +442,6 @@ $(function () {
     var Case0 = new Case();
     var goal = new CaseModel(Case0, null, CaseType.Goal, null, "Top Goal");
     var str = new CaseModel(Case0, goal, CaseType.Strategy, null, "Strategy");
-    var goal_a = new CaseModel(Case0, str, CaseType.Goal, null, "Goal_a");
-    var goal_b = new CaseModel(Case0, str, CaseType.Goal, null, "Goal_b");
-    var evi_a = new CaseModel(Case0, goal_a, CaseType.Evidence, null, "Evidence_a");
-    var evi_b = new CaseModel(Case0, goal_b, CaseType.Evidence, null, "Evidence_b");
 
     Case0.SetTopGoalLabel(goal.Label);
     var Viewer = new CaseViewer(Case0);

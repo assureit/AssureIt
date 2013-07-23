@@ -331,7 +331,7 @@ class LayOut {
 		for(var i in Node.Children) {
 			this.ViewMap[Node.Children[i].Label].AbsX = x;
 			this.ViewMap[Node.Children[i].Label].AbsY = y;
-			this.ViewMap[Node.Children[i].Label].AbsY += 120;
+			this.ViewMap[Node.Children[i].Label].AbsY += 160;
 		}
 		var num = (n-1)/2;
 		var k = 0;
@@ -449,10 +449,10 @@ $(function () {
 	var Case0 = new Case();
 	var goal = new CaseModel(Case0, null, CaseType.Goal, null, "Top Goal");
 	var str = new CaseModel(Case0, goal, CaseType.Strategy, null, "Strategy");
-	var goal_a = new CaseModel(Case0, str, CaseType.Goal, null, "Goal_a");
-	var goal_b = new CaseModel(Case0, str, CaseType.Goal, null, "Goal_b");
-	var evi_a = new CaseModel(Case0, goal_a, CaseType.Evidence, null, "Evidence_a");
-	var evi_b = new CaseModel(Case0, goal_b, CaseType.Evidence, null, "Evidence_b");
+//	var goal_a = new CaseModel(Case0, str, CaseType.Goal, null, "Goal_a");
+//	var goal_b = new CaseModel(Case0, str, CaseType.Goal, null, "Goal_b");
+//	var evi_a = new CaseModel(Case0, goal_a, CaseType.Evidence, null, "Evidence_a");
+//	var evi_b = new CaseModel(Case0, goal_b, CaseType.Evidence, null, "Evidence_b");
 //	var evi2 = new CaseModel(Case0, goal, CaseType.Evidence, null, "Evidence");
 //	var evi3 = new CaseModel(Case0, goal, CaseType.Evidence, null, "Evidence");
 	Case0.SetTopGoalLabel(goal.Label);
