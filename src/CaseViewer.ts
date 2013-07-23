@@ -315,9 +315,11 @@ class LayOut {
 			console.log("(" + this.ViewMap[Element.Label].AbsX + ", " + this.ViewMap[Element.Label].AbsY + ")");
 			Element.Children = Element.Children.splice(i-1,1);
 			this.traverse(Element, this.ViewMap[Element.Label].AbsX, this.ViewMap[Element.Label].AbsY);
-		} else {  //emit element data except context
-			this.ViewMap[Element.Label].AbsX += x;
-			this.ViewMap[Element.Label].AbsY += y;
+		} else {  //emit element data except Context
+			if(Element.Label == "G1") {
+				this.ViewMap[Element.Label].AbsX += x;
+				this.ViewMap[Element.Label].AbsY += y;
+			}
 			if(Element.Children.length % 2 == 1) {
 //				this.emitOddNumberChildren(Element, this.ViewMap[Element.Label].AbsX, this.ViewMap[Element.Label].AbsY);
 				this.emitOddNumberChildren(Element, x, y);
@@ -367,7 +369,7 @@ class LayOut {
 			this.ViewMap[Node.Children[i].Label].AbsX += x;
 			this.ViewMap[Node.Children[i].Label].AbsY += y;
 			this.ViewMap[Node.Children[i].Label].AbsX += 160 * index[i];
-			this.ViewMap[Node.Children[i].Label].AbsY += 120;
+			this.ViewMap[Node.Children[i].Label].AbsY += 160;
 			console.log(Node.Children[i].Label);
 //			console.log("(" + Node.Children[i].x + ", " + Node.Children[i].y + ")");
 			console.log("(" + this.ViewMap[Node.Children[i].Label].AbsX + ", " + this.ViewMap[Node.Children[i].Label].AbsY + ")");
@@ -411,10 +413,6 @@ class CaseViewer {
 
 	LayoutElement() : void {
 		// TODO: ishii
-		var i = 0;
-		for (var shapekey in this.ViewMap) {
-			this.ViewMap[shapekey].AbsY = (i++ * 200);
-		}
 		var topElementShape = this.ViewMap[this.TopGoalLabel];
 		var topElement = topElementShape.Source;
 		var layout = new LayOut(this.ViewMap);
@@ -428,3 +426,101 @@ class CaseViewer {
 	}
 
 }
+
+class ServerApi {
+	constructor(url: string) {
+	}
+	GetCase(project: string, id: string): string {
+		return "[]";
+	}
+}
+
+function StartCaseViewer(url: string, id: string) {
+	var loader = new ServerApi(url);
+	var project; // temp
+	var JsonData = loader.GetCase(project, id);
+	var Argument = new Argument();
+	var model = new CaseDecoder().ParseJson(Argument, JsonData);
+	var CaseViewer = new CaseViewer(model);
+	var svg = document.getElementById(id);
+	CaseViewer.Draw(svg);
+}
+
+$(function () {
+	var JsonData = {
+			"DCaseName" : "test",
+			"NodeCount" : 6,
+			"TopGoalLabel" : "G1",
+			"NodeList": [
+				{
+					"Children": [
+						"S1"
+					],
+					"Statement": "",
+					"NodeType": 0,
+					"Label": "G1",
+					"Annotations" : [],
+					"Notes" : []
+				},
+				{
+					"Children": [
+						"G2",
+						"G3"
+					],
+					"Statement": "",
+					"NodeType": 2,
+					"Label": "S1",
+					"Annotations" : [],
+					"Notes" : []
+				},
+				{
+					"Children": [
+						"E1",
+					],
+					"Statement": "",
+					"NodeType": 0,
+					"Label": "G2",
+					"Annotations" : [],
+					"Notes" : []
+				},
+				{
+					"Children": [
+						"E2",
+					],
+					"Statement": "",
+					"NodeType": 0,
+					"Label": "G3",
+					"Annotations" : [],
+					"Notes" : []
+				},
+				{
+					"Children": [],
+					"Statement": "",
+					"NodeType": 3,
+					"Label": "E1",
+					"Annotations" : [],
+					"Notes" : []
+				},
+				{
+					"Children": [],
+					"Statement": "",
+					"NodeType": 3,
+					"Label": "E2",
+					"Annotations" : [],
+					"Notes" : []
+				},
+			]
+
+	}
+
+    var Case0: Case = new Case();
+    var caseDecoder: CaseDecoder = new CaseDecoder();
+    var root: CaseModel = caseDecoder.ParseJson(Case0, JsonData);
+
+
+    Case0.SetTopGoalLabel(root.Label);
+    var Viewer = new CaseViewer(Case0);
+    var svgroot: JQuery = $("#svg1");
+    var divroot: JQuery = $("#div1");
+    Viewer.Draw(svgroot, divroot);
+});
