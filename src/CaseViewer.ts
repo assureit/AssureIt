@@ -283,14 +283,14 @@ class CaseViewerConfig {
 var ViewerConfig = new CaseViewerConfig();
 
 
-class LayOut {
+class Layout {
 	static X_MARGIN = 160;
 	static Y_MARGIN = 120;
 
 	constructor(public ViewMap : { [index: string]: ElementShape; } ) {
 	}
 
-    hasContext(Node : CaseModel, x : number, y : number) : number {
+        getContextIndex(Node : CaseModel, x : number, y : number) : number {
 		var i = 0
 			for(; i < Node.Children.length; i++) {
 				if(Node.Children[i].Type == CaseType.Context) {
@@ -300,13 +300,18 @@ class LayOut {
 		return -1;
 	}
 
+        setposition(Element: CaseModel, x : number, y : number) {
+	        this.ViewMap[Element.Label].AbsX += x;
+	        this.ViewMap[Element.Label].AbsY += y;
+	}
+
 	traverse(Element: CaseModel, x : number, y : number) {
 		if(Element.Children.length == 0) {
 			return;
 		}
 
 		var i = 0;
-		i = this.hasContext(Element, this.ViewMap[Element.Label].AbsX, this.ViewMap[Element.Label].AbsY);
+		i = this.getContextIndex(Element, this.ViewMap[Element.Label].AbsX, this.ViewMap[Element.Label].AbsY);
 		if(i != -1) { //emit context element data
 			this.ViewMap[Element.Label].AbsX += x;
 			this.ViewMap[Element.Label].AbsY += y;
@@ -316,10 +321,6 @@ class LayOut {
 			Element.Children = Element.Children.splice(i-1,1);
 			this.traverse(Element, this.ViewMap[Element.Label].AbsX, this.ViewMap[Element.Label].AbsY);
 		} else {  //emit element data except context
-			if(Element.Label == "G1") {
-				this.ViewMap[Element.Label].AbsX += x;
-				this.ViewMap[Element.Label].AbsY += y;
-			}
 			if(Element.Children.length % 2 == 1) {
 //				this.emitOddNumberChildren(Element, this.ViewMap[Element.Label].AbsX, this.ViewMap[Element.Label].AbsY);
 				this.emitOddNumberChildren(Element, x, y);
@@ -415,7 +416,8 @@ class CaseViewer {
 		// TODO: ishii
 		var topElementShape = this.ViewMap[this.TopGoalLabel];
 		var topElement = topElementShape.Source;
-		var layout = new LayOut(this.ViewMap);
+		var layout = new Layout(this.ViewMap);
+	        layout.setposition(topElement, 300, 0);
 		layout.traverse(topElement, 300, 0);
 	}
 

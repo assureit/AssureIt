@@ -281,11 +281,11 @@ var CaseViewerConfig = (function () {
 
 var ViewerConfig = new CaseViewerConfig();
 
-var LayOut = (function () {
-    function LayOut(ViewMap) {
+var Layout = (function () {
+    function Layout(ViewMap) {
         this.ViewMap = ViewMap;
     }
-    LayOut.prototype.hasContext = function (Node, x, y) {
+    Layout.prototype.getContextIndex = function (Node, x, y) {
         var i = 0;
         for (; i < Node.Children.length; i++) {
             if (Node.Children[i].Type == CaseType.Context) {
@@ -295,13 +295,18 @@ var LayOut = (function () {
         return -1;
     };
 
-    LayOut.prototype.traverse = function (Element, x, y) {
+    Layout.prototype.setposition = function (Element, x, y) {
+        this.ViewMap[Element.Label].AbsX += x;
+        this.ViewMap[Element.Label].AbsY += y;
+    };
+
+    Layout.prototype.traverse = function (Element, x, y) {
         if (Element.Children.length == 0) {
             return;
         }
 
         var i = 0;
-        i = this.hasContext(Element, this.ViewMap[Element.Label].AbsX, this.ViewMap[Element.Label].AbsY);
+        i = this.getContextIndex(Element, this.ViewMap[Element.Label].AbsX, this.ViewMap[Element.Label].AbsY);
         if (i != -1) {
             this.ViewMap[Element.Label].AbsX += x;
             this.ViewMap[Element.Label].AbsY += y;
@@ -311,10 +316,6 @@ var LayOut = (function () {
             Element.Children = Element.Children.splice(i - 1, 1);
             this.traverse(Element, this.ViewMap[Element.Label].AbsX, this.ViewMap[Element.Label].AbsY);
         } else {
-            if (Element.Label == "G1") {
-                this.ViewMap[Element.Label].AbsX += x;
-                this.ViewMap[Element.Label].AbsY += y;
-            }
             if (Element.Children.length % 2 == 1) {
                 this.emitOddNumberChildren(Element, x, y);
             }
@@ -324,7 +325,7 @@ var LayOut = (function () {
         }
     };
 
-    LayOut.prototype.emitOddNumberChildren = function (Node, x, y) {
+    Layout.prototype.emitOddNumberChildren = function (Node, x, y) {
         var n = Node.Children.length;
         for (var i in Node.Children) {
             this.ViewMap[Node.Children[i].Label].AbsX = x;
@@ -346,7 +347,7 @@ var LayOut = (function () {
         return;
     };
 
-    LayOut.prototype.emitEvenNumberChildren = function (Node, x, y) {
+    Layout.prototype.emitEvenNumberChildren = function (Node, x, y) {
         var n = Node.Children.length;
         var num = n / 2;
         var index = new Array();
@@ -370,9 +371,9 @@ var LayOut = (function () {
         }
         return;
     };
-    LayOut.X_MARGIN = 160;
-    LayOut.Y_MARGIN = 120;
-    return LayOut;
+    Layout.X_MARGIN = 160;
+    Layout.Y_MARGIN = 120;
+    return Layout;
 })();
 
 var CaseViewer = (function () {
@@ -405,7 +406,8 @@ var CaseViewer = (function () {
     CaseViewer.prototype.LayoutElement = function () {
         var topElementShape = this.ViewMap[this.TopGoalLabel];
         var topElement = topElementShape.Source;
-        var layout = new LayOut(this.ViewMap);
+        var layout = new Layout(this.ViewMap);
+        layout.setposition(topElement, 300, 0);
         layout.traverse(topElement, 300, 0);
     };
 
