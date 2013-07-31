@@ -12,7 +12,7 @@ var Parser = (function () {
     function Parser(Case) {
         this.Case = Case;
     }
-    Parser.prototype.Parse = function (source, root) {
+    Parser.prototype.Parse = function (source, orig) {
         return null;
     };
     return Parser;
@@ -168,8 +168,37 @@ var ASNParser = (function (_super) {
     function ASNParser() {
         _super.apply(this, arguments);
     }
-    ASNParser.prototype.Parse = function (ASNData, root) {
-        return null;
+    ASNParser.prototype.Object2CaseModel = function (obj, orig) {
+        var Case = this.Case;
+        var Parent = (obj["Parent"] != null) ? obj["Parent"] : orig.Parent;
+        var Type = (obj["Type"] != null) ? CaseType[obj["Type"]] : orig.Type;
+        var Label = (obj["Label"] != null) ? obj["Label"] : orig.Label;
+        var Statement = (obj["Statement"] != "") ? obj["Statement"] : orig.Statement;
+
+        var Model = new CaseModel(Case, Parent, Type, Label, Statement);
+
+        var Children = obj["Children"];
+        if (Children.length != 0) {
+            for (var i = 0; i < Children.length; i++) {
+                var Child = this.Object2CaseModel(Children[i], {});
+                Child.Parent = Model;
+                Model.Children.push(Child);
+            }
+        } else {
+            Model.Children = [];
+        }
+        if (obj["Annotations"].length != 0) {
+            for (var i = 0; i < obj["Annotations"].length; i++) {
+                Model.SetAnnotation(obj["Annotations"][i], null);
+            }
+        } else {
+        }
+        return Model;
+    };
+    ASNParser.prototype.Parse = function (ASNData, orig) {
+        var obj = Peg.parse(ASNData)[1];
+        var root = this.Object2CaseModel(obj, orig);
+        return root;
     };
     return ASNParser;
 })(Parser);
@@ -179,18 +208,20 @@ var CaseDecoder = (function () {
     }
     CaseDecoder.prototype.ParseJson = function (Case, JsonData) {
         var parser = new JsonParser(Case);
-        var root = parser.Parse(JsonData);
+        var root = parser.Parse(JsonData, null);
         return root;
     };
 
     CaseDecoder.prototype.ParseDCaseXML = function (Case, XMLData) {
         var parser = new DCaseXMLParser(Case);
-        var root = parser.Parse(XMLData);
+        var root = parser.Parse(XMLData, null);
         return root;
     };
 
-    CaseDecoder.prototype.ParseASN = function (Case, ASNData, root) {
-        return null;
+    CaseDecoder.prototype.ParseASN = function (Case, ASNData, orig) {
+        var parser = new ASNParser(Case);
+        var root = parser.Parse(ASNData, orig);
+        return root;
     };
     return CaseDecoder;
 })();

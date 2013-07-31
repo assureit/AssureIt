@@ -254,6 +254,7 @@ class LayoutPortrait extends LayoutEngine {
 		for (var i: number = 0; i < n; i++) {
 			var PreviousElementShape: ElementShape = this.ViewMap[this.footelement[i - 1]];
 			var CurrentElementShape: ElementShape = this.ViewMap[this.footelement[i]];
+			CurrentElementShape.AbsX = 0;
 			if (i != 0) {
 				if ((PreviousElementShape.ParentShape.Source.Label != CurrentElementShape.ParentShape.Source.Label) && (this.GetContextIndex(PreviousElementShape.ParentShape.Source) != -1)) {
 					var PreviousParentChildren: CaseModel[] = PreviousElementShape.ParentShape.Source.Children;

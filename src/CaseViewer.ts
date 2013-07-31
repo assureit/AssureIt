@@ -305,17 +305,11 @@ class ElementShape {
 		this.SVGShape.Resize(this.CaseViewer, this.Source, this.HTMLDoc);
 	}
 
-	AppendHTMLElement(svgroot: JQuery, divroot: JQuery, caseViewer : CaseViewer): void {
-		divroot.append(this.HTMLDoc.DocBase);
+	Update(): void {
 		this.HTMLDoc.SetPosition(this.AbsX, this.AbsY);
 		this.Resize();
-
-		svgroot.append(this.SVGShape.ShapeGroup);
 		this.SVGShape.SetPosition(this.AbsX, this.AbsY);
 		this.SVGShape.SetColor("white", "black");
-		this.InvokePlugInSVGRender(caseViewer);
-
-		// if it has an parent, add an arrow element.
 		if (this.ParentShape != null) {
 			var p1: Point = null;
 			var p2: Point = null;
@@ -326,10 +320,46 @@ class ElementShape {
 			} else {
 				this.SVGShape.SetArrowPosition(p1, p2, this.ParentDirection);
 			}
-			svgroot.append(this.SVGShape.ArrowPath);
 		}
 		return; // TODO
 	}
+
+	AppendHTMLElement(svgroot: JQuery, divroot: JQuery, caseViewer : CaseViewer): void {
+		divroot.append(this.HTMLDoc.DocBase);
+		svgroot.append(this.SVGShape.ShapeGroup);
+		this.InvokePlugInSVGRender(caseViewer);
+
+		// if it has an parent, add an arrow element.
+		if (this.ParentShape != null) {
+			svgroot.append(this.SVGShape.ArrowPath);
+		}
+		this.Update();
+		return; // TODO
+	}
+	AppendHTMLElementRecursive(svgroot: JQuery, divroot: JQuery, caseViewer : CaseViewer): void {
+		this.AppendHTMLElement(svgroot, divroot, caseViewer);
+		var Children = this.Source.Children;
+		var ViewMap = this.CaseViewer.ViewMap;
+		for (var i = 0; i < Children.length; i++) {
+			ViewMap[Children[i].Label].AppendHTMLElementRecursive(svgroot, divroot, caseViewer);
+		}
+		return;
+	}
+ 	DeleteHTMLElement(svgroot: JQuery, divroot: JQuery): void {
+		this.HTMLDoc.DocBase.remove();
+		$(this.SVGShape.ShapeGroup).remove();
+		if (this.ParentShape != null) $(this.SVGShape.ArrowPath).remove();
+		return;
+ 	}
+ 	DeleteHTMLElementRecursive(svgroot: JQuery, divroot: JQuery): void {
+		this.DeleteHTMLElement(svgroot, divroot);
+		var Children = this.Source.Children;
+		var ViewMap = this.CaseViewer.ViewMap;
+		for (var i = 0; i < Children.length; i++) {
+			ViewMap[Children[i].Label].DeleteHTMLElementRecursive(svgroot, divroot);
+		}
+		return;
+ 	}
 
 	GetAbsoluteConnectorPosition(Dir: Direction): Point {
 		var p = this.SVGShape.GetConnectorPosition(Dir);

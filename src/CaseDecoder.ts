@@ -13,7 +13,7 @@ class Parser {
 		this.Case = Case;
 	}
 
-	Parse(source : any, root? : CaseModel) : CaseModel {
+	Parse(source : any, orig : CaseModel) : CaseModel {
 		return null;
 	}
 
@@ -170,11 +170,43 @@ class DCaseXMLParser extends Parser {
 }
 
 class ASNParser extends Parser {
+	Object2CaseModel(obj : any, orig : CaseModel) : CaseModel {
+		var Case : Case = this.Case;//(obj["Case"] != null) ? obj["Case"] : this.Case;
+		var Parent : CaseModel = (obj["Parent"] != null) ? obj["Parent"] : orig.Parent;
+		var Type : CaseType = (obj["Type"] != null) ? CaseType[obj["Type"]] : orig.Type;
+		var Label : string = (obj["Label"] != null) ? obj["Label"] : orig.Label;
+		var Statement : string = (obj["Statement"] != "") ? obj["Statement"] : orig.Statement;
+// 		var Notes = (obj["Notes"].length != 0) ? obj["Notes"] : orig.Notes;
+// 		var X = (obj["x"] != 0) ? obj["x"] : orig.x;
+// 		var Y = (obj["y"] != 0) ? obj["x"] : orig.y;
+		var Model : CaseModel = new CaseModel(Case, Parent,	Type, Label, Statement);
 
-	Parse(ASNData : string, root? : CaseModel) : CaseModel {
-		return null;
+		var Children = obj["Children"];
+ 		if (Children.length != 0) {
+			for (var i : number = 0; i < Children.length; i++) {
+				var Child = this.Object2CaseModel(Children[i], {});
+				Child.Parent = Model;
+				Model.Children.push(Child);
+			}
+		}
+		else {
+			Model.Children = []; // Is this really OK?
+		}
+		if (obj["Annotations"].length != 0) {
+			for (var i : number = 0; i < obj["Annotations"].length; i++) {
+				Model.SetAnnotation(obj["Annotations"][i], null); //FIX ME!!
+			}
+		}
+		else {
+			//TODO
+		}
+		return Model;
 	}
-
+	Parse(ASNData : string, orig : CaseModel) : CaseModel {
+		var obj : any = Peg.parse(ASNData)[1];
+		var root : CaseModel = this.Object2CaseModel(obj, orig);
+		return root;
+	}
 }
 
 class CaseDecoder {
@@ -184,19 +216,20 @@ class CaseDecoder {
 
 	ParseJson(Case : Case, JsonData : any) : CaseModel  {
 		var parser : Parser = new JsonParser(Case);
-		var root : CaseModel = parser.Parse(JsonData);
+		var root : CaseModel = parser.Parse(JsonData, null);
 		return root;
 	}
 
 	ParseDCaseXML(Case : Case, XMLData : string) : CaseModel {
 		var parser : Parser = new DCaseXMLParser(Case);
-		var root : CaseModel = parser.Parse(XMLData);
+		var root : CaseModel = parser.Parse(XMLData, null);
 		return root;
 	}
 
-	ParseASN(Case : Case,  ASNData: string, root : CaseModel) : CaseModel {
-		// TODO
-		return null;
+	ParseASN(Case : Case,  ASNData: string, orig : CaseModel) : CaseModel {
+		var parser : Parser = new ASNParser(Case);
+		var root : CaseModel = parser.Parse(ASNData, orig);
+		return root;
 	}
 
 }

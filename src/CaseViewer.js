@@ -306,16 +306,11 @@ var ElementShape = (function () {
         this.SVGShape.Resize(this.CaseViewer, this.Source, this.HTMLDoc);
     };
 
-    ElementShape.prototype.AppendHTMLElement = function (svgroot, divroot, caseViewer) {
-        divroot.append(this.HTMLDoc.DocBase);
+    ElementShape.prototype.Update = function () {
         this.HTMLDoc.SetPosition(this.AbsX, this.AbsY);
         this.Resize();
-
-        svgroot.append(this.SVGShape.ShapeGroup);
         this.SVGShape.SetPosition(this.AbsX, this.AbsY);
         this.SVGShape.SetColor("white", "black");
-        this.InvokePlugInSVGRender(caseViewer);
-
         if (this.ParentShape != null) {
             var p1 = null;
             var p2 = null;
@@ -326,7 +321,43 @@ var ElementShape = (function () {
             } else {
                 this.SVGShape.SetArrowPosition(p1, p2, this.ParentDirection);
             }
+        }
+        return;
+    };
+
+    ElementShape.prototype.AppendHTMLElement = function (svgroot, divroot, caseViewer) {
+        divroot.append(this.HTMLDoc.DocBase);
+        svgroot.append(this.SVGShape.ShapeGroup);
+        this.InvokePlugInSVGRender(caseViewer);
+
+        if (this.ParentShape != null) {
             svgroot.append(this.SVGShape.ArrowPath);
+        }
+        this.Update();
+        return;
+    };
+    ElementShape.prototype.AppendHTMLElementRecursive = function (svgroot, divroot, caseViewer) {
+        this.AppendHTMLElement(svgroot, divroot, caseViewer);
+        var Children = this.Source.Children;
+        var ViewMap = this.CaseViewer.ViewMap;
+        for (var i = 0; i < Children.length; i++) {
+            ViewMap[Children[i].Label].AppendHTMLElementRecursive(svgroot, divroot, caseViewer);
+        }
+        return;
+    };
+    ElementShape.prototype.DeleteHTMLElement = function (svgroot, divroot) {
+        this.HTMLDoc.DocBase.remove();
+        $(this.SVGShape.ShapeGroup).remove();
+        if (this.ParentShape != null)
+            $(this.SVGShape.ArrowPath).remove();
+        return;
+    };
+    ElementShape.prototype.DeleteHTMLElementRecursive = function (svgroot, divroot) {
+        this.DeleteHTMLElement(svgroot, divroot);
+        var Children = this.Source.Children;
+        var ViewMap = this.CaseViewer.ViewMap;
+        for (var i = 0; i < Children.length; i++) {
+            ViewMap[Children[i].Label].DeleteHTMLElementRecursive(svgroot, divroot);
         }
         return;
     };

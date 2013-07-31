@@ -104,10 +104,40 @@ var Case = (function () {
     }
     Case.prototype.SetElementTop = function (ElementTop) {
         this.ElementTop = ElementTop;
+        this.SaveIdCounterMax(ElementTop);
     };
-
+    Case.prototype.SaveIdCounterMax = function (Element) {
+        for (var i = 0; i < Element.Children.length; i++) {
+            this.SaveIdCounterMax(Element.Children[i]);
+        }
+        var m = Element.Label.match(/^[GCSE][0-9]+$/);
+        if (m.length == 1) {
+            var prefix = m[0][0];
+            var count = Number(m[0].substring(1));
+            switch (prefix) {
+                case "G":
+                    if (this.IdCounters[CaseType["Goal"]] < count)
+                        this.IdCounters[CaseType["Goal"]] = count;
+                    break;
+                case "C":
+                    if (this.IdCounters[CaseType["Context"]] < count)
+                        this.IdCounters[CaseType["Context"]] = count;
+                    break;
+                case "S":
+                    if (this.IdCounters[CaseType["Strategy"]] < count)
+                        this.IdCounters[CaseType["Strategy"]] = count;
+                    break;
+                case "E":
+                    if (this.IdCounters[CaseType["Evidence"]] < count)
+                        this.IdCounters[CaseType["Evidence"]] = count;
+                    break;
+                default:
+                    console.log("invalid label prefix :" + prefix);
+            }
+        }
+    };
     Case.prototype.NewLabel = function (Type) {
-        this.IdCounters[Type] = this.IdCounters[Type] + 1;
+        this.IdCounters[Type] += 1;
         return CaseType[Type].charAt(0) + this.IdCounters[Type];
     };
 

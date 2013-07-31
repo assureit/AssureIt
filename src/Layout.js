@@ -239,6 +239,7 @@ var LayoutPortrait = (function (_super) {
         for (var i = 0; i < n; i++) {
             var PreviousElementShape = this.ViewMap[this.footelement[i - 1]];
             var CurrentElementShape = this.ViewMap[this.footelement[i]];
+            CurrentElementShape.AbsX = 0;
             if (i != 0) {
                 if ((PreviousElementShape.ParentShape.Source.Label != CurrentElementShape.ParentShape.Source.Label) && (this.GetContextIndex(PreviousElementShape.ParentShape.Source) != -1)) {
                     var PreviousParentChildren = PreviousElementShape.ParentShape.Source.Children;
