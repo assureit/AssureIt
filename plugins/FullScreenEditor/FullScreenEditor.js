@@ -27,9 +27,13 @@ var FullScreenMenuPlugIn = (function (_super) {
     };
 
     FullScreenMenuPlugIn.prototype.Delegate = function (caseViewer, caseModel, element, serverApi) {
+        var _this = this;
         element.append('<a href="#" ><img id="fullscreen-menu" src="' + serverApi.basepath + 'images/max.png" title="FullScreen" alt="fullscreen" /></a>');
         $('#fullscreen-menu').unbind('click');
-        $('#fullscreen-menu').click(this.editorPlugIn.ShowFullScreenEditor);
+        $('#fullscreen-menu').click(function (ev) {
+            _this.editorPlugIn.rootModel = caseModel;
+            _this.editorPlugIn.ShowFullScreenEditor(ev);
+        });
         return true;
     };
     return FullScreenMenuPlugIn;
@@ -78,7 +82,52 @@ var FullScreenEditorActionPlugIn = (function (_super) {
         return true;
     };
 
+    FullScreenEditorActionPlugIn.Object_Clone = function (obj) {
+        var f = {};
+        var keys = Object.keys(obj);
+        for (var i in keys) {
+            f[keys[i]] = obj[keys[i]];
+        }
+        return f;
+    };
+
+    FullScreenEditorActionPlugIn.ElementMap_Clone = function (obj) {
+        return this.Object_Clone(obj);
+    };
+
+    FullScreenEditorActionPlugIn.IdCounters_Clone = function (obj) {
+        var IdCounters = [];
+        for (var i in obj) {
+            IdCounters.push(this.Object_Clone(obj[i]));
+        }
+        return IdCounters;
+    };
+
+    FullScreenEditorActionPlugIn.ElementMap_removeChild = function (ElementMap, model) {
+        if (ElementMap[model.Label] == undefined) {
+            console.log("wrong with nodemodel");
+        }
+        delete (ElementMap[model.Label]);
+        for (var i in model.Children) {
+            this.ElementMap_removeChild(ElementMap, model.Children[i]);
+        }
+        return ElementMap;
+    };
+
+    FullScreenEditorActionPlugIn.IdCounters_removeChild = function (IdCounters, model) {
+        var count = Number(model.Label.substring(1));
+        if (IdCounters[model.Type][count] == undefined) {
+            console.log("wrong with idcounters");
+        }
+        delete (IdCounters[model.Type][count]);
+        for (var i in model.Children) {
+            this.IdCounters_removeChild(IdCounters, model.Children[i]);
+        }
+        return IdCounters;
+    };
+
     FullScreenEditorActionPlugIn.prototype.Delegate = function (caseViewer, case0, serverApi) {
+        var _this = this;
         var editor = this.editor;
         var self = this;
 
@@ -88,30 +137,43 @@ var FullScreenEditorActionPlugIn = (function (_super) {
                 self.plugInManager.UseUILayer(self);
                 self.isDisplayed = true;
 
+                var label = this.rootModel.Label;
+
                 var encoder = new AssureIt.CaseEncoder();
-                var encoded = encoder.ConvertToASN(case0.ElementTop, false);
+                var encoded = encoder.ConvertToASN(case0.ElementMap[label], false);
 
-                var node = $(this);
-
-                $('#fullscreen-editor-wrapper').css({ display: 'block' }).addClass("animated fadeInDown").focus().one("blur", { node: node }, function (e, node) {
+                $('#fullscreen-editor-wrapper').css({ display: 'block' }).addClass("animated fadeInDown").focus().one("blur", function (e) {
                     e.stopPropagation();
 
-                    var label = case0.ElementTop.Label;
                     var orig_model = case0.ElementMap[label];
                     var orig_view = caseViewer.ViewMap[label];
                     var orig_idCounters = case0.IdCounters;
                     var orig_ElementMap = case0.ElementMap;
-                    case0.IdCounters = [0, 0, 0, 0, 0];
-                    case0.ElementMap = {};
+
+                    var new_idCounters = FullScreenEditorActionPlugIn.IdCounters_Clone(orig_idCounters);
+                    case0.IdCounters = FullScreenEditorActionPlugIn.IdCounters_removeChild(new_idCounters, orig_model);
+                    case0.ElementMap = FullScreenEditorActionPlugIn.ElementMap_removeChild(FullScreenEditorActionPlugIn.ElementMap_Clone(case0.ElementMap), orig_model);
+
                     var decoder = new AssureIt.CaseDecoder();
-                    var new_model = decoder.ParseASN(case0, editor.getValue(), null);
+                    var new_model = decoder.ParseASN(case0, editor.getValue(), orig_model);
 
                     if (new_model != null) {
                         orig_view.DeleteHTMLElementRecursive($("#layer0"), $("#layer1"));
                         caseViewer.DeleteViewsRecursive(orig_view);
                         var new_view = new AssureIt.NodeView(caseViewer, new_model);
-                        caseViewer.ElementTop = new_model;
-                        case0.ElementTop = new_model;
+                        var Parent = orig_model.Parent;
+                        if (Parent != null) {
+                            new_model.Parent = Parent;
+                            for (var j in Parent.Children) {
+                                if (Parent.Children[j].Label == new_model.Label) {
+                                    Parent.Children[j] = new_model;
+                                }
+                            }
+                            new_view.ParentShape = caseViewer.ViewMap[Parent.Label];
+                        } else {
+                            caseViewer.ElementTop = new_model;
+                            case0.ElementTop = new_model;
+                        }
                         (function (model, view) {
                             caseViewer.ViewMap[model.Label] = view;
                             for (var i = 0; i < model.Children.length; i++) {
@@ -122,12 +184,13 @@ var FullScreenEditorActionPlugIn = (function (_super) {
                             if (model.Parent != null)
                                 view.ParentShape = caseViewer.ViewMap[model.Parent.Label];
                         })(new_model, new_view);
-                        new_view.AppendHTMLElementRecursive($("#layer0"), $("#layer1"), caseViewer);
-                        caseViewer.Draw();
                     } else {
                         case0.ElementMap = orig_ElementMap;
                         case0.IdCounters = orig_idCounters;
                     }
+                    caseViewer.Draw();
+
+                    caseViewer.Draw();
 
                     var $this = $(this);
                     self.isDisplayed = false;
@@ -158,8 +221,11 @@ var FullScreenEditorActionPlugIn = (function (_super) {
             };
         }
 
-        $('#background').unbind('dblclick', this.ShowFullScreenEditor);
-        $('#background').dblclick(this.ShowFullScreenEditor);
+        $('#background').unbind('dblclick');
+        $('#background').dblclick(function (ev) {
+            _this.rootModel = case0.ElementTop;
+            _this.ShowFullScreenEditor(ev);
+        });
         return true;
     };
 

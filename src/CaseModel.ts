@@ -145,7 +145,7 @@ module AssureIt {
 	}
 
 	export class Case {
-		IdCounters : number[];
+		IdCounters : any[];
 		ElementTop : NodeModel;
 		ElementMap : { [index: string]: NodeModel};
 
@@ -154,7 +154,7 @@ module AssureIt {
 		isLatest   : boolean = true;
 
 		constructor(public CaseName: string, public CaseId: number, public CommitId: number) {
-			this.IdCounters = [0, 0, 0, 0, 0];
+			this.IdCounters = [{}, {}, {}, {}, {}];
 			this.ElementMap = {};
 		}
 
@@ -185,16 +185,16 @@ module AssureIt {
 				var count = Number(m[0].substring(1));
 				switch (prefix) {
 				case "G":
-					if (this.IdCounters[NodeType["Goal"]] < count) this.IdCounters[NodeType["Goal"]] = count;
+					this.IdCounters[NodeType["Goal"]][String(count)] = true;
 					break;
 				case "C":
-					if (this.IdCounters[NodeType["Context"]] < count) this.IdCounters[NodeType["Context"]] = count;
+					this.IdCounters[NodeType["Context"]][String(count)] = true;
 					break;
 				case "S":
-					if (this.IdCounters[NodeType["Strategy"]] < count) this.IdCounters[NodeType["Strategy"]] = count;
+					this.IdCounters[NodeType["Strategy"]][String(count)] = true;
 					break;
 				case "E":
-					if (this.IdCounters[NodeType["Evidence"]] < count) this.IdCounters[NodeType["Evidence"]] = count;
+					this.IdCounters[NodeType["Evidence"]][String(count)] = true;
 					break;
 				default:
 					console.log("invalid label prefix :" + prefix);
@@ -202,8 +202,12 @@ module AssureIt {
 			}
 		}
 		NewLabel(Type : NodeType) : string {
-			this.IdCounters[Type] += 1;
-			return NodeType[Type].charAt(0) + this.IdCounters[Type];
+			var i: number = 1;
+			while (this.IdCounters[Type][String(i)] != undefined) {
+				i++;
+			}
+			this.IdCounters[Type][String(i)] = true;
+			return NodeType[Type].charAt(0) + i;
 		}
 
 		IsLogin(): boolean {
