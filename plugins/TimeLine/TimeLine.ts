@@ -67,25 +67,26 @@ class TimeLineMenuPlugIn extends AssureIt.MenuBarContentsPlugIn {
 	}
 
 	Delegate(caseViewer: AssureIt.CaseViewer, caseModel: AssureIt.NodeModel, element: JQuery, serverApi: AssureIt.ServerAPI): boolean {
-		element.append('<a href="#" ><img id="timeline" src="' + serverApi.basepath + 'images/icon.png" title="TimeLine" alt="timeline" /></a>');
-		$('#timeline').unbind('click');
-		$('#timeline').click((ev: Event) => {
+		var loc = serverApi.basepath + "case/" + caseModel.Case.CaseId + "/history";
+		element.append('<a href="'+ loc +'" ><img id="timeline" src="' + serverApi.basepath + 'images/icon.png" title="History" alt="history" /></a>');
+		//$('#timeline').unbind('click');
+		//$('#timeline').click((ev: Event) => {
 
-			var timeline = new TimeLine(caseViewer, caseModel, element, serverApi);
-			if(this.visible) {
-				timeline.Enable(() => {this.visible = true; });
-				this.visible = false;
-			}else {
-				timeline.Disable(() =>{
-					this.visible = true;
-				});
-			}
-			$('#background').click((ev: Event) => {
-				timeline.Disable(() =>{
-					this.visible = true;
-				});
-			});
-		});
+		//	var timeline = new TimeLine(caseViewer, caseModel, element, serverApi);
+		//	if(this.visible) {
+		//		timeline.Enable(() => {this.visible = true; });
+		//		this.visible = false;
+		//	}else {
+		//		timeline.Disable(() =>{
+		//			this.visible = true;
+		//		});
+		//	}
+		//	$('#background').click((ev: Event) => {
+		//		timeline.Disable(() =>{
+		//			this.visible = true;
+		//		});
+		//	});
+		//});
 		return true;
 	}
 }

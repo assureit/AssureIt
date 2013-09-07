@@ -69,27 +69,9 @@ var TimeLineMenuPlugIn = (function (_super) {
     };
 
     TimeLineMenuPlugIn.prototype.Delegate = function (caseViewer, caseModel, element, serverApi) {
-        var _this = this;
-        element.append('<a href="#" ><img id="timeline" src="' + serverApi.basepath + 'images/icon.png" title="TimeLine" alt="timeline" /></a>');
-        $('#timeline').unbind('click');
-        $('#timeline').click(function (ev) {
-            var timeline = new TimeLine(caseViewer, caseModel, element, serverApi);
-            if (_this.visible) {
-                timeline.Enable(function () {
-                    _this.visible = true;
-                });
-                _this.visible = false;
-            } else {
-                timeline.Disable(function () {
-                    _this.visible = true;
-                });
-            }
-            $('#background').click(function (ev) {
-                timeline.Disable(function () {
-                    _this.visible = true;
-                });
-            });
-        });
+        var loc = serverApi.basepath + "case/" + caseModel.Case.CaseId + "/history";
+        element.append('<a href="' + loc + '" ><img id="timeline" src="' + serverApi.basepath + 'images/icon.png" title="TimeLine" alt="timeline" /></a>');
+
         return true;
     };
     return TimeLineMenuPlugIn;

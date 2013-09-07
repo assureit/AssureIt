@@ -27,4 +27,5 @@ src/PlugInManager.ts
 src/SelectComponent.ts
 src/ServerApi.ts
 src/RecApi.ts
+src/CommitModel.ts
 test/CaseDecoderTest.ts
