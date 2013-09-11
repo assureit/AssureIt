@@ -357,6 +357,10 @@ var AssureIt;
             this.SVGShape.Resize(this.CaseViewer, this.Source, this.HTMLDoc);
         };
 
+        NodeView.prototype.Height = function () {
+            return this.HTMLDoc.Height;
+        };
+
         NodeView.prototype.Update = function () {
             this.Resize();
             this.HTMLDoc.SetPosition(this.AbsX, this.AbsY);

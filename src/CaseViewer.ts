@@ -355,6 +355,10 @@ module AssureIt {
 			this.SVGShape.Resize(this.CaseViewer, this.Source, this.HTMLDoc);
 		}
 
+		Height(): number {
+			return this.HTMLDoc.Height;
+		}
+
 		Update(): void {
 			this.Resize();
 			this.HTMLDoc.SetPosition(this.AbsX, this.AbsY);
