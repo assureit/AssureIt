@@ -53,8 +53,8 @@ var LayoutPortraitEnginePlugIn = (function (_super) {
         ContextView.IsArrowWhite = true;
         ContextView.AbsX = (ParentView.AbsX + this.X_CONTEXT_MARGIN);
         if (ParentView.Source.Type == AssureIt.NodeType.Evidence) {
-            var ContextHeight = ContextView.HTMLDoc.Height;
-            var ParentHeight = ParentView.HTMLDoc.Height;
+            var ContextHeight = ContextView.Height();
+            var ParentHeight = ParentView.Height();
             var HeightDiffAve = (ParentHeight - ContextHeight) / 2;
             ContextView.AbsY = ParentView.AbsY + HeightDiffAve;
         } else {
@@ -234,8 +234,8 @@ var LayoutPortraitEnginePlugIn = (function (_super) {
         if (i != -1) {
             var ContextView = this.ViewMap[Element.Children[i].Label];
             var ParentView = ContextView.ParentShape;
-            var h1 = ContextView.HTMLDoc.Height;
-            var h2 = ParentView.HTMLDoc.Height;
+            var h1 = ContextView.Height();
+            var h2 = ParentView.Height();
             var h = (h1 - h2) / 2;
             ContextView.AbsX += x;
             ContextView.AbsY += (y - h);
@@ -244,7 +244,7 @@ var LayoutPortraitEnginePlugIn = (function (_super) {
         } else {
             var h2 = 0;
             var CurrentView = this.ViewMap[Element.Label];
-            h2 = CurrentView.HTMLDoc.Height;
+            h2 = CurrentView.Height();
             this.EmitChildrenElement(Element, x, y, i, h2);
         }
     };
@@ -257,12 +257,12 @@ var LayoutPortraitEnginePlugIn = (function (_super) {
             var j = this.GetContextIndex(Node.Children[i]);
             var ContextHeight = 0;
             if (j != -1) {
-                ContextHeight = this.ViewMap[Node.Children[i].Children[j].Label].HTMLDoc.Height;
+                ContextHeight = this.ViewMap[Node.Children[i].Children[j].Label].Height();
             }
             if (ContextId == i) {
                 continue;
             } else {
-                var height = (ContextHeight > ElementView.HTMLDoc.Height) ? ContextHeight : ElementView.HTMLDoc.Height;
+                var height = (ContextHeight > ElementView.Height()) ? ContextHeight : ElementView.Height();
                 var ParentElementView = this.ViewMap[Node.Label];
                 ElementView.AbsY = y;
                 ElementView.AbsY = y + this.Y_MARGIN + h;
