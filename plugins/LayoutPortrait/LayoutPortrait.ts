@@ -1,6 +1,7 @@
 /// <reference path="../../src/CaseModel.ts" />
 /// <reference path="../../src/ServerApi.ts" />
 /// <reference path="../../src/PlugInManager.ts" />
+/// <reference path="../../d.ts/underscore.d.ts" />
 
 class LayoutPortraitPlugIn extends AssureIt.PlugInSet {
 
@@ -155,42 +156,30 @@ class LayoutPortraitEnginePlugIn extends AssureIt.LayoutEnginePlugIn {
 		return xPosition;
 	}
 
-	GetSameParentLabel(PreviousNodeView: AssureIt.NodeView, CurrentNodeView: AssureIt.NodeView): string {
-		var PreviousParentShape: AssureIt.NodeView = PreviousNodeView.ParentShape;
-		var CurrentParentShape : AssureIt.NodeView = CurrentNodeView.ParentShape;
-		var PreviousParentArray: string[] = [];
-		var CurrentParentArray: string[] = [];
+	GetSameParent(LeftNodeView: AssureIt.NodeView, RightNodeView: AssureIt.NodeView): AssureIt.NodeView {
+		var left: AssureIt.NodeView = LeftNodeView;
 
-		while(PreviousParentShape != null) {
-			PreviousParentArray.push(PreviousParentShape.Source.Label);
-			PreviousParentShape = PreviousParentShape.ParentShape;
-		}
-		while(CurrentParentShape != null) {
-			CurrentParentArray.push(CurrentParentShape.Source.Label);
-			CurrentParentShape = CurrentParentShape.ParentShape;
-		}
-		var PreviousParentLength: number = PreviousParentArray.length;
-		var CurrentParentLength : number  = CurrentParentArray.length;
-		for(var i: number = 0; i < PreviousParentLength; i++) {
-			for(var j: number = 0; j < CurrentParentLength; j++) {
-				if(PreviousParentArray[i] == CurrentParentArray[j]) {
-					return PreviousParentArray[i];
+		while(left != null) {
+			var right: AssureIt.NodeView = RightNodeView;
+			while(right != null) {
+				if(left.Source.Label == right.Source.Label) {
+					return left;
 				}
+				right = right.ParentShape;
 			}
+			left = left.ParentShape;
 		}
+		throw "Cannot find same parent";
 		return null;
 	}
 
-	HasContextinParentNode(PreviousNodeView: AssureIt.NodeView, SameParentLabel: string): boolean {
-		var PreviousParentShape: AssureIt.NodeView = PreviousNodeView.ParentShape;
-		while(PreviousParentShape != null) {
-			if(PreviousParentShape.Source.Label == SameParentLabel) {
-				break;
-			}
-			if(this.GetContextIndex(PreviousParentShape.Source) != -1) {
+	HasContextinParentNode(OrigNodeView: AssureIt.NodeView, DestNodeView: AssureIt.NodeView): boolean {
+		var destLabel: string = DestNodeView.Source.Label;
+
+		for(var it : AssureIt.NodeView = OrigNodeView.ParentShape; it.Source.Label != destLabel; it = it.ParentShape) {
+			if(this.GetContextIndex(it.Source) != -1) {
 				return true;
 			}
-			PreviousParentShape = PreviousParentShape.ParentShape;
 		}
 		return false;
 	}
@@ -202,8 +191,8 @@ class LayoutPortraitEnginePlugIn extends AssureIt.LayoutEnginePlugIn {
 			var CurrentNodeView: AssureIt.NodeView = this.ViewMap[this.footelement[i]];
 			CurrentNodeView.AbsX = 0;
 			if (i != 0) {
-				var SameParentLabel: string = this.GetSameParentLabel(PreviousNodeView, CurrentNodeView);
-				var HasContext: boolean = this.HasContextinParentNode(PreviousNodeView, SameParentLabel);
+				var SameParent: AssureIt.NodeView = this.GetSameParent(PreviousNodeView, CurrentNodeView);
+				var HasContext: boolean = this.HasContextinParentNode(PreviousNodeView, SameParent);
 				if ((PreviousNodeView.ParentShape.Source.Label != CurrentNodeView.ParentShape.Source.Label) && HasContext) {
 					var PreviousParentChildren: AssureIt.NodeModel[] = PreviousNodeView.ParentShape.Source.Children;
 					var Min_xPosition: number = this.CalculateMinPosition(PreviousParentChildren);

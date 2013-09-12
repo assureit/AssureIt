@@ -150,42 +150,29 @@ var LayoutPortraitEnginePlugIn = (function (_super) {
         return xPosition;
     };
 
-    LayoutPortraitEnginePlugIn.prototype.GetSameParentLabel = function (PreviousNodeView, CurrentNodeView) {
-        var PreviousParentShape = PreviousNodeView.ParentShape;
-        var CurrentParentShape = CurrentNodeView.ParentShape;
-        var PreviousParentArray = [];
-        var CurrentParentArray = [];
+    LayoutPortraitEnginePlugIn.prototype.GetSameParent = function (LeftNodeView, RightNodeView) {
+        var left = LeftNodeView;
 
-        while (PreviousParentShape != null) {
-            PreviousParentArray.push(PreviousParentShape.Source.Label);
-            PreviousParentShape = PreviousParentShape.ParentShape;
-        }
-        while (CurrentParentShape != null) {
-            CurrentParentArray.push(CurrentParentShape.Source.Label);
-            CurrentParentShape = CurrentParentShape.ParentShape;
-        }
-        var PreviousParentLength = PreviousParentArray.length;
-        var CurrentParentLength = CurrentParentArray.length;
-        for (var i = 0; i < PreviousParentLength; i++) {
-            for (var j = 0; j < CurrentParentLength; j++) {
-                if (PreviousParentArray[i] == CurrentParentArray[j]) {
-                    return PreviousParentArray[i];
+        while (left != null) {
+            var right = RightNodeView;
+            while (right != null) {
+                if (left.Source.Label == right.Source.Label) {
+                    return left;
                 }
+                right = right.ParentShape;
             }
+            left = left.ParentShape;
         }
         return null;
     };
 
-    LayoutPortraitEnginePlugIn.prototype.HasContextinParentNode = function (PreviousNodeView, SameParentLabel) {
-        var PreviousParentShape = PreviousNodeView.ParentShape;
-        while (PreviousParentShape != null) {
-            if (PreviousParentShape.Source.Label == SameParentLabel) {
-                break;
-            }
-            if (this.GetContextIndex(PreviousParentShape.Source) != -1) {
+    LayoutPortraitEnginePlugIn.prototype.HasContextinParentNode = function (OrigNodeView, DestNodeView) {
+        var destLabel = DestNodeView.Source.Label;
+
+        for (var it = OrigNodeView.ParentShape; it.Source.Label != destLabel; it = it.ParentShape) {
+            if (this.GetContextIndex(it.Source) != -1) {
                 return true;
             }
-            PreviousParentShape = PreviousParentShape.ParentShape;
         }
         return false;
     };
@@ -197,8 +184,8 @@ var LayoutPortraitEnginePlugIn = (function (_super) {
             var CurrentNodeView = this.ViewMap[this.footelement[i]];
             CurrentNodeView.AbsX = 0;
             if (i != 0) {
-                var SameParentLabel = this.GetSameParentLabel(PreviousNodeView, CurrentNodeView);
-                var HasContext = this.HasContextinParentNode(PreviousNodeView, SameParentLabel);
+                var SameParent = this.GetSameParent(PreviousNodeView, CurrentNodeView);
+                var HasContext = this.HasContextinParentNode(PreviousNodeView, SameParent);
                 if ((PreviousNodeView.ParentShape.Source.Label != CurrentNodeView.ParentShape.Source.Label) && HasContext) {
                     var PreviousParentChildren = PreviousNodeView.ParentShape.Source.Children;
                     var Min_xPosition = this.CalculateMinPosition(PreviousParentChildren);

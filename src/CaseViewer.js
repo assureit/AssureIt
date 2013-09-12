@@ -361,6 +361,10 @@ var AssureIt;
             return this.HTMLDoc.Height;
         };
 
+        NodeView.prototype.Label = function () {
+            return this.Source.Label;
+        };
+
         NodeView.prototype.Update = function () {
             this.Resize();
             this.HTMLDoc.SetPosition(this.AbsX, this.AbsY);

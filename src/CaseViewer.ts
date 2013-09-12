@@ -359,6 +359,10 @@ module AssureIt {
 			return this.HTMLDoc.Height;
 		}
 
+		Label(): string {
+			return this.Source.Label;
+		}
+
 		Update(): void {
 			this.Resize();
 			this.HTMLDoc.SetPosition(this.AbsX, this.AbsY);
