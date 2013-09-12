@@ -52,15 +52,10 @@ class LayoutPortraitEnginePlugIn extends AssureIt.LayoutEnginePlugIn {
 		var ContextView: AssureIt.NodeView = this.ViewMap[ContextElement.Label];
 		var ParentView: AssureIt.NodeView = ContextView.ParentShape;
 		ContextView.IsArrowWhite = true;
-		ContextView.AbsX = (ParentView.AbsX + this.X_CONTEXT_MARGIN);
+		ContextView.AbsX = ParentView.AbsX + this.X_CONTEXT_MARGIN;
+		ContextView.AbsY = ParentView.AbsY;
 		if(ParentView.Source.Type == AssureIt.NodeType.Evidence) {
-			var ContextHeight: number = ContextView.Height();
-			var ParentHeight:  number = ParentView.Height();
-			var HeightDiffAve: number = (ParentHeight - ContextHeight) / 2;
-			ContextView.AbsY = ParentView.AbsY + HeightDiffAve;
-		}
-		else {
-			ContextView.AbsY = ParentView.AbsY;
+			ContextView.AbsY += (ParentView.Height() - ContextView.Height()) / 2;
 		}
 	}
 

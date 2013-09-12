@@ -51,14 +51,10 @@ var LayoutPortraitEnginePlugIn = (function (_super) {
         var ContextView = this.ViewMap[ContextElement.Label];
         var ParentView = ContextView.ParentShape;
         ContextView.IsArrowWhite = true;
-        ContextView.AbsX = (ParentView.AbsX + this.X_CONTEXT_MARGIN);
+        ContextView.AbsX = ParentView.AbsX + this.X_CONTEXT_MARGIN;
+        ContextView.AbsY = ParentView.AbsY;
         if (ParentView.Source.Type == AssureIt.NodeType.Evidence) {
-            var ContextHeight = ContextView.Height();
-            var ParentHeight = ParentView.Height();
-            var HeightDiffAve = (ParentHeight - ContextHeight) / 2;
-            ContextView.AbsY = ParentView.AbsY + HeightDiffAve;
-        } else {
-            ContextView.AbsY = ParentView.AbsY;
+            ContextView.AbsY += (ParentView.Height() - ContextView.Height()) / 2;
         }
     };
 
