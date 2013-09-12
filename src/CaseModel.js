@@ -94,15 +94,15 @@ var AssureIt;
             return null;
         };
 
-        NodeModel.prototype.eachChildren = function (f) {
+        NodeModel.prototype.EachChildren = function (f) {
             for (var i = 0; i < this.Children.length; i++) {
                 f(i, this.Children[i]);
             }
         };
 
-        NodeModel.prototype.traverse = function (f) {
+        NodeModel.prototype.Traverse = function (f) {
             function traverse_(n, f) {
-                n.eachChildren(function (i, v) {
+                n.EachChildren(function (i, v) {
                     f(i, v);
                     traverse_(v, f);
                 });
@@ -120,6 +120,47 @@ var AssureIt;
                 this.Children[i].SearchNode(keyword, HitNodes);
             }
             return HitNodes;
+        };
+
+        NodeModel.prototype.GetParents = function (dest) {
+            var ret = [];
+            if (dest == null) {
+                dest = this.Case.ElementTop;
+            }
+            for (var it = this.Parent; it != null; it = it.Parent) {
+                ret.push(it);
+                if (it.Label == dest.Label) {
+                    return ret;
+                }
+            }
+            return ret;
+        };
+
+        NodeModel.prototype.GetContexts = function () {
+            return _.filter(this.Children, function (it) {
+                return it.Type == NodeType.Context;
+            });
+        };
+
+        NodeModel.prototype.HasContext = function () {
+            return this.GetContexts().length > 0;
+        };
+
+        NodeModel.prototype.HasContextAbove = function (dest) {
+            if (dest == null) {
+                dest = this.Case.ElementTop;
+            }
+            return _.reduce(_.map(this.GetParents(), function (it) {
+                return it.HasContext();
+            }), function (memo, it) {
+                return memo || it;
+            }, false);
+        };
+
+        NodeModel.prototype.GetChildrenWithoutContext = function () {
+            return _.filter(this.Children, function (it) {
+                return it.Type != NodeType.Context;
+            });
         };
 
         NodeModel.prototype.InvokePatternPlugInRecursive = function (model) {

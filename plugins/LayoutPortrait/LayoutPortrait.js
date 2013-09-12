@@ -163,18 +163,8 @@ var LayoutPortraitEnginePlugIn = (function (_super) {
             }
             left = left.ParentShape;
         }
+        throw "Cannot find same parent";
         return null;
-    };
-
-    LayoutPortraitEnginePlugIn.prototype.HasContextinParentNode = function (OrigNodeView, DestNodeView) {
-        var destLabel = DestNodeView.Source.Label;
-
-        for (var it = OrigNodeView.ParentShape; it.Source.Label != destLabel; it = it.ParentShape) {
-            if (this.GetContextIndex(it.Source) != -1) {
-                return true;
-            }
-        }
-        return false;
     };
 
     LayoutPortraitEnginePlugIn.prototype.SetFootElementPosition = function () {
@@ -185,7 +175,7 @@ var LayoutPortraitEnginePlugIn = (function (_super) {
             CurrentNodeView.AbsX = 0;
             if (i != 0) {
                 var SameParent = this.GetSameParent(PreviousNodeView, CurrentNodeView);
-                var HasContext = this.HasContextinParentNode(PreviousNodeView, SameParent);
+                var HasContext = PreviousNodeView.Source.HasContextAbove(SameParent.Source);
                 if ((PreviousNodeView.ParentShape.Source.Label != CurrentNodeView.ParentShape.Source.Label) && HasContext) {
                     var PreviousParentChildren = PreviousNodeView.ParentShape.Source.Children;
                     var Min_xPosition = this.CalculateMinPosition(PreviousParentChildren);
@@ -197,7 +187,7 @@ var LayoutPortraitEnginePlugIn = (function (_super) {
                         CurrentNodeView.AbsX += this.X_CONTEXT_MARGIN - HalfChildrenWidth;
                     }
                 }
-                if (this.GetContextIndex(PreviousNodeView.Source) != -1 && (CurrentNodeView.AbsX - PreviousNodeView.AbsX) < this.X_MARGIN) {
+                if (PreviousNodeView.Source.HasContext() && (CurrentNodeView.AbsX - PreviousNodeView.AbsX) < this.X_MARGIN) {
                     CurrentNodeView.AbsX += this.X_MARGIN;
                 }
 

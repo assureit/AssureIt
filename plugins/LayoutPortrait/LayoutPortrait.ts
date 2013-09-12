@@ -173,17 +173,6 @@ class LayoutPortraitEnginePlugIn extends AssureIt.LayoutEnginePlugIn {
 		return null;
 	}
 
-	HasContextinParentNode(OrigNodeView: AssureIt.NodeView, DestNodeView: AssureIt.NodeView): boolean {
-		var destLabel: string = DestNodeView.Source.Label;
-
-		for(var it : AssureIt.NodeView = OrigNodeView.ParentShape; it.Source.Label != destLabel; it = it.ParentShape) {
-			if(this.GetContextIndex(it.Source) != -1) {
-				return true;
-			}
-		}
-		return false;
-	}
-
 	SetFootElementPosition(): void {
 		var n: number = this.footelement.length;
 		for (var i: number = 0; i < n; i++) {
@@ -192,7 +181,7 @@ class LayoutPortraitEnginePlugIn extends AssureIt.LayoutEnginePlugIn {
 			CurrentNodeView.AbsX = 0;
 			if (i != 0) {
 				var SameParent: AssureIt.NodeView = this.GetSameParent(PreviousNodeView, CurrentNodeView);
-				var HasContext: boolean = this.HasContextinParentNode(PreviousNodeView, SameParent);
+				var HasContext: boolean = PreviousNodeView.Source.HasContextAbove(SameParent.Source);
 				if ((PreviousNodeView.ParentShape.Source.Label != CurrentNodeView.ParentShape.Source.Label) && HasContext) {
 					var PreviousParentChildren: AssureIt.NodeModel[] = PreviousNodeView.ParentShape.Source.Children;
 					var Min_xPosition: number = this.CalculateMinPosition(PreviousParentChildren);
@@ -205,7 +194,7 @@ class LayoutPortraitEnginePlugIn extends AssureIt.LayoutEnginePlugIn {
 						CurrentNodeView.AbsX +=  this.X_CONTEXT_MARGIN - HalfChildrenWidth;
 					}
 				}
-				if (this.GetContextIndex(PreviousNodeView.Source) != -1 && (CurrentNodeView.AbsX - PreviousNodeView.AbsX) < this.X_MARGIN) {
+				if (PreviousNodeView.Source.HasContext() && (CurrentNodeView.AbsX - PreviousNodeView.AbsX) < this.X_MARGIN) {
 					CurrentNodeView.AbsX += this.X_MARGIN;
 				}
 

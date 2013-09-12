@@ -104,15 +104,15 @@ module AssureIt {
 			return null;
 		}
 
-		eachChildren(f: (i: number, v: NodeModel) => void): void { //FIXME
+		EachChildren(f: (i: number, v: NodeModel) => void): void { //FIXME
 			for(var i: number = 0; i < this.Children.length; i++) {
 				f(i, this.Children[i]);
 			}
 		}
 
-		traverse(f: (i: number, v: NodeModel) => void): void {
+		Traverse(f: (i: number, v: NodeModel) => void): void {
 			function traverse_(n: NodeModel, f: (i: number, v: NodeModel) => void): void {
-				n.eachChildren((i: number, v: NodeModel) => {
+				n.EachChildren((i: number, v: NodeModel) => {
 					f(i, v);
 					traverse_(v, f)
 				});
@@ -132,6 +132,38 @@ module AssureIt {
 			return HitNodes;
 		}
 
+		GetParents(dest?: NodeModel): NodeModel[] {
+			var ret: NodeModel[] = [];
+			if(dest == null) {
+				dest = this.Case.ElementTop;
+			}
+			for(var it : NodeModel = this.Parent; it != null; it = it.Parent) {
+				ret.push(it);
+				if(it.Label == dest.Label) {
+					return ret;
+				}
+			}
+			return ret;
+		}
+
+		GetContexts(): NodeModel[] {
+			return _.filter(this.Children, (it: NodeModel)=>{ return it.Type == NodeType.Context; });
+		}
+
+		HasContext(): boolean {
+			return this.GetContexts().length > 0;
+		}
+
+		HasContextAbove(dest?: NodeModel): boolean {
+			if(dest == null) {
+				dest = this.Case.ElementTop;
+			}
+			return _.reduce(_.map(this.GetParents(), (it) =>{ return it.HasContext(); }), (memo, it) => { return memo || it }, false);
+		}
+
+		GetChildrenWithoutContext(): NodeModel[] {
+			return _.filter(this.Children, (it: NodeModel)=>{ return it.Type != NodeType.Context; });
+		}
 		/* plug-In */
 		private InvokePatternPlugInRecursive(model: NodeModel) : void {
 			var pluginMap : { [index: string]: PatternPlugIn} = this.Case.pluginManager.PatternPlugInMap;

@@ -135,7 +135,7 @@ var ExportActionPlugIn = (function (_super) {
         var $svg = $('<svg width="100%" height="100%" version="1.1" xmlns="' + SVG_NS + '">');
         $svg.append($("svg defs").clone(false));
         var $target = $(document.createElementNS(SVG_NS, "g")).appendTo($svg);
-        Element.traverse(function (i, node) {
+        Element.Traverse(function (i, node) {
             var nodeView = viewMap[node.Label];
             var svg = nodeView.SVGShape.GetSVG();
             var div = nodeView.HTMLDoc.DocBase[0];
