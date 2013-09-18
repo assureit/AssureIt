@@ -1,7 +1,6 @@
 /// <reference path="../../src/CaseModel.ts" />
 /// <reference path="../../src/PlugInManager.ts" />
 
-
 class DScriptActionMap {
 	ActionMap : { [key: string]: string;}[];
 	ContextArray: string[];
@@ -26,7 +25,7 @@ class DScriptActionMap {
 		var Parent: AssureIt.NodeModel = Context.Parent;
 		for(var i: number = 0; i < Parent.Children.length; i++) {
 			var Child: AssureIt.NodeModel = Parent.Children[i];
-			if(Child.Type == AssureIt.NodeType.Evidence) {
+			if(Child.Type != AssureIt.NodeType.Context) {
 				return Child.Label;
 			}
 		}

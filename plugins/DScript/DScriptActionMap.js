@@ -18,7 +18,7 @@ var DScriptActionMap = (function () {
         var Parent = Context.Parent;
         for (var i = 0; i < Parent.Children.length; i++) {
             var Child = Parent.Children[i];
-            if (Child.Type == AssureIt.NodeType.Evidence) {
+            if (Child.Type != AssureIt.NodeType.Context) {
                 return Child.Label;
             }
         }
