@@ -5,11 +5,37 @@ var DScriptActionMap = (function () {
     }
     DScriptActionMap.prototype.GetContextLabel = function (Element) {
         for (var i = 0; i < Element.Children.length; i++) {
-            if (Element.Children[i].Type == AssureIt.NodeType.Context) {
-                this.ContextArray.push(Element.Children[i].Label);
+            var Children = Element.Children[i];
+            if (Children.Type == AssureIt.NodeType.Context) {
+                this.ContextArray.push(Children.Label);
             }
-            console.log(Element.Children[i].Label);
-            this.GetContextLabel(Element.Children[i]);
+            this.GetContextLabel(Children);
+        }
+        return;
+    };
+
+    DScriptActionMap.prototype.GetReaction = function (Context) {
+        var Parent = Context.Parent;
+        for (var i = 0; i < Parent.Children.length; i++) {
+            var Child = Parent.Children[i];
+            if (Child.Type == AssureIt.NodeType.Evidence) {
+                return Child.Label;
+            }
+        }
+        return "";
+    };
+
+    DScriptActionMap.prototype.GetAction = function (Context) {
+        var NotesKeys = Object.keys(Context.Notes);
+        var Action = "";
+        var Reaction = "";
+
+        for (var i = 0; i < NotesKeys.length; i++) {
+            if (NotesKeys[i] == "Reaction") {
+                Action = Context.Notes["Reaction"];
+                Reaction = this.GetReaction(Context);
+                this.ActionMap[Action] = Reaction;
+            }
         }
         return;
     };
@@ -18,21 +44,12 @@ var DScriptActionMap = (function () {
         this.GetContextLabel(Node);
         for (var i = 0; i < this.ContextArray.length; i++) {
             var Context = ViewMap[this.ContextArray[i]];
-            console.log(Context);
             if (Context.Annotations.length > 0) {
-                console.log(Context.Annotations.length);
-                console.log(Context.Annotations[0].Name);
-                console.log(Context.Notes);
-                var NotesKeys = Object.keys(Context.Notes);
-                for (var i = 0; i < NotesKeys.length; i++) {
-                    if (NotesKeys[i] == "Reaction") {
-                        console.log("This is registered.");
-                        console.log(Context.Notes[NotesKeys[i]]);
-                    }
-                }
-                console.log(Object.keys(Context.Notes));
+                this.GetAction(Context);
             }
-            ;
+        }
+        for (var key in this.ActionMap) {
+            console.log(key + " : " + this.ActionMap[key]);
         }
         return;
     };
