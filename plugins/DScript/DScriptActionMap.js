@@ -41,6 +41,7 @@ var DScriptActionMap = (function () {
     };
 
     DScriptActionMap.prototype.GetActionMap = function (ViewMap, Node, ASNData) {
+        var ActionMapScript = "";
         this.GetContextLabel(Node);
         for (var i = 0; i < this.ContextArray.length; i++) {
             var Context = ViewMap[this.ContextArray[i]];
@@ -50,8 +51,9 @@ var DScriptActionMap = (function () {
         }
         for (var key in this.ActionMap) {
             console.log(key + " : " + this.ActionMap[key]);
+            ActionMapScript += key + " : " + this.ActionMap[key] + "\n";
         }
-        return;
+        return ActionMapScript;
     };
     return DScriptActionMap;
 })();

@@ -48,7 +48,8 @@ class DScriptActionMap {
 		return;
 	}
 
-	GetActionMap(ViewMap: {[index: string]: AssureIt.NodeModel }, Node: AssureIt.NodeModel, ASNData: string): void {
+	GetActionMap(ViewMap: {[index: string]: AssureIt.NodeModel }, Node: AssureIt.NodeModel, ASNData: string): string {
+		var ActionMapScript: string = "";
 		this.GetContextLabel(Node);
 		for(var i: number = 0; i < this.ContextArray.length; i++) {
 			var Context: AssureIt.NodeModel = ViewMap[this.ContextArray[i]];
@@ -58,7 +59,8 @@ class DScriptActionMap {
 		}
 		for(var key in this.ActionMap) {
 			console.log(key + " : " + this.ActionMap[key]);
+			ActionMapScript += key + " : " + this.ActionMap[key] + "\n";
 		}
-		return;
+		return ActionMapScript;
 	}
 }

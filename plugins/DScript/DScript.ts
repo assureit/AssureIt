@@ -84,6 +84,7 @@ class DScriptMenuPlugIn extends AssureIt.MenuBarContentsPlugIn {
 				}, 1300);
 				this.editorPlugIn.editor_left.refresh();
 				this.editorPlugIn.editor_right.refresh();
+				this.editorPlugIn.editor_bottom.refresh();
 		});
 		return true;
 	}
@@ -104,8 +105,8 @@ class DScriptEditorPlugIn extends AssureIt.ActionPlugIn {
 		//			$('<textarea id="dscript-editor-left"  placeholder=""></textarea>')));
 		//$("#dscript-editor-wrapper").append($('<div></div>').append(
 		//			$('<textarea id="dscript-editor-right"  placeholder="Generated DScript code goes here."></textarea>')));
-		//$("#dscript-editor-wrapper").append($('<div></div>').append(
-		//			$('<textarea id="dscript-editor-bottom"  placeholder="Generated shell code goes here."></textarea>')));
+		$("#dscript-editor-wrapper").append($('<div></div>').append(
+					$('<textarea id="dscript-editor-bottom"  placeholder="Generated shell code goes here."></textarea>')));
 
 		this.editor_left = CodeMirror.fromTextArea(document.getElementById('dscript-editor-left'), {
 			lineNumbers: true,
@@ -119,13 +120,13 @@ class DScriptEditorPlugIn extends AssureIt.ActionPlugIn {
 			placeholder: "Generated DScript code goes here.",
 			lineWrapping: true,
 		});
-		//this.editor_bottom = CodeMirror.fromTextArea(document.getElementById('dscript-editor-bottom'), {
-		//	lineNumbers: true,
-		//	mode: "text/x-csrc",
-		//	readOnly: true,
-		//	placeholder: "Generated Shell code goes here.",
-		//	lineWrapping: true,
-		//});
+		this.editor_bottom = CodeMirror.fromTextArea(document.getElementById('dscript-editor-bottom'), {
+			lineNumbers: true,
+			mode: "text/x-csrc",
+			readOnly: true,
+			placeholder: "Map goes here.",
+			lineWrapping: true,
+		});
 
 		$('#dscript-editor-wrapper').css({
 			position: 'absolute',
@@ -146,31 +147,30 @@ class DScriptEditorPlugIn extends AssureIt.ActionPlugIn {
 			width: '100%',
 			height: '100%',
 		});
-		//$(this.editor_bottom.getWrapperElement()).css({
-		//	width: '100%',
-		//	height: '100%',
-		//});
+		$(this.editor_bottom.getWrapperElement()).css({
+			width: '100%',
+			height: '100%',
+		});
 		$('#dscript-editor-left').parent()
 			.css({
 				width: '50%',
-				height: '100%',
+				height: '50%',
 				float: 'left',
 				display: 'block',
 			});
 		$('#dscript-editor-right').parent()
 			.css({
 				width: '50%',
-				height: '100%',
+				height: '50%',
 				float: 'right',
 				display: 'block',
 			});
-		//$('#dscript-editor-bottom').parent()
-		//	.css({
-		//		width: '50%',
-		//		height: '50%',
-		//		float: 'right',
-		//		display: 'block',
-		//	});
+		$('#dscript-editor-bottom').parent()
+			.css({
+				width: '50%',
+				height: '50%',
+				display: 'block',
+			});
 
 		this.highlighter = new ErrorHighlight(this.editor_left)
 		var self = this;
@@ -229,15 +229,17 @@ class DScriptEditorPlugIn extends AssureIt.ActionPlugIn {
 			this.rootCaseModel = caseModel;
 			this.highlighter.ClearHighlight();
 			var Generator: DScriptGenerator = new DScriptGenerator();
+			var script: string = Generator.codegen(caseModel, ASNData);
 //--------------------------------------------------------------------
 			var DScriptMap: DScriptActionMap = new DScriptActionMap();
-			DScriptMap.GetActionMap(orig_ElementMap, caseModel, ASNData);
+			var ActionMapScript: string = DScriptMap.GetActionMap(orig_ElementMap, caseModel, ASNData);
 //--------------------------------------------------------------------
-			var script: string = Generator.codegen(caseModel, ASNData);
 			this.updateLineComment(this.editor_left, this.widgets, Generator);
 			this.editor_right.setValue(script);
+			this.editor_bottom.setValue(ActionMapScript);
 		}
 		this.editor_left.refresh();
 		this.editor_right.refresh();
+		this.editor_bottom.refresh();
 	}
 }
