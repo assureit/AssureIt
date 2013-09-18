@@ -8,6 +8,7 @@ plugins/SearchNode/SearchNode.ts
 plugins/SimplePattern/SimplePattern.ts
 plugins/DScript/DScript.ts
 plugins/DScript/DScriptGenerator.ts
+plugins/DScript/DScriptActionMap.ts
 plugins/FullScreenEditor/FullScreenEditor.ts
 plugins/MenuBar/MenuBar.ts
 plugins/Monitor/Monitor.ts

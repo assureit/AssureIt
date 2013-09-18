@@ -3,6 +3,8 @@
 /// <reference path="../../src/PlugInManager.ts" />
 /// <reference path="../../src/EditorUtil.ts" />
 /// <reference path="./DScriptGenerator.ts" />
+/// <reference path="./DScriptActionMap.ts" />
+
 
 class DScriptPlugIn extends AssureIt.PlugInSet {
 
@@ -227,6 +229,10 @@ class DScriptEditorPlugIn extends AssureIt.ActionPlugIn {
 			this.rootCaseModel = caseModel;
 			this.highlighter.ClearHighlight();
 			var Generator: DScriptGenerator = new DScriptGenerator();
+//--------------------------------------------------------------------
+			var DScriptMap: DScriptActionMap = new DScriptActionMap();
+			DScriptMap.GetActionMap(orig_ElementMap, caseModel, ASNData);
+//--------------------------------------------------------------------
 			var script: string = Generator.codegen(caseModel, ASNData);
 			this.updateLineComment(this.editor_left, this.widgets, Generator);
 			this.editor_right.setValue(script);

@@ -191,6 +191,10 @@ var DScriptEditorPlugIn = (function (_super) {
             this.rootCaseModel = caseModel;
             this.highlighter.ClearHighlight();
             var Generator = new DScriptGenerator();
+
+            var DScriptMap = new DScriptActionMap();
+            DScriptMap.GetActionMap(orig_ElementMap, caseModel, ASNData);
+
             var script = Generator.codegen(caseModel, ASNData);
             this.updateLineComment(this.editor_left, this.widgets, Generator);
             this.editor_right.setValue(script);
