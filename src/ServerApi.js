@@ -1,6 +1,10 @@
+///<reference path='../d.ts/jquery.d.ts'/>
+///<reference path='./CaseModel.ts'/>
+///<reference path='./CommitModel.ts'/>
 var AssureIt;
 (function (AssureIt) {
     var default_success_callback = function (result) {
+        // do nothing
     };
 
     var default_error_callback = function (req, stat, err) {
@@ -8,11 +12,15 @@ var AssureIt;
     };
 
     var ServerAPI = (function () {
-        function ServerAPI(basepath, recpath) {
+        function ServerAPI(basepath, isLocal) {
+            if (isLocal == null) {
+                isLocal = false;
+            }
             this.uri = basepath + "/api/1.0/";
             this.basepath = basepath;
-            this.recpath = recpath;
-            this.basepath = basepath + "/";
+            if (!isLocal) {
+                this.basepath = basepath + "/";
+            }
         }
         ServerAPI.prototype.RemoteCall = function (method, params) {
             var cmd = {
@@ -45,6 +53,7 @@ var AssureIt;
             return this.RemoteCall("getDCase", { dcaseId: CaseId });
         };
 
+        //-------------------------------------
         ServerAPI.prototype.SearchCase = function (pageIndex, tags) {
             if (tags == null) {
                 tags = [];
@@ -71,12 +80,11 @@ var AssureIt;
             return this.RemoteCall("getTagList", {});
         };
 
-        ServerAPI.prototype.Commit = function (tree, msg, commitId, summary) {
+        ServerAPI.prototype.Commit = function (tree, msg, commitId) {
             return this.RemoteCall("commit", {
                 contents: tree,
                 commitMessage: msg,
-                'commitId': commitId,
-                summary: JSON.stringify(summary)
+                'commitId': commitId
             }).commitId;
         };
 

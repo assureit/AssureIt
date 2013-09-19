@@ -7,6 +7,7 @@
 
 
 class DScriptPlugIn extends AssureIt.PlugInSet {
+	static Use3Pane : boolean = true;
 
 	constructor(public plugInManager: AssureIt.PlugInManager) {
 		super(plugInManager);
@@ -14,7 +15,6 @@ class DScriptPlugIn extends AssureIt.PlugInSet {
 		this.ActionPlugIn = plugin;
 		this.MenuBarContentsPlugIn = new DScriptMenuPlugIn(plugInManager, plugin);
 	}
-
 }
 
 class DScriptMenuPlugIn extends AssureIt.MenuBarContentsPlugIn {
@@ -84,7 +84,7 @@ class DScriptMenuPlugIn extends AssureIt.MenuBarContentsPlugIn {
 				}, 1300);
 				this.editorPlugIn.editor_left.refresh();
 				this.editorPlugIn.editor_right.refresh();
-				this.editorPlugIn.editor_bottom.refresh();
+				this.editorPlugIn.GenerateCode();
 		});
 		return true;
 	}
@@ -93,7 +93,7 @@ class DScriptMenuPlugIn extends AssureIt.MenuBarContentsPlugIn {
 class DScriptEditorPlugIn extends AssureIt.ActionPlugIn {
 	editor_left:  any;
 	editor_right: any;
-	editor_bottom: any;
+	action_table: JQuery;
 	widgets : any[]; /*FIXME*/
 	highlighter : ErrorHighlight;
 	rootCaseModel: AssureIt.NodeModel;
@@ -101,12 +101,6 @@ class DScriptEditorPlugIn extends AssureIt.ActionPlugIn {
 	constructor(plugInManager: AssureIt.PlugInManager) {
 		this.widgets = [];
 		super(plugInManager);
-		//$("#dscript-editor-wrapper").append($('<div></div>').append(
-		//			$('<textarea id="dscript-editor-left"  placeholder=""></textarea>')));
-		//$("#dscript-editor-wrapper").append($('<div></div>').append(
-		//			$('<textarea id="dscript-editor-right"  placeholder="Generated DScript code goes here."></textarea>')));
-		$("#dscript-editor-wrapper").append($('<div></div>').append(
-					$('<textarea id="dscript-editor-bottom"  placeholder="Generated shell code goes here."></textarea>')));
 
 		this.editor_left = CodeMirror.fromTextArea(document.getElementById('dscript-editor-left'), {
 			lineNumbers: true,
@@ -120,13 +114,8 @@ class DScriptEditorPlugIn extends AssureIt.ActionPlugIn {
 			placeholder: "Generated DScript code goes here.",
 			lineWrapping: true,
 		});
-		this.editor_bottom = CodeMirror.fromTextArea(document.getElementById('dscript-editor-bottom'), {
-			lineNumbers: true,
-			mode: "text/x-csrc",
-			readOnly: true,
-			placeholder: "Map goes here.",
-			lineWrapping: true,
-		});
+		this.action_table = $('<table id="dscript-action-table"></table>');
+		$("#dscript-editor-wrapper").append($("<div>").append(this.action_table));
 
 		$('#dscript-editor-wrapper').css({
 			position: 'absolute',
@@ -139,38 +128,67 @@ class DScriptEditorPlugIn extends AssureIt.ActionPlugIn {
 		});
 
 		/* FIXME Replace it with sophisticated style. */
-		$(this.editor_left.getWrapperElement()).css({
-			width: '100%',
-			height: '100%',
-		});
-		$(this.editor_right.getWrapperElement()).css({
-			width: '100%',
-			height: '100%',
-		});
-		$(this.editor_bottom.getWrapperElement()).css({
-			width: '100%',
-			height: '100%',
-		});
-		$('#dscript-editor-left').parent()
-			.css({
-				width: '50%',
-				height: '50%',
-				float: 'left',
-				display: 'block',
+		if (DScriptPlugIn.Use3Pane) {
+			$(this.editor_left.getWrapperElement()).css({
+				width: '100%',
+				height: '100%',
 			});
-		$('#dscript-editor-right').parent()
-			.css({
-				width: '50%',
-				height: '50%',
-				float: 'right',
-				display: 'block',
+			$(this.editor_right.getWrapperElement()).css({
+				width: '100%',
+				height: '100%',
 			});
-		$('#dscript-editor-bottom').parent()
-			.css({
-				width: '50%',
-				height: '50%',
-				display: 'block',
+			this.action_table.css({
+				width: '100%',
 			});
+			$('#dscript-editor-left').parent()
+				.css({
+					width: '50%',
+					height: '50%',
+					float: 'left',
+					display: 'block',
+				});
+			$('#dscript-editor-right').parent()
+				.css({
+					width: '50%',
+					height: '50%',
+					float: 'right',
+					display: 'block',
+				});
+			$('#dscript-action-table').parent()
+				.css({
+					width: '100%',
+					height: '50%',
+					display: 'block',
+					clear: 'both',
+					borderTop: 'solid 1px',
+				});
+		}
+		else {
+			$(this.editor_right.getWrapperElement()).css({
+				width: '100%',
+				height: '100%',
+			});
+			this.action_table.css({
+				width: '100%',
+			});
+			$('#dscript-editor-left').parent()
+				.css({
+					display: 'none',
+				});
+			$('#dscript-editor-right').parent()
+				.css({
+					width: '50%',
+					height: '100%',
+					float: 'right',
+					display: 'block',
+				});
+			$('#dscript-action-table').parent()
+				.css({
+					width: '50%',
+					display: 'block',
+					float: 'left',
+				});
+		}
 
 		this.highlighter = new ErrorHighlight(this.editor_left)
 		var self = this;
@@ -200,6 +218,33 @@ class DScriptEditorPlugIn extends AssureIt.ActionPlugIn {
 			widgets.push(editor.addLineWidget(error.LineNumber, msg, {coverGutter: false, noHScroll: true}));
 		}
 		});
+	}
+
+	updateActionTable(ActionMap : any) : void {
+		var table : JQuery = $('#dscript-action-table');
+		var table_width = table.parent().width();
+		var header : JQuery = $("<tr><th>state</th><th>fault</th><th>action</th></tr>");
+		var tpl : string = "<tr><td>${state}</td><td>${fault}</td><td>${action}</td></tr>";
+		var style : any = {
+            maxWidth: table_width / 3,
+			minWidth: table_width / 3,
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+			textAlign: 'center',
+            whiteSpace: 'nowrap',
+		}
+		table.children().remove();
+		header.children().css(style);
+		table.append(header);
+		for (var key in ActionMap) {
+			var row_src : string = tpl
+				.replace("${state}", key)
+				.replace("${fault}", "*")
+				.replace("${action}", ActionMap[key]);
+			var row : JQuery = $(row_src);
+			row.children().css(style);
+			table.append(row);
+		}
 	}
 
 	GenerateCode() : void {
@@ -233,13 +278,12 @@ class DScriptEditorPlugIn extends AssureIt.ActionPlugIn {
 //--------------------------------------------------------------------
 			var DScriptMap: DScriptActionMap = new DScriptActionMap();
 			var ActionMapScript: string = DScriptMap.GetActionMap(orig_ElementMap, caseModel, ASNData);
+			this.updateActionTable(DScriptMap.ActionMap);
 //--------------------------------------------------------------------
 			this.updateLineComment(this.editor_left, this.widgets, Generator);
 			this.editor_right.setValue(script);
-			this.editor_bottom.setValue(ActionMapScript);
 		}
 		this.editor_left.refresh();
 		this.editor_right.refresh();
-		this.editor_bottom.refresh();
 	}
 }

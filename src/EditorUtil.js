@@ -19,6 +19,7 @@ var ErrorHighlight = (function () {
                     _this.marker.push(_this.editor.markText({ line: line - 1, ch: 0 }, { line: line, ch: 0 }, { className: "CodeMirror-error" }));
                 }
 
+                //this.editor.refresh();
                 _this.interval = setTimeout(blink, cycle);
             }
         };

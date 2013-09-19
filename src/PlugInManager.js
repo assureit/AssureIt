@@ -1,3 +1,7 @@
+/// <reference path="CaseModel.ts" />
+/// <reference path="CaseViewer.ts" />
+/// <reference path="ServerApi.ts" />
+/// <reference path="SideMenuModel.ts" />
 var __extends = this.__extends || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
     function __() { this.constructor = d; }
@@ -113,11 +117,11 @@ var AssureIt;
             _super.call(this, plugInManager);
             this.plugInManager = plugInManager;
         }
-        SVGRenderPlugIn.prototype.IsEnabled = function (caseViewer, elementShape) {
+        SVGRenderPlugIn.prototype.IsEnabled = function (caseViewer, elementShape/* add args as necessary */ ) {
             return true;
         };
 
-        SVGRenderPlugIn.prototype.Delegate = function (caseViewer, elementShape) {
+        SVGRenderPlugIn.prototype.Delegate = function (caseViewer, elementShape/* add args as necessary */ ) {
             return true;
         };
         return SVGRenderPlugIn;

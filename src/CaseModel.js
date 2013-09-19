@@ -9,6 +9,11 @@ var AssureIt;
     })();
     AssureIt.CaseAnnotation = CaseAnnotation;
 
+    /* obsolete */
+    //export class CaseNote {
+    //	constructor(public Name: string, public Body: any) {
+    //	}
+    //}
     (function (NodeType) {
         NodeType[NodeType["Goal"] = 0] = "Goal";
         NodeType[NodeType["Context"] = 1] = "Context";
@@ -18,24 +23,19 @@ var AssureIt;
     var NodeType = AssureIt.NodeType;
 
     var NodeModel = (function () {
-        function NodeModel(Case, Parent, Type, Label, Statement, Notes) {
+        function NodeModel(Case, Parent, Type, Label, Statement) {
             this.HasDiff = false;
             this.Case = Case;
             this.Type = Type;
             this.Label = Case.NewLabel(Type, Label);
-            this.Statement = (Statement == null) ? "" : Statement.replace(/[\n\r]*$/g, "");
+            this.Statement = (Statement == null) ? "" : Statement.replace(/[\n\r]$/g, "");
             this.Parent = Parent;
             if (Parent != null) {
                 Parent.AppendChild(this);
             }
             this.Children = [];
             this.Annotations = [];
-            this.Notes = (Notes == null) ? {} : Notes;
-            if (this.Notes['TranslatedTextEn']) {
-                this.Case.SetTranslation(this.Statement, this.Notes['TranslatedTextEn']);
-            } else if (this.Case.GetTranslation(this.Statement)) {
-                this.Notes['TranslatedTextEn'] = this.Case.GetTranslation(this.Statement);
-            }
+            this.Notes = {};
 
             Case.ElementMap[this.Label] = this;
             this.LineNumber = 1;
@@ -128,6 +128,7 @@ var AssureIt;
             return HitNodes;
         };
 
+        /* plug-In */
         NodeModel.prototype.InvokePatternPlugInRecursive = function (model) {
             var pluginMap = this.Case.pluginManager.PatternPlugInMap;
             for (var key in pluginMap) {
@@ -156,7 +157,6 @@ var AssureIt;
             this.isLatest = true;
             this.IdCounters = [{}, {}, {}, {}, {}];
             this.ElementMap = {};
-            this.TranslationMap = {};
         }
         Case.prototype.DeleteNodesRecursive = function (root) {
             var Children = root.Children;
@@ -172,6 +172,7 @@ var AssureIt;
             this.ElementMap = {};
         };
 
+        /* Deprecated */
         Case.prototype.SetElementTop = function (ElementTop) {
             this.ElementTop = ElementTop;
             this.SaveIdCounterMax(ElementTop);
@@ -319,18 +320,6 @@ var AssureIt;
                     this.ElementMap[keys[i]].HasDiff = true;
                 }
             }
-        };
-
-        Case.prototype.GetTranslation = function (key) {
-            if (this.TranslationMap[key]) {
-                return this.TranslationMap[key];
-            } else {
-                return '';
-            }
-        };
-
-        Case.prototype.SetTranslation = function (key, value) {
-            this.TranslationMap[key] = value;
         };
         return Case;
     })();

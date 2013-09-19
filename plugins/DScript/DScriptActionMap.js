@@ -1,3 +1,5 @@
+/// <reference path="../../src/CaseModel.ts" />
+/// <reference path="../../src/PlugInManager.ts" />
 var DScriptActionMap = (function () {
     function DScriptActionMap() {
         this.ActionMap = [];
