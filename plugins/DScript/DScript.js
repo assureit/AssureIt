@@ -1,9 +1,3 @@
-/// <reference path="../../src/CaseModel.ts" />
-/// <reference path="../../src/CaseViewer.ts" />
-/// <reference path="../../src/PlugInManager.ts" />
-/// <reference path="../../src/EditorUtil.ts" />
-/// <reference path="./DScriptGenerator.ts" />
-/// <reference path="./DScriptActionMap.ts" />
 var __extends = this.__extends || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
     function __() { this.constructor = d; }
@@ -198,7 +192,6 @@ var DScriptEditorPlugIn = (function (_super) {
                 var error = Generator.errorMessage[i];
                 console.log(error);
 
-                //this.highlighter.Highlight(error.LineNumber, error.Message);
                 var msg = document.createElement("div");
                 var icon = msg.appendChild(document.createElement("span"));
                 msg.appendChild(document.createTextNode(error.Message));
@@ -261,12 +254,10 @@ var DScriptEditorPlugIn = (function (_super) {
             var Generator = new DScriptGenerator();
             var script = Generator.codegen(caseModel, ASNData);
 
-            //--------------------------------------------------------------------
             var DScriptMap = new DScriptActionMap();
             var ActionMapScript = DScriptMap.GetActionMap(orig_ElementMap, caseModel, ASNData);
             this.updateActionTable(DScriptMap.ActionMap);
 
-            //--------------------------------------------------------------------
             this.updateLineComment(this.editor_left, this.widgets, Generator);
             this.editor_right.setValue(script);
         }

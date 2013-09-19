@@ -1,5 +1,3 @@
-/// <reference path="../../src/CaseModel.ts" />
-/// <reference path="../../src/PlugInManager.ts" />
 var Edge = (function () {
     function Edge(src, dst) {
         this.src = src;
@@ -136,7 +134,6 @@ var DScriptGenerator = (function () {
     };
 
     DScriptGenerator.prototype.GetMonitorName = function (Text) {
-        // (E3.Monitor == true) => ["(E3", "E3", "Monitor"]
         var res = Text.match(/^\(+([A-Za-z0-9]+).([A-Za-z0-9]+)/);
         if (res.length == 3) {
             return res.splice(1);
@@ -180,11 +177,9 @@ var DScriptGenerator = (function () {
     };
 
     DScriptGenerator.prototype.GenerateFunctionHeader = function (Node) {
-        //return "boolean Invoke(" + Node.Label + " self)";
         return "boolean " + Node.Label + "()";
     };
     DScriptGenerator.prototype.GenerateFunctionCall = function (Node) {
-        //return "Invoke(new " + Node.Label + "())";
         return Node.Label + "()";
     };
 
@@ -205,12 +200,6 @@ var DScriptGenerator = (function () {
             }
         }
 
-        //if(Node.Annotations.length > 0) {
-        //	for (var i=0; i < Node.Annotations.length; ++i) {
-        //		var Anno = Node.Annotations[i];
-        //		program += this.indent + "// " + Anno.Name + ":" + Anno.Body + this.linefeed;
-        //	}
-        //}
         return program;
     };
 
@@ -442,7 +431,6 @@ var DScriptGenerator = (function () {
                 if (after.Body == null || after.Body.length == 0) {
                     this.errorMessage.push(new DScriptError(Node.Label, Node.LineNumber, Node.Label + "'s @after annotation needs parameter"));
                 } else {
-                    // (E3.Monitor == true) => ["(E3", "E3"]
                     var res = after.Body.match(/^\(+([A-Za-z0-9]+)/);
                     if (res != null && res.length == 2) {
                         var src = NodeIdxMap[res[1]];

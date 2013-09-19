@@ -4,7 +4,6 @@
 var AssureIt;
 (function (AssureIt) {
     var default_success_callback = function (result) {
-        // do nothing
     };
 
     var default_error_callback = function (req, stat, err) {
@@ -53,7 +52,6 @@ var AssureIt;
             return this.RemoteCall("getDCase", { dcaseId: CaseId });
         };
 
-        //-------------------------------------
         ServerAPI.prototype.SearchCase = function (pageIndex, tags) {
             if (tags == null) {
                 tags = [];
@@ -132,3 +130,4 @@ var AssureIt;
     })();
     AssureIt.ServerAPI = ServerAPI;
 })(AssureIt || (AssureIt = {}));
+
