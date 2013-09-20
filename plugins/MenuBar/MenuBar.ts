@@ -34,6 +34,8 @@ class MenuBar {
 			this.menu.append('<a href="#" ><img id="remove" src="'+this.serverApi.basepath+'images/remove.png" title="Remove" alt="remove" /></a>');
 		}
 		var hasContext: boolean = false;
+		this.menu.append('<a href="#" ><img id="search" src="'+this.serverApi.basepath+'images/scale.png" title="Search" alt="search" /></a>');
+		}
 
 		for(var i: number = 0; i < this.model.Children.length; i++) {
 			if(this.model.Children[i].Type == AssureIt.NodeType.Context) {
@@ -62,7 +64,7 @@ class MenuBar {
 			default:
 				break;
 		}
-		}
+
 	}
 
 	AddNode(nodeType: AssureIt.NodeType): void {
@@ -117,6 +119,42 @@ class MenuBar {
 		this.caseViewer.Screen.SetOffset(parentOffSet.left-CurrentParentView.AbsX, parentOffSet.top-CurrentParentView.AbsY);
 	}
 
+	Search(): void {
+		var thisLabel: string = this.node.children("h4").text();
+		var thisNodeView: AssureIt.NodeView = this.caseViewer.ViewMap[thisLabel];
+		var currentNodeModel: AssureIt.NodeModel = thisNodeView.Source;
+
+		while (currentNodeModel.Parent != null) {
+			currentNodeModel = currentNodeModel.Parent;
+		}
+
+		var Keyword: string = prompt("Enter some words you want to search");
+		var HitNodes: AssureIt.NodeModel[] = [];
+
+		console.log(currentNodeModel.SearchNode(Keyword, HitNodes));
+
+		var currentNodeColor: {[index: string]: string}[] = [];
+
+		var flag: boolean = false;
+
+		for (var i = 0; i < HitNodes.length; i++) {
+			var thisNodeLabel: string = HitNodes[i].Label;
+			currentNodeColor[i] = this.caseViewer.ViewMap[thisNodeLabel].SVGShape.GetColor();
+			this.caseViewer.ViewMap[thisNodeLabel].SVGShape.SetColor("#ffff00", "#ffff00");
+		}
+
+//		ScreenManager.SetCaseCenter(this.caseViewer.ViewMap[HitNodes[0].Label].AbsX, this.caseViewer.ViewMap[HitNodes[0].Label].AbsY, this.caseViewer.ViewMap[HitNodes[0].Label].HTMLDoc);
+
+		$('body').on("keydown", function(e: JQueryEventObject) {
+			if (e.keyCode == 27) {
+				for (var i = 0; i < HitNodes.length; i++) {
+					var thisNodeLabel: string = HitNodes[i].Label;
+					this.caseViewer.ViewMap[thisNodeLabel].SVGShape.SetColor(currentNodeColor[i]["fill"], currentNodeColor[i]["stroke"]);
+				}
+			}
+		}
+	}
+
 	Center(): void {
 		var thisLabel: string = this.node.children("h4").text();
 		var thisNodeView: AssureIt.NodeView = this.caseViewer.ViewMap[thisLabel];
@@ -140,6 +178,10 @@ class MenuBar {
 
 		$('#evidence').click(() => {
 			this.AddNode(AssureIt.NodeType.Evidence);
+		});
+
+		$('#search').click(() => {
+			this.Search();
 		});
 
 		$('#remove').click(() => {

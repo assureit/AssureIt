@@ -1,3 +1,6 @@
+///<reference path="../../src/CaseModel.ts" />
+///<reference path="../../src/CaseEncoder.ts" />
+///<reference path="../../src/PlugInManager.ts" />
 var __extends = this.__extends || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
     function __() { this.constructor = d; }
@@ -25,34 +28,35 @@ var MenuBar = (function () {
                 this.menu.append('<a href="#" ><img id="remove" src="' + this.serverApi.basepath + 'images/remove.png" title="Remove" alt="remove" /></a>');
             }
             var hasContext = false;
+            this.menu.append('<a href="#" ><img id="search" src="' + this.serverApi.basepath + 'images/scale.png" title="Search" alt="search" /></a>');
+        }
 
-            for (var i = 0; i < this.model.Children.length; i++) {
-                if (this.model.Children[i].Type == AssureIt.NodeType.Context) {
-                    hasContext = true;
+        for (var i = 0; i < this.model.Children.length; i++) {
+            if (this.model.Children[i].Type == AssureIt.NodeType.Context) {
+                hasContext = true;
+            }
+        }
+        switch (thisNodeType) {
+            case AssureIt.NodeType.Goal:
+                if (!hasContext) {
+                    this.menu.append('<a href="#" ><img id="context"  src="' + this.serverApi.basepath + 'images/context.png" title="Context" alt="context" /></a>');
                 }
-            }
-            switch (thisNodeType) {
-                case AssureIt.NodeType.Goal:
-                    if (!hasContext) {
-                        this.menu.append('<a href="#" ><img id="context"  src="' + this.serverApi.basepath + 'images/context.png" title="Context" alt="context" /></a>');
-                    }
-                    this.menu.append('<a href="#" ><img id="strategy" src="' + this.serverApi.basepath + 'images/strategy.png" title="Strategy" alt="strategy" /></a>');
-                    this.menu.append('<a href="#" ><img id="evidence" src="' + this.serverApi.basepath + 'images/evidence.png" title="Evidence" alt="evidence" /></a>');
-                    break;
-                case AssureIt.NodeType.Strategy:
-                    this.menu.append('<a href="#" ><img id="goal"     src="' + this.serverApi.basepath + 'images/goal.png" title="Goal" alt="goal" /></a>');
-                    if (!hasContext) {
-                        this.menu.append('<a href="#" ><img id="context"  src="' + this.serverApi.basepath + 'images/context.png" title="Context" alt="context" /></a>');
-                    }
-                    break;
-                case AssureIt.NodeType.Evidence:
-                    if (!hasContext) {
-                        this.menu.append('<a href="#" ><img id="context"  src="' + this.serverApi.basepath + 'images/context.png" title="Context" alt="context" /></a>');
-                    }
-                    break;
-                default:
-                    break;
-            }
+                this.menu.append('<a href="#" ><img id="strategy" src="' + this.serverApi.basepath + 'images/strategy.png" title="Strategy" alt="strategy" /></a>');
+                this.menu.append('<a href="#" ><img id="evidence" src="' + this.serverApi.basepath + 'images/evidence.png" title="Evidence" alt="evidence" /></a>');
+                break;
+            case AssureIt.NodeType.Strategy:
+                this.menu.append('<a href="#" ><img id="goal"     src="' + this.serverApi.basepath + 'images/goal.png" title="Goal" alt="goal" /></a>');
+                if (!hasContext) {
+                    this.menu.append('<a href="#" ><img id="context"  src="' + this.serverApi.basepath + 'images/context.png" title="Context" alt="context" /></a>');
+                }
+                break;
+            case AssureIt.NodeType.Evidence:
+                if (!hasContext) {
+                    this.menu.append('<a href="#" ><img id="context"  src="' + this.serverApi.basepath + 'images/context.png" title="Context" alt="context" /></a>');
+                }
+                break;
+            default:
+                break;
         }
     };
 
@@ -67,6 +71,7 @@ var MenuBar = (function () {
         var parentOffSet = $("#" + parentLabel).offset();
         this.caseViewer.Draw();
 
+        //		this.caseViewer.Screen.SetOffset(0, 0);
         var CurrentParentView = this.caseViewer.ViewMap[parentLabel];
         this.caseViewer.Screen.SetOffset(parentOffSet.left - CurrentParentView.AbsX, parentOffSet.top - CurrentParentView.AbsY);
     };
@@ -108,6 +113,43 @@ var MenuBar = (function () {
         this.caseViewer.Screen.SetOffset(parentOffSet.left - CurrentParentView.AbsX, parentOffSet.top - CurrentParentView.AbsY);
     };
 
+    MenuBar.prototype.Search = function () {
+        var thisLabel = this.node.children("h4").text();
+        var thisNodeView = this.caseViewer.ViewMap[thisLabel];
+        var currentNodeModel = thisNodeView.Source;
+
+        console.log("before loop");
+        while (currentNodeModel.Parent != null) {
+            currentNodeModel = currentNodeModel.Parent;
+        }
+
+        var Keyword = prompt("Enter some words you want to search");
+        var HitNodes = [];
+
+        console.log(currentNodeModel.SearchNode(Keyword, HitNodes));
+
+        var currentNodeColor = [];
+
+        var flag = false;
+
+        for (var i = 0; i < HitNodes.length; i++) {
+            var thisNodeLabel = HitNodes[i].Label;
+            currentNodeColor[i] = this.caseViewer.ViewMap[thisNodeLabel].SVGShape.GetColor();
+            this.caseViewer.ViewMap[thisNodeLabel].SVGShape.SetColor("#ffff00", "#ffff00");
+        }
+
+        //		ScreenManager.SetCaseCenter(this.caseViewer.ViewMap[HitNodes[0].Label].AbsX, this.caseViewer.ViewMap[HitNodes[0].Label].AbsY, this.caseViewer.ViewMap[HitNodes[0].Label].HTMLDoc);
+        $('body').on("keydown", function (e) {
+            if (e.keyCode == 27) {
+                e.stopPropagation();
+                for (var i = 0; i < HitNodes.length; i++) {
+                    var thisNodeLabel = HitNodes[i].Label;
+                    this.caseViewer.ViewMap[thisNodeLabel].SVGShape.SetColor(currentNodeColor[i]["fill"], currentNodeColor[i]["stroke"]);
+                }
+            }
+        });
+    };
+
     MenuBar.prototype.Center = function () {
         var thisLabel = this.node.children("h4").text();
         var thisNodeView = this.caseViewer.ViewMap[thisLabel];
@@ -131,6 +173,10 @@ var MenuBar = (function () {
 
         $('#evidence').click(function () {
             _this.AddNode(AssureIt.NodeType.Evidence);
+        });
+
+        $('#search').click(function () {
+            _this.Search();
         });
 
         $('#remove').click(function () {
@@ -176,6 +222,7 @@ var MenuBarActionPlugIn = (function (_super) {
 
             var label = node.children('h4').text();
 
+            //console.log(label);
             var model = case0.ElementMap[label];
             var menuBar = new MenuBar(caseViewer, model, case0, node, serverApi, self);
             menuBar.menu.appendTo($('#layer2'));
