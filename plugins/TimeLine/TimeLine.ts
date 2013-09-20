@@ -25,7 +25,7 @@ class TimeLineSideMenuPlugIn extends AssureIt.SideMenuPlugIn {
 
 	AddMenu(caseViewer: AssureIt.CaseViewer, Case0: AssureIt.Case, serverApi: AssureIt.ServerAPI): AssureIt.SideMenuModel {
 		var loc = serverApi.basepath + "case/" + Case0.CaseId + "/history";
-		return new AssureIt.SideMenuModel(loc, "Change History", "history", (ev:Event)=>{});
+		return new AssureIt.SideMenuModel(loc, "Change History", "history", "glyphicon-time", (ev:Event)=>{});
 	}
 }
 

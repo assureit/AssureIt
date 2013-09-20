@@ -444,7 +444,7 @@ class MonitorSideMenuPlugIn extends AssureIt.SideMenuPlugIn {
 			monitorManager = new MonitorManager(caseViewer);
 		}
 
-		return new AssureIt.SideMenuModel('#', 'Monitors', "monitors", (ev:Event)=>{
+		return new AssureIt.SideMenuModel('#', 'Monitors', "monitors", "glyphicon-list-alt", (ev:Event)=>{
 			var monitorTableWindow = new MonitorTableWindow();
 			monitorTableWindow.UpdateTable();
 			monitorTableWindow.Open();

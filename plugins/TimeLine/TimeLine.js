@@ -26,7 +26,7 @@ var TimeLineSideMenuPlugIn = (function (_super) {
 
     TimeLineSideMenuPlugIn.prototype.AddMenu = function (caseViewer, Case0, serverApi) {
         var loc = serverApi.basepath + "case/" + Case0.CaseId + "/history";
-        return new AssureIt.SideMenuModel(loc, "Change History", "history", function (ev) {
+        return new AssureIt.SideMenuModel(loc, "Change History", "history", "glyphicon-time", function (ev) {
         });
     };
     return TimeLineSideMenuPlugIn;

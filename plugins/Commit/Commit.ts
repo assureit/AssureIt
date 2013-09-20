@@ -99,7 +99,7 @@ class CommitSideMenuPlugIn extends AssureIt.SideMenuPlugIn {
 		var commitWindow: CommitWindow = new CommitWindow();
 		commitWindow.SetEventHandlers(caseViewer, Case0, serverApi);
 
-		return new AssureIt.SideMenuModel('#', "Commit", "commit", (ev:Event)=>{
+		return new AssureIt.SideMenuModel('#', "Commit", "commit", "glyphicon-floppy-disk", (ev:Event)=>{
 			(<any>$('#modal-commit')).dialog('open');
 		});
 	}

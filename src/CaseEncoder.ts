@@ -175,8 +175,14 @@ module AssureIt {
 				if (model.Statement != "") ret += (model.Statement + "\n");
 
 				for(var key in model.Notes) {
-					var Note = model.Notes[key];
-					ret += key + "::" + Note + "\n";
+					switch(key) {
+					case 'TranslatedTextEn':
+						break;
+					default:
+						var Note = model.Notes[key];
+						ret += key + "::" + Note + "\n";
+						break;
+					}
 				}
 
 				if (isSingleNode) {

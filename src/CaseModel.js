@@ -23,7 +23,7 @@ var AssureIt;
             this.Case = Case;
             this.Type = Type;
             this.Label = Case.NewLabel(Type, Label);
-            this.Statement = (Statement == null) ? "" : Statement.replace(/[\n\r]$/g, "");
+            this.Statement = (Statement == null) ? "" : Statement.replace(/[\n\r]*$/g, "");
             this.Parent = Parent;
             if (Parent != null) {
                 Parent.AppendChild(this);

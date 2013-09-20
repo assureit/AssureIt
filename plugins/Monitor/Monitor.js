@@ -389,7 +389,7 @@ var MonitorSideMenuPlugIn = (function (_super) {
             monitorManager = new MonitorManager(caseViewer);
         }
 
-        return new AssureIt.SideMenuModel('#', 'Monitors', "monitors", function (ev) {
+        return new AssureIt.SideMenuModel('#', 'Monitors', "monitors", "glyphicon-list-alt", function (ev) {
             var monitorTableWindow = new MonitorTableWindow();
             monitorTableWindow.UpdateTable();
             monitorTableWindow.Open();

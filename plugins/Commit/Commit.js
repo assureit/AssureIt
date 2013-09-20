@@ -94,7 +94,7 @@ var CommitSideMenuPlugIn = (function (_super) {
         var commitWindow = new CommitWindow();
         commitWindow.SetEventHandlers(caseViewer, Case0, serverApi);
 
-        return new AssureIt.SideMenuModel('#', "Commit", "commit", function (ev) {
+        return new AssureIt.SideMenuModel('#', "Commit", "commit", "glyphicon-floppy-disk", function (ev) {
             ($('#modal-commit')).dialog('open');
         });
     };
