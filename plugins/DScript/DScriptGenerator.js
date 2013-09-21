@@ -118,17 +118,7 @@ var DScriptGenerator = (function () {
 
     DScriptGenerator.prototype.GetMonitor = function (Node) {
         if (Node.Type == AssureIt.NodeType.Evidence) {
-            var Monitors = Node.Statement.split("\n").filter(function (Text) {
-                return Text.indexOf("Monitor=") == 0;
-            });
-            for (var i = 0; i < Monitors.length; ++i) {
-                var List = Monitors[i].split("Monitor=");
-                if (List.length != 2 || List[1].length == 0) {
-                    this.errorMessage.push(new DScriptError(Node.Label, Node.LineNumber, "Monitor has no rule"));
-                } else {
-                    return List[1];
-                }
-            }
+            return Node.Notes["Monitor"];
         }
         return "";
     };
@@ -143,17 +133,14 @@ var DScriptGenerator = (function () {
 
     DScriptGenerator.prototype.GetAction = function (Node) {
         if (Node.Type == AssureIt.NodeType.Evidence) {
-            var Actions = Node.Statement.split("\n").filter(function (Text) {
-                return Text.indexOf("Action=") == 0;
-            });
-            for (var i = 0; i < Actions.length; ++i) {
-                var List = Actions[i].split("Action=");
-                if (List.length != 2 || List[1].length == 0) {
-                    this.errorMessage.push(new DScriptError(Node.Label, Node.LineNumber, "Action has no rule"));
-                } else {
-                    return List[1];
-                }
-            }
+            return Node.Notes["Action"];
+        }
+        return "";
+    };
+
+    DScriptGenerator.prototype.GetLocation = function (Node) {
+        if (Node.Type == AssureIt.NodeType.Evidence) {
+            return Node.Notes["Laction"];
         }
         return "";
     };
@@ -315,6 +302,8 @@ var DScriptGenerator = (function () {
             program += this.indent + "}" + this.linefeed;
             program += this.indent + "return false;" + this.linefeed;
         } else {
+            console.log("Node.Children = " + Node.Children[1].Children[0].GetAnnotation("OnlyIf").Name);
+
             program += this.indent + "return ";
             if (child.length > 0) {
                 for (var i = 0; i < child.length; ++i) {
@@ -338,8 +327,11 @@ var DScriptGenerator = (function () {
 
         var Statements = Node.Statement.split("\n");
         var Monitor = this.GetMonitor(Node);
-        if (Monitor.length > 0) {
+        console.log("Monitor = " + Monitor);
+
+        if (Monitor != null) {
             var env = this.GetEnvironment("Location");
+            console.log("env = " + env);
             if (env == null || env.length == 0) {
                 this.errorMessage.push(new DScriptError(Node.Label, Node.LineNumber, "Location is not defined"));
             } else {
@@ -353,7 +345,11 @@ var DScriptGenerator = (function () {
         }
 
         var Action = this.GetAction(Node);
-        if (Action.length > 0) {
+        console.log("Node.Label = " + Node.Label);
+        console.log("Action = " + Action);
+        var location = this.GetLocation(Node);
+
+        if (Action != null) {
             program += this.indent + "if(!" + Action + ") {" + this.linefeed;
             program += this.indent + this.indent + "return false;" + this.linefeed;
             program += this.indent + "}" + this.linefeed;
@@ -484,7 +480,6 @@ var DScriptGenerator = (function () {
                     Node.LineNumber = i;
                 }
             }
-
             for (var k = 0; k < Node.Children.length; ++k) {
                 var childNode = Node.Children[k];
                 queue.push(childNode);

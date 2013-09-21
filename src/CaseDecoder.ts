@@ -250,9 +250,9 @@ module AssureIt {
 
 		ParseASN(Case : Case,  ASNData: string, orig : NodeModel) : NodeModel {
 			this.ASNParser = new ASNParser(Case);
-			console.log(ASNData);
+//			console.log(ASNData);
 			var root : NodeModel = this.ASNParser.Parse(ASNData, orig);
-			console.log(root);
+//			console.log(root);
 			return root;
 		}
 		GetASNError() {

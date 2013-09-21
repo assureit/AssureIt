@@ -129,17 +129,7 @@ class DScriptGenerator {
 
 	GetMonitor(Node: AssureIt.NodeModel) : string {
 		if(Node.Type == AssureIt.NodeType.Evidence) {
-			var Monitors : string[] = Node.Statement.split("\n").filter(function(Text : string) {
-				return Text.indexOf("Monitor=") == 0;
-			});
-			for (var i=0; i < Monitors.length; ++i) {
-				var List = Monitors[i].split("Monitor=");
-				if(List.length != 2 || List[1].length == 0) {
-					this.errorMessage.push(new DScriptError(Node.Label, Node.LineNumber, "Monitor has no rule"));
-				} else {
-					return List[1];
-				}
-			}
+			return Node.Notes["Monitor"];
 		}
 		return "";
 	}
@@ -155,17 +145,14 @@ class DScriptGenerator {
 
 	GetAction(Node: AssureIt.NodeModel) : string {
 		if(Node.Type == AssureIt.NodeType.Evidence) {
-			var Actions : string[] = Node.Statement.split("\n").filter(function(Text : string) {
-				return Text.indexOf("Action=") == 0;
-			});
-			for (var i=0; i < Actions.length; ++i) {
-				var List = Actions[i].split("Action=");
-				if(List.length != 2 || List[1].length == 0) {
-					this.errorMessage.push(new DScriptError(Node.Label, Node.LineNumber, "Action has no rule"));
-				} else {
-					return List[1];
-				}
-			}
+			return Node.Notes["Action"];
+		}
+		return "";
+	}
+
+	GetLocation(Node: AssureIt.NodeModel) : string {
+		if(Node.Type == AssureIt.NodeType.Evidence) {
+			return Node.Notes["Laction"];
 		}
 		return "";
 	}
@@ -317,8 +304,6 @@ class DScriptGenerator {
 			var matched : number = 0;
 			program += this.GetGoalList(Node.Children).map(function(e : AssureIt.NodeModel) {
 				var ret : string = "";
-				//console.log(FaultList);
-				//console.log(e.Statement);
 				for (var i=0; i < FaultList.length; ++i) {
 					if(e.Statement.indexOf(FaultList[i]) >= 0) {
 						matched += 1;
@@ -335,6 +320,7 @@ class DScriptGenerator {
 			program += this.indent + "}" + this.linefeed;
 			program += this.indent + "return false;" + this.linefeed;
 		} else {
+
 			program += this.indent + "return ";
 			if(child.length > 0) {
 				for (var i=0; i < child.length; ++i) {
@@ -359,8 +345,10 @@ class DScriptGenerator {
 
 		var Statements = Node.Statement.split("\n");
 		var Monitor : string = this.GetMonitor(Node);
-		if(Monitor.length > 0) {
+		
+		if(Monitor != null) {
 			var env = this.GetEnvironment("Location");
+			console.log("env = " + env);
 			if(env == null || env.length == 0) {
 				this.errorMessage.push(new DScriptError(Node.Label, Node.LineNumber, "Location is not defined"));
 			} else {
@@ -374,7 +362,8 @@ class DScriptGenerator {
 		}
 
 		var Action : string = this.GetAction(Node);
-		if(Action.length > 0) {
+		var location : string = this.GetLocation(Node);
+		if(Action != null) {
 			program += this.indent + "if(!" + Action + ") {" + this.linefeed;
 			program += this.indent + this.indent + "return false;" + this.linefeed;
 			program += this.indent + "}" + this.linefeed;
@@ -506,17 +495,6 @@ class DScriptGenerator {
 					Node.LineNumber = i;
 				}
 			}
-			//res += "class " + Node.Label + " {" + this.linefeed;
-			//var Monitor : string = this.GetMonitor(Node);
-			//if(Monitor.length > 0) {
-			//	res += this.indent + "boolean Monitor = false;" + this.linefeed;
-			//}
-			//var Action : string = this.GetAction(Node);
-			//if(Action.length > 0) {
-			//	res += this.indent + "boolean Action = false;" + this.linefeed;
-			//}
-			//res += this.indent + "constructor() {}" + this.linefeed;
-			//res += "}" + this.linefeed;
 			for (var k=0; k < Node.Children.length; ++k) {
 				var childNode : AssureIt.NodeModel = Node.Children[k];
 				queue.push(childNode);

@@ -245,9 +245,9 @@ var AssureIt;
 
         CaseDecoder.prototype.ParseASN = function (Case, ASNData, orig) {
             this.ASNParser = new ASNParser(Case);
-            console.log(ASNData);
+
             var root = this.ASNParser.Parse(ASNData, orig);
-            console.log(root);
+
             return root;
         };
         CaseDecoder.prototype.GetASNError = function () {
