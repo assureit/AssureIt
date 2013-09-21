@@ -78,11 +78,12 @@ var AssureIt;
             return this.RemoteCall("getTagList", {});
         };
 
-        ServerAPI.prototype.Commit = function (tree, msg, commitId) {
+        ServerAPI.prototype.Commit = function (tree, msg, commitId, summary) {
             return this.RemoteCall("commit", {
                 contents: tree,
                 commitMessage: msg,
-                'commitId': commitId
+                'commitId': commitId,
+                summary: JSON.stringify(summary)
             }).commitId;
         };
 

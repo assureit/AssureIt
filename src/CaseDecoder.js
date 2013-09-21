@@ -41,11 +41,11 @@ var AssureIt;
             var NoteData = NodeModelData["Notes"];
             var AnnotationData = NodeModelData["Annotations"];
 
-            var ChildNodeModel = new AssureIt.NodeModel(this.Case, Parent, Type, childLabel, Statement);
-
-            if (NoteData != null) {
-                ChildNodeModel.Notes = NoteData;
+            if (NoteData == null) {
+                NoteData = {};
             }
+
+            var ChildNodeModel = new AssureIt.NodeModel(this.Case, Parent, Type, childLabel, Statement, NoteData);
 
             if (AnnotationData != null) {
                 for (var i = 0; i < AnnotationData.length; i++) {
@@ -144,7 +144,7 @@ var AssureIt;
                     IsRootNode = false;
                 }
 
-                var node = new AssureIt.NodeModel(self.Case, null, self.Text2NodeTypeMap[NodeType], Label, Statement);
+                var node = new AssureIt.NodeModel(self.Case, null, self.Text2NodeTypeMap[NodeType], Label, Statement, {});
                 self.nodes[Id] = node;
 
                 return null;
@@ -183,8 +183,7 @@ var AssureIt;
             var Label = obj["Label"];
             var Statement = obj["Statement"];
             var Notes = (obj["Notes"]) ? obj["Notes"] : {};
-            var Model = new AssureIt.NodeModel(Case, Parent, Type, Label, Statement);
-            Model.Notes = Notes;
+            var Model = new AssureIt.NodeModel(Case, Parent, Type, Label, Statement, Notes);
 
             var Children = obj["Children"];
             if (Children.length != 0) {

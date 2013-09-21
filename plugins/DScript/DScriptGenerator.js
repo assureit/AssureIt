@@ -80,6 +80,35 @@ var DScriptGenerator = (function () {
         });
     };
 
+    DScriptGenerator.prototype.GetContextIndex = function (Node) {
+        for (var i = 0; i < Node.Children.length; i++) {
+            if (Node.Children[i].Type == AssureIt.NodeType.Context) {
+                return i;
+            }
+        }
+        return -1;
+    };
+
+    DScriptGenerator.prototype.GetParentContextEnvironment = function (ParentNode) {
+        while (ParentNode != null) {
+            var contextindex = this.GetContextIndex(ParentNode);
+            if (contextindex != -1) {
+                return ParentNode.Children[contextindex];
+            }
+            ParentNode = ParentNode.Parent;
+        }
+        return null;
+    };
+
+    DScriptGenerator.prototype.GetContextEnvironment = function (Node) {
+        if (Node.Parent == null) {
+            return;
+        }
+        var ParentNode = Node.Parent;
+        var ParentContextNode = this.GetParentContextEnvironment(ParentNode);
+        return ParentContextNode.Notes;
+    };
+
     DScriptGenerator.prototype.PushEnvironment = function (ContextList) {
         var env = {};
         for (var i = 0; i < ContextList.length; ++i) {
@@ -87,16 +116,11 @@ var DScriptGenerator = (function () {
             if (Node.Type != AssureIt.NodeType.Context) {
                 continue;
             }
-            var DeclList = Node.Statement.split("\n").filter(function (Text) {
-                var regex = /^[A-Za-z][A-Z-a-z0-9]*=/;
-                return regex.test(Text);
-            });
-            for (var j = 0; j < DeclList.length; ++j) {
-                var Decl = DeclList[j].split("=");
-                if (Decl.length != 2) {
-                    this.errorMessage.push(new DScriptError(Node.Label, Node.LineNumber, "DeclSyntaxError"));
-                }
-                env[Decl[0]] = Decl[1];
+            var DeclKeys = Object.keys(Node.Notes);
+            for (var j = 0; j < DeclKeys.length; j++) {
+                var DeclKey = DeclKeys[j];
+                var DeclValue = Node.Notes[DeclKey];
+                env[DeclKey] = DeclValue;
             }
         }
         this.Env.push(env);
@@ -186,7 +210,6 @@ var DScriptGenerator = (function () {
                 program += this.indent + "// " + description[i] + this.linefeed;
             }
         }
-
         return program;
     };
 
@@ -285,7 +308,6 @@ var DScriptGenerator = (function () {
             var matched = 0;
             program += this.GetGoalList(Node.Children).map(function (e) {
                 var ret = "";
-
                 for (var i = 0; i < FaultList.length; ++i) {
                     if (e.Statement.indexOf(FaultList[i]) >= 0) {
                         matched += 1;
@@ -302,8 +324,6 @@ var DScriptGenerator = (function () {
             program += this.indent + "}" + this.linefeed;
             program += this.indent + "return false;" + this.linefeed;
         } else {
-            console.log("Node.Children = " + Node.Children[1].Children[0].GetAnnotation("OnlyIf").Name);
-
             program += this.indent + "return ";
             if (child.length > 0) {
                 for (var i = 0; i < child.length; ++i) {
@@ -321,34 +341,34 @@ var DScriptGenerator = (function () {
         return this.GenerateFooter(Node, program);
     };
 
+    DScriptGenerator.prototype.GenerateLetDecl = function (ContextEnv) {
+        var program = "";
+        var DeclKeys = Object.keys(ContextEnv);
+        for (var j = 0; j < DeclKeys.length; j++) {
+            var DeclKey = DeclKeys[j];
+            var DeclValue = ContextEnv[DeclKey];
+            program += this.indent + "let " + DeclKey + " = " + DeclValue + ";" + this.linefeed;
+        }
+
+        return program;
+    };
+
     DScriptGenerator.prototype.GenerateEvidence = function (Node, Flow) {
         var program = this.GenerateHeader(Node);
         var child = Flow[Node.Label];
 
         var Statements = Node.Statement.split("\n");
         var Monitor = this.GetMonitor(Node);
-        console.log("Monitor = " + Monitor);
 
         if (Monitor != null) {
-            var env = this.GetEnvironment("Location");
-            console.log("env = " + env);
-            if (env == null || env.length == 0) {
-                this.errorMessage.push(new DScriptError(Node.Label, Node.LineNumber, "Location is not defined"));
-            } else {
-                var locations = env.split(",");
-                program += this.indent + "boolean ret = false;" + this.linefeed;
-                for (var j = 0; j < locations.length; ++j) {
-                    var Code = Monitor.replace(/([A-Za-z]+)/, locations[j] + ".$1");
-                    program += this.indent + "ret = (" + Code + ");" + this.linefeed;
-                }
-            }
+            var contextenv = this.GetContextEnvironment(Node);
+
+            program += this.GenerateLetDecl(contextenv);
+            program += this.indent + "boolean ret = false;" + this.linefeed;
         }
 
         var Action = this.GetAction(Node);
-        console.log("Node.Label = " + Node.Label);
-        console.log("Action = " + Action);
         var location = this.GetLocation(Node);
-
         if (Action != null) {
             program += this.indent + "if(!" + Action + ") {" + this.linefeed;
             program += this.indent + this.indent + "return false;" + this.linefeed;
