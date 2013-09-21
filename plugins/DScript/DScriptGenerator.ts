@@ -31,12 +31,12 @@ function visit(g: Edge[][], v: number, order: number[], color: number[]) : boole
 
 function tsort(g: Edge[][]) : number[] {
 	var n = g.length;
-	var color : number[] = [];
-	var order : number[] = [];
-	for (var i=0; i < n; i = i + 1) {
+	var color: number[] = [];
+	var order: number[] = [];
+	for (var i: number = 0; i < n; i++) {
 		color.push(0);
 	}
-	for (i=0; i < n; i = i + 1) {
+	for (i = 0; i < n; i++) {
 		if (!color[i] && !visit(g, i, order, color)) {
 			return null;
 		}
@@ -45,9 +45,9 @@ function tsort(g: Edge[][]) : number[] {
 }
 
 class DScriptError {
-	NodeName : string;
+	NodeName: string;
 	LineNumber: number;
-	Message : string;
+	Message: string;
 	constructor(NodeName: string, LineNumber: number, Message: string) {
 		this.NodeName = NodeName;
 		this.LineNumber = LineNumber;
@@ -68,25 +68,25 @@ class DScriptGenerator {
 	}
 
 	GetGoalList(List: AssureIt.NodeModel[]): AssureIt.NodeModel[] {
-		return List.filter(function (Node : AssureIt.NodeModel) {
+		return List.filter(function (Node: AssureIt.NodeModel) {
 			return Node.Type == AssureIt.NodeType.Goal;
 		});
 	}
 
 	GetContextList(List: AssureIt.NodeModel[]): AssureIt.NodeModel[] {
-		return List.filter(function (Node : AssureIt.NodeModel) {
+		return List.filter(function (Node: AssureIt.NodeModel) {
 			return Node.Type == AssureIt.NodeType.Context;
 		});
 	}
 
 	GetEvidenceList(List: AssureIt.NodeModel[]): AssureIt.NodeModel[] {
-		return List.filter(function (Node : AssureIt.NodeModel) {
+		return List.filter(function (Node: AssureIt.NodeModel) {
 			return Node.Type == AssureIt.NodeType.Evidence;
 		});
 	}
 
 	GetStrategyList(List: AssureIt.NodeModel[]): AssureIt.NodeModel[] {
-		return List.filter(function (Node : AssureIt.NodeModel) {
+		return List.filter(function (Node: AssureIt.NodeModel) {
 			return Node.Type == AssureIt.NodeType.Strategy;
 		});
 	}
@@ -99,7 +99,6 @@ class DScriptGenerator {
 		}
 		return -1; 
 	}
-
 
 	GetParentContextEnvironment(ParentNode: AssureIt.NodeModel): AssureIt.NodeModel {
 		while(ParentNode != null) {
@@ -142,8 +141,8 @@ class DScriptGenerator {
 		this.Env.pop();
 	}
 
-	GetEnvironment(Key : string): string {
-		for (var i=this.Env.length - 1; i >= 0; --i) {
+	GetEnvironment(Key: string): string {
+		for (var i:number = this.Env.length - 1; i >= 0; --i) {
 			var env : { [key: string] : string } = this.Env[i];
 			if(env.hasOwnProperty(Key)) {
 				return env[Key];
@@ -152,32 +151,16 @@ class DScriptGenerator {
 		return null;
 	}
 
-	GetMonitor(Node: AssureIt.NodeModel) : string {
+	GetMonitor(Node: AssureIt.NodeModel): string {
 		if(Node.Type == AssureIt.NodeType.Evidence) {
 			return Node.Notes["Monitor"];
 		}
 		return "";
 	}
 
-	GetMonitorName(Text : string) : string[] {
-		// (E3.Monitor == true) => ["(E3", "E3", "Monitor"]
-		var res : string[] = Text.match(/^\(+([A-Za-z0-9]+).([A-Za-z0-9]+)/);
-		if(res.length == 3) {
-			return res.splice(1);
-		}
-		return []
-	}
-
-	GetAction(Node: AssureIt.NodeModel) : string {
+	GetAction(Node: AssureIt.NodeModel): string {
 		if(Node.Type == AssureIt.NodeType.Evidence) {
 			return Node.Notes["Action"];
-		}
-		return "";
-	}
-
-	GetLocation(Node: AssureIt.NodeModel) : string {
-		if(Node.Type == AssureIt.NodeType.Evidence) {
-			return Node.Notes["Laction"];
 		}
 		return "";
 	}
@@ -185,14 +168,13 @@ class DScriptGenerator {
 	GenerateOrder(GoalList: AssureIt.NodeModel[]): AssureIt.NodeModel[] {
 		var ListLen: number = GoalList.length;
 		var newGoalList: AssureIt.NodeModel[] = [];
-
 		for(var i:number = 0; i < ListLen; i++) {
 			newGoalList[i] = GoalList[ListLen - 1 - i];
 		}
 		return newGoalList;
 	}
 
-	Generate(Node: AssureIt.NodeModel, Flow : { [key: string]: AssureIt.NodeModel[];}): string {
+	Generate(Node: AssureIt.NodeModel, Flow: { [key: string]: AssureIt.NodeModel[];}): string {
 		switch(Node.Type) {
 			case AssureIt.NodeType.Goal:
 				return this.GenerateGoal(Node, Flow);
@@ -206,41 +188,35 @@ class DScriptGenerator {
 		return "";
 	}
 
-	GenerateFunctionHeader(Node: AssureIt.NodeModel) : string {
+	GenerateFunctionHeader(Node: AssureIt.NodeModel): string {
 		//return "boolean Invoke(" + Node.Label + " self)";
 		return "boolean " + Node.Label + "(RuntimeContext ctx)";
 	}
-	GenerateFunctionCall(Node: AssureIt.NodeModel) : string {
+	GenerateFunctionCall(Node: AssureIt.NodeModel): string {
 		//return "Invoke(new " + Node.Label + "())";
 		return Node.Label + "(ctx)";
 	}
 
-	GenerateHeader(Node: AssureIt.NodeModel) : string {
+	GenerateHeader(Node: AssureIt.NodeModel): string {
 		var program : string = "";
 		program += this.GenerateFunctionHeader(Node) + " {" + this.linefeed;
 		var statement = Node.Statement.replace(/\n+$/g,'');
 		if(statement.length > 0) {
 			var description : string[] = statement.split(this.linefeed);
 			for (var i=0; i < description.length; ++i) {
-				if(description[i].indexOf("Monitor=") == 0) {
-					continue;
-				}
-				if(description[i].indexOf("Action=") == 0) {
-					continue;
-				}
 				program += this.indent + "// " + description[i] + this.linefeed;
 			}
 		}
 		return program;
 	}
 
-	GenerateFooter(Node: AssureIt.NodeModel, program : string) : string {
+	GenerateFooter(Node: AssureIt.NodeModel, program: string): string {
 		return program + "}";
 	}
 
 	GenerateDefault(Node: AssureIt.NodeModel, Flow : { [key: string]: AssureIt.NodeModel[];}) : string {
-		var program : string = this.GenerateHeader(Node);
-		var child : AssureIt.NodeModel[] = Flow[Node.Label];
+		var program: string = this.GenerateHeader(Node);
+		var child: AssureIt.NodeModel[] = Flow[Node.Label];
 		program += this.indent + "return ";
 		if(child.length > 0) {
 			for (var i=0; i < child.length; ++i) {
@@ -258,8 +234,8 @@ class DScriptGenerator {
 	}
 
 	GenerateGoal(Node: AssureIt.NodeModel, Flow : { [key: string]: AssureIt.NodeModel[];}): string {
-		var program : string = this.GenerateHeader(Node);
-		var child : AssureIt.NodeModel[] = Flow[Node.Label];
+		var program: string = this.GenerateHeader(Node);
+		var child: AssureIt.NodeModel[] = Flow[Node.Label];
 
 		program += this.indent + "return ";
 		if(child.length > 0) {
@@ -278,26 +254,15 @@ class DScriptGenerator {
 
 	}
 
-	GenerateContext(Node: AssureIt.NodeModel, Flow : { [key: string]: AssureIt.NodeModel[];}): string {
-		var program : string = this.GenerateHeader(Node);
-		var child : AssureIt.NodeModel[] = Flow[Node.Label];
-
-		var Statements = Node.Statement.split("\n");
-		var after : AssureIt.CaseAnnotation = Node.GetAnnotation("after");
-		if(after != null) {
-			if(after.Body == null || after.Body.length == 0) {
-				this.errorMessage.push(new DScriptError(Node.Label, Node.LineNumber, "@after needs parameter"));
-			} else {
-				program += this.indent + "defined(" + after.Body + ");" + this.linefeed;
-			}
-		}
+	GenerateContext(Node: AssureIt.NodeModel, Flow: { [key: string]: AssureIt.NodeModel[];}): string {
+		var program: string = this.GenerateHeader(Node);
 		program += this.indent + "return true;" + this.linefeed;
 		return this.GenerateFooter(Node, program);
 	}
 
 	GenerateStrategy(Node: AssureIt.NodeModel, Flow : { [key: string]: AssureIt.NodeModel[];}): string {
-		var program : string = this.GenerateHeader(Node);
-		var child : AssureIt.NodeModel[] = Flow[Node.Label];
+		var program: string = this.GenerateHeader(Node);
+		var child: AssureIt.NodeModel[] = Flow[Node.Label];
 		child = this.GenerateOrder(child);
 		program += this.indent + "return ";
 
@@ -330,36 +295,34 @@ class DScriptGenerator {
 		return program;
 	}
 
+	GenerateFunction(Node: AssureIt.NodeModel, Function: string): string {
+		var program: string = "";
+		var contextenv: { [key: string]: string;} = this.GetContextEnvironment(Node);
+		program += this.GenerateLetDecl(contextenv);
+		program += this.indent + "boolean ret = " + Function + ";" + this.linefeed;
+		program += this.indent + "ctx.curl(id, " + Node.Label + ", " + "ret);" + this.linefeed;
+		program += this.indent + "if(!ret) {" + this.linefeed;
+		program += this.indent + this.indent + "return false;" + this.linefeed;
+		program += this.indent + "}" + this.linefeed;
+		return program;
+	}
+
 
 	GenerateEvidence(Node: AssureIt.NodeModel, Flow : { [key: string]: AssureIt.NodeModel[];}): string {
-		var program : string = this.GenerateHeader(Node);
-		var child : AssureIt.NodeModel[] = Flow[Node.Label];
-
-		var Statements = Node.Statement.split("\n");
-		var Monitor : string = this.GetMonitor(Node);
-		
-		if(Monitor != null) {
-			var contextenv: { [key: string]: string;} = this.GetContextEnvironment(Node);
-			program += this.GenerateLetDecl(contextenv);
-			program += this.indent + "boolean ret = " + Monitor + ";" + this.linefeed;
-			program += this.indent + "if(!ret) {" + this.linefeed;
-			program += this.indent + this.indent + "return false;" + this.linefeed;
-			program += this.indent + "}" + this.linefeed;
-
-		}
-
-		var Action : string = this.GetAction(Node);
-		var location : string = this.GetLocation(Node);
-		if(Action != null) {
-			var contextenv: { [key: string]: string;} = this.GetContextEnvironment(Node);
-			program += this.GenerateLetDecl(contextenv);
-			program += this.indent + "boolean ret = " + Action + ";" + this.linefeed;
-			program += this.indent + "if(!ret) {" + this.linefeed;
-			program += this.indent + this.indent + "return false;" + this.linefeed;
-			program += this.indent + "}" + this.linefeed;
-		}
-
+		var program: string = this.GenerateHeader(Node);
+		var child: AssureIt.NodeModel[] = Flow[Node.Label];
+		var Monitor: string = this.GetMonitor(Node);
+		var Action: string = this.GetAction(Node);
 		var ContextList : AssureIt.NodeModel[] = this.GetContextList(child);
+
+		if(Monitor != null) {
+			program += this.GenerateFunction(Node, Monitor);
+		}
+
+		if(Action != null) {
+			program += this.GenerateFunction(Node, Action);
+		}
+
 		if(child.length != ContextList.length) {
 			this.errorMessage.push(new DScriptError(Node.Label, Node.LineNumber, "EvidenceSyntaxError"));
 		}
@@ -373,14 +336,14 @@ class DScriptGenerator {
 		return this.GenerateFooter(Node, program);
 	}
 
-	GenerateCode(Node : AssureIt.NodeModel, Flow : { [key: string]: AssureIt.NodeModel[];}) : string {
-		var queue : AssureIt.NodeModel[] = [];
-		var program : string[] = [];
-		var flow : string = "";
+	GenerateCode(Node: AssureIt.NodeModel, Flow: { [key: string]: AssureIt.NodeModel[];}): string {
+		var queue: AssureIt.NodeModel[] = [];
+		var program: string[] = [];
+		var flow: string = "";
 		program.push(this.Generate(Node, Flow));
-		var child : AssureIt.NodeModel[] = Flow[Node.Label];
+		var child: AssureIt.NodeModel[] = Flow[Node.Label];
 		Flow[Node.Label] = [];
-		var ContextList : AssureIt.NodeModel[] = this.GetContextList(child);
+		var ContextList: AssureIt.NodeModel[] = this.GetContextList(child);
 		this.PushEnvironment(ContextList);
 		for (var i=0; i < child.length; ++i) {
 			program.push(this.GenerateCode(child[i], Flow));
@@ -394,15 +357,15 @@ class DScriptGenerator {
 	}
 
 	CollectNodeInfo(rootNode: AssureIt.NodeModel) : { [key: string]: AssureIt.NodeModel[]; } {
-		var queue : AssureIt.NodeModel[] = [];
-		var map: { [key: string]: AssureIt.NodeModel[]; } = {};
-		var NodeList : AssureIt.NodeModel[] = [];
-		var NodeIdxMap : {[ key: string]: number; } = {};
+		var queue: AssureIt.NodeModel[] = [];
+		var map:{ [key: string]: AssureIt.NodeModel[]; } = {};
+		var NodeList: AssureIt.NodeModel[] = [];
+		var NodeIdxMap: {[ key: string]: number; } = {};
 		queue.push(rootNode);
 		NodeList.push(rootNode);
 		while(queue.length != 0) {
-			var Node : AssureIt.NodeModel = queue.pop();
-			var childList : AssureIt.NodeModel[] = [];
+			var Node: AssureIt.NodeModel = queue.pop();
+			var childList: AssureIt.NodeModel[] = [];
 
 			function Each(e : AssureIt.NodeModel) {
 				queue.push(e);
@@ -418,33 +381,33 @@ class DScriptGenerator {
 			map[Node.Label] = childList;
 		}
 
-		var graph : Edge[][] = [];
-		for (var i=0; i < NodeList.length; ++i) {
+		var graph: Edge[][] = [];
+		for (var i: number = 0; i < NodeList.length; ++i) {
 			var Edges : Edge[] = [];
 			graph.push(Edges);
 		}
-		for (var i=0; i < NodeList.length; ++i) {
-			var Node : AssureIt.NodeModel = NodeList[i];
-			var Edges : Edge[] = graph[i];
-			for (var j=0; j < map[Node.Label].length; ++j) {
-				var Child = map[Node.Label][j];
+		for (var i: number = 0; i < NodeList.length; ++i) {
+			var Node: AssureIt.NodeModel = NodeList[i];
+			var Edges: Edge[] = graph[i];
+			for (var j: number = 0; j < map[Node.Label].length; ++j) {
+				var Child: AssureIt.NodeModel = map[Node.Label][j];
 				Edges.push(new Edge(i, NodeIdxMap[Child.Label]));
 			}
 		}
 
-		var order : number[] = tsort(graph);
+		var order: number[] = tsort(graph);
 		if(order != null) {
-			var child : string[] = [];
-			for (var i=0; i < order.length; ++i) {
-				var childList : AssureIt.NodeModel[] = [];
-				var Node = NodeList[order[i]];
-				var labels1 = [];
-				var labels2 = [];
-				for (var k=0; k < Node.Children.length; ++k) {
+			var child: string[] = [];
+			for (var i: number = 0; i < order.length; ++i) {
+				var childList: AssureIt.NodeModel[] = [];
+				var Node: AssureIt.NodeModel = NodeList[order[i]];
+				var labels1: string[] = [];
+				var labels2: string[] = [];
+				for (var k: number = 0; k < Node.Children.length; ++k) {
 					labels1.push(Node.Children[k].Label);
 				}
-				for (var j=0; j < order.length; ++j) {
-					for (var k=0; k < Node.Children.length; ++k) {
+				for (var j: number = 0; j < order.length; ++j) {
+					for (var k: number = 0; k < Node.Children.length; ++k) {
 						var childNode : AssureIt.NodeModel = Node.Children[k];
 						if(NodeList[order[j]].Label == childNode.Label) {
 							childList.push(childNode);
@@ -458,7 +421,7 @@ class DScriptGenerator {
 		return map;
 	}
 
-	codegen_(rootNode: AssureIt.NodeModel, ASNData : string): string {
+	codegen_(rootNode: AssureIt.NodeModel, ASNData: string): string {
 		var res: string = "";
 		if(rootNode == null) {
 			return res;
@@ -470,12 +433,12 @@ class DScriptGenerator {
 		queue.push(rootNode);
 		while(queue.length != 0) {
 			var Node : AssureIt.NodeModel = queue.pop();
-			for (var i=0; i < dataList.length; ++i) {
+			for (var i: number = 0; i < dataList.length; ++i) {
 				if(new RegExp("\\*" + Node.Label).test(dataList[i])) {
 					Node.LineNumber = i;
 				}
 			}
-			for (var k=0; k < Node.Children.length; ++k) {
+			for (var k: number = 0; k < Node.Children.length; ++k) {
 				var childNode : AssureIt.NodeModel = Node.Children[k];
 				queue.push(childNode);
 			}
