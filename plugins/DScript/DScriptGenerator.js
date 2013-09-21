@@ -169,8 +169,14 @@ var DScriptGenerator = (function () {
         return "";
     };
 
-    DScriptGenerator.prototype.getMethodName = function (Node) {
-        return Node.Label;
+    DScriptGenerator.prototype.GenerateOrder = function (GoalList) {
+        var ListLen = GoalList.length;
+        var newGoalList = [];
+
+        for (var i = 0; i < ListLen; i++) {
+            newGoalList[i] = GoalList[ListLen - 1 - i];
+        }
+        return newGoalList;
     };
 
     DScriptGenerator.prototype.Generate = function (Node, Flow) {
@@ -188,10 +194,10 @@ var DScriptGenerator = (function () {
     };
 
     DScriptGenerator.prototype.GenerateFunctionHeader = function (Node) {
-        return "boolean " + Node.Label + "()";
+        return "boolean " + Node.Label + "(RuntimeContext ctx)";
     };
     DScriptGenerator.prototype.GenerateFunctionCall = function (Node) {
-        return Node.Label + "()";
+        return Node.Label + "(ctx)";
     };
 
     DScriptGenerator.prototype.GenerateHeader = function (Node) {
@@ -276,68 +282,22 @@ var DScriptGenerator = (function () {
     DScriptGenerator.prototype.GenerateStrategy = function (Node, Flow) {
         var program = this.GenerateHeader(Node);
         var child = Flow[Node.Label];
-        var ContextList = this.GetContextList(child);
-        var FaultList = [];
-        var FaultAction = "";
-        if (ContextList.length > 0) {
-            for (var i = 0; i < ContextList.length; ++i) {
-                var Statements = ContextList[i].Statement.split("\n");
-                for (var j = 0; j < Statements.length; ++j) {
-                    if (Statements[j].indexOf("fault=") == 0) {
-                        if (j + 1 < Statements.length && Statements[j + 1].indexOf("fault=") == 0) {
-                            FaultList = Statements[j].substring("fault=".length).split(",");
-                            FaultAction = Statements[j + 1].substring("fault=".length);
-                            FaultList = FaultList.map(function (e) {
-                                return e.trim();
-                            });
-                        }
-                    }
-                }
-            }
-        }
+        child = this.GenerateOrder(child);
 
-        if (FaultList.length > 0) {
-            var self = this;
-            program += this.indent + "enum " + Node.Label + "_FaultType {" + this.linefeed;
-            program += FaultList.map(function (e) {
-                return self.indent + self.indent + e;
-            }).join("," + this.linefeed) + this.linefeed;
-
-            program += this.indent + "};" + this.linefeed;
-            program += this.indent + "switch(" + FaultAction + ") {" + this.linefeed;
-            var matched = 0;
-            program += this.GetGoalList(Node.Children).map(function (e) {
-                var ret = "";
-                for (var i = 0; i < FaultList.length; ++i) {
-                    if (e.Statement.indexOf(FaultList[i]) >= 0) {
-                        matched += 1;
-                        ret += self.indent + "case " + FaultList[i] + ":" + self.linefeed;
-                        ret += self.indent + self.indent + "return ";
-                        ret += self.GenerateFunctionCall(e) + ";";
-                    }
+        program += this.indent + "return ";
+        if (child.length > 0) {
+            for (var i = 0; i < child.length; ++i) {
+                var node = child[i];
+                if (i != 0) {
+                    program += " && ";
                 }
-                return ret;
-            }).join(this.linefeed) + this.linefeed;
-            if (matched != FaultList.length) {
-                this.errorMessage.push(new DScriptError(Node.Label, Node.LineNumber, Node.Label + " node does not cover some case."));
+                program += this.GenerateFunctionCall(node);
             }
-            program += this.indent + "}" + this.linefeed;
-            program += this.indent + "return false;" + this.linefeed;
         } else {
-            program += this.indent + "return ";
-            if (child.length > 0) {
-                for (var i = 0; i < child.length; ++i) {
-                    var node = child[i];
-                    if (i != 0) {
-                        program += " && ";
-                    }
-                    program += this.GenerateFunctionCall(node);
-                }
-            } else {
-                program += "false";
-            }
-            program += ";" + this.linefeed;
+            program += "false";
         }
+        program += ";" + this.linefeed;
+
         return this.GenerateFooter(Node, program);
     };
 
@@ -362,15 +322,20 @@ var DScriptGenerator = (function () {
 
         if (Monitor != null) {
             var contextenv = this.GetContextEnvironment(Node);
-
             program += this.GenerateLetDecl(contextenv);
-            program += this.indent + "boolean ret = false;" + this.linefeed;
+            program += this.indent + "boolean ret = " + Monitor + ";" + this.linefeed;
+            program += this.indent + "if(!ret) {" + this.linefeed;
+            program += this.indent + this.indent + "return false;" + this.linefeed;
+            program += this.indent + "}" + this.linefeed;
         }
 
         var Action = this.GetAction(Node);
         var location = this.GetLocation(Node);
         if (Action != null) {
-            program += this.indent + "if(!" + Action + ") {" + this.linefeed;
+            var contextenv = this.GetContextEnvironment(Node);
+            program += this.GenerateLetDecl(contextenv);
+            program += this.indent + "boolean ret = " + Action + ";" + this.linefeed;
+            program += this.indent + "if(!ret) {" + this.linefeed;
             program += this.indent + this.indent + "return false;" + this.linefeed;
             program += this.indent + "}" + this.linefeed;
         }
@@ -403,6 +368,10 @@ var DScriptGenerator = (function () {
         }
         this.PopEnvironment();
         return flow + program.reverse().join(this.linefeed);
+    };
+
+    DScriptGenerator.prototype.GenerateRuntimeContext = function () {
+        return "class RutimeContext {" + this.linefeed + "}" + this.linefeed + this.linefeed;
     };
 
     DScriptGenerator.prototype.CollectNodeInfo = function (rootNode) {
@@ -506,8 +475,10 @@ var DScriptGenerator = (function () {
             }
         }
 
+        res += this.GenerateRuntimeContext();
         res += this.GenerateCode(rootNode, flow) + this.linefeed;
         res += "@Export int main() {" + this.linefeed;
+        res += this.indent + "RuntimeContext ctx = new RuntimeContext;" + this.linefeed;
         res += this.indent + "if(" + this.GenerateFunctionCall(rootNode) + ") { return 0; }" + this.linefeed;
         res += this.indent + "return 1;" + this.linefeed;
         res += "}" + this.linefeed;

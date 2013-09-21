@@ -182,9 +182,14 @@ class DScriptGenerator {
 		return "";
 	}
 
+	GenerateOrder(GoalList: AssureIt.NodeModel[]): AssureIt.NodeModel[] {
+		var ListLen: number = GoalList.length;
+		var newGoalList: AssureIt.NodeModel[] = [];
 
-	getMethodName(Node: AssureIt.NodeModel): string {
-		return Node.Label;
+		for(var i:number = 0; i < ListLen; i++) {
+			newGoalList[i] = GoalList[ListLen - 1 - i];
+		}
+		return newGoalList;
 	}
 
 	Generate(Node: AssureIt.NodeModel, Flow : { [key: string]: AssureIt.NodeModel[];}): string {
@@ -203,11 +208,11 @@ class DScriptGenerator {
 
 	GenerateFunctionHeader(Node: AssureIt.NodeModel) : string {
 		//return "boolean Invoke(" + Node.Label + " self)";
-		return "boolean " + Node.Label + "()";
+		return "boolean " + Node.Label + "(RuntimeContext ctx)";
 	}
 	GenerateFunctionCall(Node: AssureIt.NodeModel) : string {
 		//return "Invoke(new " + Node.Label + "())";
-		return Node.Label + "()";
+		return Node.Label + "(ctx)";
 	}
 
 	GenerateHeader(Node: AssureIt.NodeModel) : string {
@@ -293,67 +298,22 @@ class DScriptGenerator {
 	GenerateStrategy(Node: AssureIt.NodeModel, Flow : { [key: string]: AssureIt.NodeModel[];}): string {
 		var program : string = this.GenerateHeader(Node);
 		var child : AssureIt.NodeModel[] = Flow[Node.Label];
-		var ContextList : AssureIt.NodeModel[] = this.GetContextList(child);
-		var FaultList : string[] = [];
-		var FaultAction = "";
-		if(ContextList.length > 0) {
-			for (var i=0; i < ContextList.length; ++i) {
-				var Statements = ContextList[i].Statement.split("\n");
-				for (var j=0; j < Statements.length; ++j) {
-					if (Statements[j].indexOf("fault=") == 0) {
-						if (j + 1 < Statements.length && Statements[j+1].indexOf("fault=") == 0) {
-							FaultList = Statements[j].substring("fault=".length).split(",");
-							FaultAction = Statements[j+1].substring("fault=".length);
-							FaultList = FaultList.map(function(e : string) { return e.trim(); });
-						}
-					}
-				}
-			}
-		}
+		child = this.GenerateOrder(child);
+		program += this.indent + "return ";
 
-		if(FaultList.length > 0) {
-			var self = this;
-			program += this.indent + "enum " + Node.Label + "_FaultType {" + this.linefeed;
-			program += FaultList.map(function(e : string) {
-				return self.indent + self.indent + e;
-			}).join("," + this.linefeed) + this.linefeed;
-
-			program += this.indent + "};" + this.linefeed;
-			program += this.indent + "switch(" + FaultAction + ") {" + this.linefeed;
-			var matched : number = 0;
-			program += this.GetGoalList(Node.Children).map(function(e : AssureIt.NodeModel) {
-				var ret : string = "";
-				for (var i=0; i < FaultList.length; ++i) {
-					if(e.Statement.indexOf(FaultList[i]) >= 0) {
-						matched += 1;
-						ret += self.indent + "case " + FaultList[i] + ":" + self.linefeed;
-						ret += self.indent + self.indent + "return ";
-						ret += self.GenerateFunctionCall(e) + ";";
-					}
+		if(child.length > 0) {
+			for (var i=0; i < child.length; ++i) {
+				var node : AssureIt.NodeModel = child[i];
+				if(i != 0) {
+					program += " && ";
 				}
-				return ret;
-			}).join(this.linefeed) + this.linefeed;
-			if(matched != FaultList.length) {
-				this.errorMessage.push(new DScriptError(Node.Label, Node.LineNumber, Node.Label + " node does not cover some case."));
+				program += this.GenerateFunctionCall(node);
 			}
-			program += this.indent + "}" + this.linefeed;
-			program += this.indent + "return false;" + this.linefeed;
 		} else {
-
-			program += this.indent + "return ";
-			if(child.length > 0) {
-				for (var i=0; i < child.length; ++i) {
-					var node : AssureIt.NodeModel = child[i];
-					if(i != 0) {
-						program += " && ";
-					}
-					program += this.GenerateFunctionCall(node);
-				}
-			} else {
-				program += "false";
-			}
-			program += ";" + this.linefeed;
+			program += "false";
 		}
+		program += ";" + this.linefeed;
+
 		return this.GenerateFooter(Node, program);
 
 	}
@@ -380,15 +340,21 @@ class DScriptGenerator {
 		
 		if(Monitor != null) {
 			var contextenv: { [key: string]: string;} = this.GetContextEnvironment(Node);
-
 			program += this.GenerateLetDecl(contextenv);
-			program += this.indent + "boolean ret = false;" + this.linefeed;
+			program += this.indent + "boolean ret = " + Monitor + ";" + this.linefeed;
+			program += this.indent + "if(!ret) {" + this.linefeed;
+			program += this.indent + this.indent + "return false;" + this.linefeed;
+			program += this.indent + "}" + this.linefeed;
+
 		}
 
 		var Action : string = this.GetAction(Node);
 		var location : string = this.GetLocation(Node);
 		if(Action != null) {
-			program += this.indent + "if(!" + Action + ") {" + this.linefeed;
+			var contextenv: { [key: string]: string;} = this.GetContextEnvironment(Node);
+			program += this.GenerateLetDecl(contextenv);
+			program += this.indent + "boolean ret = " + Action + ";" + this.linefeed;
+			program += this.indent + "if(!ret) {" + this.linefeed;
 			program += this.indent + this.indent + "return false;" + this.linefeed;
 			program += this.indent + "}" + this.linefeed;
 		}
@@ -421,6 +387,10 @@ class DScriptGenerator {
 		}
 		this.PopEnvironment();
 		return flow + program.reverse().join(this.linefeed);
+	}
+
+	GenerateRuntimeContext(): string {
+		return "class RutimeContext {" + this.linefeed + "}" + this.linefeed + this.linefeed;
 	}
 
 	CollectNodeInfo(rootNode: AssureIt.NodeModel) : { [key: string]: AssureIt.NodeModel[]; } {
@@ -459,20 +429,6 @@ class DScriptGenerator {
 			for (var j=0; j < map[Node.Label].length; ++j) {
 				var Child = map[Node.Label][j];
 				Edges.push(new Edge(i, NodeIdxMap[Child.Label]));
-			}
-			var after : AssureIt.CaseAnnotation = Node.GetAnnotation("after");
-			if(after != null) {
-				if(after.Body == null || after.Body.length == 0) {
-					this.errorMessage.push(new DScriptError(Node.Label, Node.LineNumber, Node.Label + "'s @after annotation needs parameter"));
-				} else {
-					// (E3.Monitor == true) => ["(E3", "E3"]
-					var res : string[] = after.Body.match(/^\(+([A-Za-z0-9]+)/);
-					if(res != null && res.length == 2) {
-						var src = NodeIdxMap[res[1]];
-						var e = graph[src];
-						e.push(new Edge(src, i));
-					}
-				}
 			}
 		}
 
@@ -525,8 +481,10 @@ class DScriptGenerator {
 			}
 		}
 
+		res += this.GenerateRuntimeContext();
 		res += this.GenerateCode(rootNode, flow) + this.linefeed;
 		res += "@Export int main() {" + this.linefeed;
+		res += this.indent + "RuntimeContext ctx = new RuntimeContext;" + this.linefeed;
 		res += this.indent + "if(" + this.GenerateFunctionCall(rootNode) + ") { return 0; }" + this.linefeed;
 		res += this.indent + "return 1;" + this.linefeed;
 		res += "}" + this.linefeed;
