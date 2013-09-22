@@ -354,8 +354,9 @@ class DScriptGenerator {
 			} else {
 				program += this.indent + "return false/*FIXME support Rebuttal*/";
 			}
+			program += ";" + this.linefeed;
 		}
-		program += ";" + this.linefeed;
+
 		return this.GenerateFooter(Node, program);
 	}
 
