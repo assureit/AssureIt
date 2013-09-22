@@ -178,10 +178,10 @@ var DScriptGenerator = (function () {
     };
 
     DScriptGenerator.prototype.GenerateFunctionHeader = function (Node) {
-        return "boolean " + Node.Label + "(RuntimeContext ctx)";
+        return "DFault " + Node.Label + "(RuntimeContext ctx)";
     };
     DScriptGenerator.prototype.GenerateFunctionCall = function (Node) {
-        return Node.Label + "(ctx)";
+        return Node.Label + "(ctx) == null";
     };
 
     DScriptGenerator.prototype.GenerateHeader = function (Node) {
@@ -214,7 +214,7 @@ var DScriptGenerator = (function () {
                 program += this.GenerateFunctionCall(node);
             }
         } else {
-            program += "true";
+            program += "null";
         }
         program += ";" + this.linefeed;
         return this.GenerateFooter(Node, program);
@@ -242,7 +242,7 @@ var DScriptGenerator = (function () {
 
     DScriptGenerator.prototype.GenerateContext = function (Node, Flow) {
         var program = this.GenerateHeader(Node);
-        program += this.indent + "return true;" + this.linefeed;
+        program += this.indent + "return null;" + this.linefeed;
         return this.GenerateFooter(Node, program);
     };
 
@@ -250,20 +250,51 @@ var DScriptGenerator = (function () {
         var program = this.GenerateHeader(Node);
         var child = Flow[Node.Label];
         child = this.GenerateOrder(child);
-        program += this.indent + "return ";
 
-        if (child.length > 0) {
-            for (var i = 0; i < child.length; ++i) {
-                var node = child[i];
-                if (i != 0) {
-                    program += " && ";
+        for (var i = 0; i < child.length; i++) {
+            var goal = child[i];
+            var contextindex = this.GetContextIndex(goal);
+            console.log("goal.children[contextindex].Label = " + goal.Children[contextindex].Label);
+            var context = goal.Children[contextindex];
+            if (context.GetAnnotation("OnlyIf") != null) {
+                console.log("context.GetAnnotation(\"OnlyIf\").Name = " + context.GetAnnotation("OnlyIf").Name);
+                console.log("context.GetAnnotation(\"OnlyIf\").Body = " + context.GetAnnotation("OnlyIf").Body);
+                var Body = context.GetAnnotation("OnlyIf").Body;
+                Body = Body.replace("(", "").replace(")", "");
+                var BodyInfo = Body.split(" ");
+                console.log("BodyInfo = " + BodyInfo);
+                for (var j = 0; j < child.length; j++) {
+                    var goallabel = child[j].Label;
+                    if (goallabel == BodyInfo[0]) {
+                        console.log("goallabel == BodyInfo[0]  " + goallabel);
+                        var parentgoallabel = context.Parent.Label;
+                        console.log("parentgoallabel = " + parentgoallabel);
+                        program += this.indent + "DFault ret = " + goallabel + "(ctx);" + this.linefeed;
+                        program += this.indent + "if (ret != null) {" + this.linefeed;
+                        program += this.indent + this.indent + "ret = " + parentgoallabel + "(ctx);" + this.linefeed;
+                        program += this.indent + "}" + this.linefeed;
+                        program += this.indent + "return ret;" + this.linefeed;
+                    }
                 }
-                program += this.GenerateFunctionCall(node);
             }
-        } else {
-            program += "false";
         }
-        program += ";" + this.linefeed;
+
+        if (false) {
+            program += this.indent + "return ";
+
+            if (child.length > 0) {
+                for (var i = 0; i < child.length; ++i) {
+                    var node = child[i];
+                    if (i != 0) {
+                        program += " && ";
+                    }
+                    program += this.GenerateFunctionCall(node);
+                }
+            } else {
+                program += "false";
+            }
+            program += ";" + this.linefeed;
+        }
 
         return this.GenerateFooter(Node, program);
     };
@@ -284,11 +315,11 @@ var DScriptGenerator = (function () {
         var program = "";
         var contextenv = this.GetContextEnvironment(Node);
         program += this.GenerateLetDecl(contextenv);
-        program += this.indent + "boolean ret = " + Function + ";" + this.linefeed;
+        program += this.indent + "DFault ret = " + Function + ";" + this.linefeed;
         program += this.indent + "ctx.curl(id, " + Node.Label + ", " + "ret);" + this.linefeed;
-        program += this.indent + "if(!ret) {" + this.linefeed;
-        program += this.indent + this.indent + "return false;" + this.linefeed;
-        program += this.indent + "}" + this.linefeed;
+
+        program += this.indent + "return ret;" + this.linefeed;
+
         return program;
     };
 
@@ -311,10 +342,12 @@ var DScriptGenerator = (function () {
             this.errorMessage.push(new DScriptError(Node.Label, Node.LineNumber, "EvidenceSyntaxError"));
         }
 
-        if (child.length == 0) {
-            program += this.indent + "return true";
-        } else {
-            program += this.indent + "return false/*FIXME support Rebuttal*/";
+        if (Monitor == null && Action == null) {
+            if (child.length == 0) {
+                program += this.indent + "return null";
+            } else {
+                program += this.indent + "return false/*FIXME support Rebuttal*/";
+            }
         }
         program += ";" + this.linefeed;
         return this.GenerateFooter(Node, program);
@@ -338,6 +371,20 @@ var DScriptGenerator = (function () {
 
     DScriptGenerator.prototype.GenerateRuntimeContext = function () {
         return "class RutimeContext {" + this.linefeed + "}" + this.linefeed + this.linefeed;
+    };
+
+    DScriptGenerator.prototype.GenerateMainFunction = function (rootNode, flow) {
+        var program = "";
+        program += this.GenerateRuntimeContext();
+        program += this.GenerateCode(rootNode, flow) + this.linefeed;
+        program += "while(true) {" + this.linefeed;
+        program += this.indent + "@Export int main() {" + this.linefeed;
+        program += this.indent + this.indent + "RuntimeContext ctx = new RuntimeContext();" + this.linefeed;
+        program += this.indent + this.indent + "if(" + this.GenerateFunctionCall(rootNode) + ") { return 0; }" + this.linefeed;
+        program += this.indent + this.indent + "return 1;" + this.linefeed;
+        program += this.indent + "}" + this.linefeed;
+        program += "}" + this.linefeed;
+        return program;
     };
 
     DScriptGenerator.prototype.CollectNodeInfo = function (rootNode) {
@@ -427,14 +474,7 @@ var DScriptGenerator = (function () {
                 queue.push(childNode);
             }
         }
-
-        res += this.GenerateRuntimeContext();
-        res += this.GenerateCode(rootNode, flow) + this.linefeed;
-        res += "@Export int main() {" + this.linefeed;
-        res += this.indent + "RuntimeContext ctx = new RuntimeContext;" + this.linefeed;
-        res += this.indent + "if(" + this.GenerateFunctionCall(rootNode) + ") { return 0; }" + this.linefeed;
-        res += this.indent + "return 1;" + this.linefeed;
-        res += "}" + this.linefeed;
+        res += this.GenerateMainFunction(rootNode, flow);
         return res;
     };
 
