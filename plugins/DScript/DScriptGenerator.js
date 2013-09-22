@@ -154,15 +154,6 @@ var DScriptGenerator = (function () {
         return "";
     };
 
-    DScriptGenerator.prototype.GenerateOrder = function (GoalList) {
-        var ListLen = GoalList.length;
-        var newGoalList = [];
-        for (var i = 0; i < ListLen; i++) {
-            newGoalList[i] = GoalList[ListLen - 1 - i];
-        }
-        return newGoalList;
-    };
-
     DScriptGenerator.prototype.Generate = function (Node, Flow) {
         switch (Node.Type) {
             case AssureIt.NodeType.Goal:
@@ -246,57 +237,60 @@ var DScriptGenerator = (function () {
         return this.GenerateFooter(Node, program);
     };
 
-    DScriptGenerator.prototype.GenerateStrategy = function (Node, Flow) {
-        var program = this.GenerateHeader(Node);
-        var child = Flow[Node.Label];
-        child = this.GenerateOrder(child);
-
+    DScriptGenerator.prototype.GenerateAnnotationStrategy = function (child) {
+        var program = "";
         for (var i = 0; i < child.length; i++) {
             var goal = child[i];
             var contextindex = this.GetContextIndex(goal);
-            console.log("goal.children[contextindex].Label = " + goal.Children[contextindex].Label);
             var context = goal.Children[contextindex];
             if (context.GetAnnotation("OnlyIf") != null) {
-                console.log("context.GetAnnotation(\"OnlyIf\").Name = " + context.GetAnnotation("OnlyIf").Name);
-                console.log("context.GetAnnotation(\"OnlyIf\").Body = " + context.GetAnnotation("OnlyIf").Body);
                 var Body = context.GetAnnotation("OnlyIf").Body;
                 Body = Body.replace("(", "").replace(")", "");
                 var BodyInfo = Body.split(" ");
-                console.log("BodyInfo = " + BodyInfo);
                 for (var j = 0; j < child.length; j++) {
                     var goallabel = child[j].Label;
                     if (goallabel == BodyInfo[0]) {
-                        console.log("goallabel == BodyInfo[0]  " + goallabel);
                         var parentgoallabel = context.Parent.Label;
-                        console.log("parentgoallabel = " + parentgoallabel);
                         program += this.indent + "DFault ret = " + goallabel + "(ctx);" + this.linefeed;
                         program += this.indent + "if (ret != null) {" + this.linefeed;
                         program += this.indent + this.indent + "ret = " + parentgoallabel + "(ctx);" + this.linefeed;
                         program += this.indent + "}" + this.linefeed;
                         program += this.indent + "return ret;" + this.linefeed;
+                        return program;
                     }
                 }
             }
         }
+        return "";
+    };
 
-        if (false) {
-            program += this.indent + "return ";
-
-            if (child.length > 0) {
-                for (var i = 0; i < child.length; ++i) {
-                    var node = child[i];
-                    if (i != 0) {
-                        program += " && ";
-                    }
-                    program += this.GenerateFunctionCall(node);
+    DScriptGenerator.prototype.GenerateDefaultStrategy = function (child) {
+        var program = "";
+        program += this.indent + "return ";
+        if (child.length > 0) {
+            for (var i = 0; i < child.length; ++i) {
+                var node = child[i];
+                if (i != 0) {
+                    program += " && ";
                 }
-            } else {
-                program += "false";
+                program += this.GenerateFunctionCall(node);
             }
-            program += ";" + this.linefeed;
+        } else {
+            program += "false";
         }
+        program += ";" + this.linefeed;
+        return program;
+    };
 
-        return this.GenerateFooter(Node, program);
+    DScriptGenerator.prototype.GenerateStrategy = function (Node, Flow) {
+        var program = this.GenerateHeader(Node);
+        var child = Flow[Node.Label].reverse();
+        var code = this.GenerateAnnotationStrategy(child);
+
+        if (code.length == 0) {
+            program += this.GenerateDefaultStrategy(child);
+        }
+        return this.GenerateFooter(Node, program + code);
     };
 
     DScriptGenerator.prototype.GenerateLetDecl = function (ContextEnv) {
@@ -317,9 +311,7 @@ var DScriptGenerator = (function () {
         program += this.GenerateLetDecl(contextenv);
         program += this.indent + "DFault ret = " + Function + ";" + this.linefeed;
         program += this.indent + "ctx.curl(id, " + Node.Label + ", " + "ret);" + this.linefeed;
-
         program += this.indent + "return ret;" + this.linefeed;
-
         return program;
     };
 

@@ -12,7 +12,7 @@ class Edge {
 
 function visit(g: Edge[][], v: number, order: number[], color: number[]) : boolean {
 	color[v] = 1;
-	for (var i=0; i < g[v].length; i = i + 1) {
+	for (var i: number = 0; i < g[v].length; i = i + 1) {
 		var e = g[v][i];
 		if (color[e.dst] == 2/*visited*/) {
 			continue;
@@ -30,7 +30,7 @@ function visit(g: Edge[][], v: number, order: number[], color: number[]) : boole
 }
 
 function tsort(g: Edge[][]) : number[] {
-	var n = g.length;
+	var n: number = g.length;
 	var color: number[] = [];
 	var order: number[] = [];
 	for (var i: number = 0; i < n; i++) {
@@ -122,13 +122,13 @@ class DScriptGenerator {
 
 	PushEnvironment(ContextList: AssureIt.NodeModel[]): void {
 		var env : { [key: string]: string;} = {};
-		for (var i=0; i < ContextList.length; ++i) {
-			var Node = ContextList[i];
+		for (var i: number = 0; i < ContextList.length; ++i) {
+			var Node: AssureIt.NodeModel = ContextList[i];
 			if(Node.Type != AssureIt.NodeType.Context) {
 				continue;
 			}
 			var DeclKeys: string[] = Object.keys(Node.Notes);
-			for (var j=0; j < DeclKeys.length; j++) {
+			for (var j: number = 0; j < DeclKeys.length; j++) {
 				var DeclKey: string = DeclKeys[j];
 				var DeclValue: string = Node.Notes[DeclKey];
 				env[DeclKey] = DeclValue;
@@ -165,15 +165,6 @@ class DScriptGenerator {
 		return "";
 	}
 
-	GenerateOrder(GoalList: AssureIt.NodeModel[]): AssureIt.NodeModel[] {
-		var ListLen: number = GoalList.length;
-		var newGoalList: AssureIt.NodeModel[] = [];
-		for(var i:number = 0; i < ListLen; i++) {
-			newGoalList[i] = GoalList[ListLen - 1 - i];
-		}
-		return newGoalList;
-	}
-
 	Generate(Node: AssureIt.NodeModel, Flow: { [key: string]: AssureIt.NodeModel[];}): string {
 		switch(Node.Type) {
 			case AssureIt.NodeType.Goal:
@@ -189,21 +180,19 @@ class DScriptGenerator {
 	}
 
 	GenerateFunctionHeader(Node: AssureIt.NodeModel): string {
-		//return "boolean Invoke(" + Node.Label + " self)";
 		return "DFault " + Node.Label + "(RuntimeContext ctx)";
 	}
 	GenerateFunctionCall(Node: AssureIt.NodeModel): string {
-		//return "Invoke(new " + Node.Label + "())";
 		return Node.Label + "(ctx) == null";
 	}
 
 	GenerateHeader(Node: AssureIt.NodeModel): string {
-		var program : string = "";
+		var program: string = "";
 		program += this.GenerateFunctionHeader(Node) + " {" + this.linefeed;
-		var statement = Node.Statement.replace(/\n+$/g,'');
+		var statement: string = Node.Statement.replace(/\n+$/g,'');
 		if(statement.length > 0) {
 			var description : string[] = statement.split(this.linefeed);
-			for (var i=0; i < description.length; ++i) {
+			for (var i: number = 0; i < description.length; ++i) {
 				program += this.indent + "// " + description[i] + this.linefeed;
 			}
 		}
@@ -219,7 +208,7 @@ class DScriptGenerator {
 		var child: AssureIt.NodeModel[] = Flow[Node.Label];
 		program += this.indent + "return ";
 		if(child.length > 0) {
-			for (var i=0; i < child.length; ++i) {
+			for (var i: number = 0; i < child.length; ++i) {
 				var node : AssureIt.NodeModel = child[i];
 				if(i != 0) {
 					program += " && ";
@@ -239,7 +228,7 @@ class DScriptGenerator {
 
 		program += this.indent + "return ";
 		if(child.length > 0) {
-			for (var i=0; i < child.length; ++i) {
+			for (var i: number = 0; i < child.length; ++i) {
 				var node : AssureIt.NodeModel = child[i];
 				if(i != 0) {
 					program += " && ";
@@ -260,66 +249,67 @@ class DScriptGenerator {
 		return this.GenerateFooter(Node, program);
 	}
 
-	GenerateStrategy(Node: AssureIt.NodeModel, Flow : { [key: string]: AssureIt.NodeModel[];}): string {
-		var program: string = this.GenerateHeader(Node);
-		var child: AssureIt.NodeModel[] = Flow[Node.Label];
-		child = this.GenerateOrder(child);
-
-//=============================================
+	GenerateAnnotationStrategy(child: AssureIt.NodeModel[]): string {
+		var program: string = "";
 		for(var i:number = 0; i < child.length; i++) {
 			var goal: AssureIt.NodeModel = child[i];
 			var contextindex: number = this.GetContextIndex(goal);
-			console.log("goal.children[contextindex].Label = " + goal.Children[contextindex].Label);
 			var context: AssureIt.NodeModel = goal.Children[contextindex];
 			if(context.GetAnnotation("OnlyIf") != null) {
-				console.log("context.GetAnnotation(\"OnlyIf\").Name = " + context.GetAnnotation("OnlyIf").Name);
-				console.log("context.GetAnnotation(\"OnlyIf\").Body = " + context.GetAnnotation("OnlyIf").Body);
 				var Body: string = context.GetAnnotation("OnlyIf").Body;
 				Body = Body.replace("(", "").replace(")", "");
 				var BodyInfo: string[] = Body.split(" ");
-				console.log("BodyInfo = " + BodyInfo);
 				for(var j:number = 0; j < child.length; j++) {
 					var goallabel: string = child[j].Label;
 					if(goallabel == BodyInfo[0]) {
-						console.log("goallabel == BodyInfo[0]  " + goallabel);
 						var parentgoallabel: string = context.Parent.Label;
-						console.log("parentgoallabel = " + parentgoallabel);
 						program += this.indent + "DFault ret = " + goallabel + "(ctx);" + this.linefeed;
 						program += this.indent + "if (ret != null) {" + this.linefeed;
 						program += this.indent + this.indent + "ret = " + parentgoallabel + "(ctx);" + this.linefeed;
 						program += this.indent + "}" + this.linefeed;
 						program += this.indent + "return ret;" + this.linefeed;
+						return program;
 					}
 				}
 			}
 		}
+		return "";
+	}
 
-//=============================================
-		if(false) {
-			program += this.indent + "return ";
-
-			if(child.length > 0) {
-				for (var i=0; i < child.length; ++i) {
-					var node : AssureIt.NodeModel = child[i];
-					if(i != 0) {
-						program += " && ";
-					}
-					program += this.GenerateFunctionCall(node);
+	GenerateDefaultStrategy(child: AssureIt.NodeModel[]): string {
+		var program: string = "";
+		program += this.indent + "return ";
+		if(child.length > 0) {
+			for (var i: number = 0; i < child.length; ++i) {
+				var node : AssureIt.NodeModel = child[i];
+				if(i != 0) {
+					program += " && ";
 				}
-			} else {
-				program += "false";
+				program += this.GenerateFunctionCall(node);
 			}
-			program += ";" + this.linefeed;
 		}
+		else {
+			program += "false";
+		}
+		program += ";" + this.linefeed;
+		return program;
+	}
 
-		return this.GenerateFooter(Node, program);
+	GenerateStrategy(Node: AssureIt.NodeModel, Flow : { [key: string]: AssureIt.NodeModel[];}): string {
+		var program: string = this.GenerateHeader(Node);
+		var child: AssureIt.NodeModel[] = Flow[Node.Label].reverse();
+		var code: string = this.GenerateAnnotationStrategy(child);
 
+		if(code.length == 0) {
+			program += this.GenerateDefaultStrategy(child);
+		}
+		return this.GenerateFooter(Node, program + code);
 	}
 
 	GenerateLetDecl(ContextEnv: { [key: string]: string;}): string {
 		var program: string = "";
 		var DeclKeys: string[] = Object.keys(ContextEnv);
-		for (var j=0; j < DeclKeys.length; j++) {
+		for (var j: number = 0; j < DeclKeys.length; j++) {
 			var DeclKey: string = DeclKeys[j];
 			var DeclValue: string = ContextEnv[DeclKey];
 			program += this.indent + "let " + DeclKey+ " = " + DeclValue + ";" + this.linefeed;
@@ -334,9 +324,7 @@ class DScriptGenerator {
 		program += this.GenerateLetDecl(contextenv);
 		program += this.indent + "DFault ret = " + Function + ";" + this.linefeed;
 		program += this.indent + "ctx.curl(id, " + Node.Label + ", " + "ret);" + this.linefeed;
-//		program += this.indent + "if(ret != null) {" + this.linefeed;
 		program += this.indent + "return ret;" + this.linefeed;
-//		program += this.indent + "}" + this.linefeed;
 		return program;
 	}
 
@@ -380,7 +368,7 @@ class DScriptGenerator {
 		Flow[Node.Label] = [];
 		var ContextList: AssureIt.NodeModel[] = this.GetContextList(child);
 		this.PushEnvironment(ContextList);
-		for (var i=0; i < child.length; ++i) {
+		for (var i: number = 0; i < child.length; ++i) {
 			program.push(this.GenerateCode(child[i], Flow));
 		}
 		this.PopEnvironment();
