@@ -169,8 +169,8 @@ class DScriptGenerator {
 		switch(Node.Type) {
 			case AssureIt.NodeType.Goal:
 				return this.GenerateGoal(Node, Flow);
-			case AssureIt.NodeType.Context:
-				return this.GenerateContext(Node, Flow);
+//			case AssureIt.NodeType.Context:
+//				return this.GenerateContext(Node, Flow);
 			case AssureIt.NodeType.Strategy:
 				return this.GenerateStrategy(Node, Flow);
 			case AssureIt.NodeType.Evidence:
@@ -183,7 +183,7 @@ class DScriptGenerator {
 		return "DFault " + Node.Label + "(RuntimeContext ctx)";
 	}
 	GenerateFunctionCall(Node: AssureIt.NodeModel): string {
-		return Node.Label + "(ctx) == null";
+		return Node.Label + "(ctx)";
 	}
 
 	GenerateHeader(Node: AssureIt.NodeModel): string {
@@ -230,6 +230,9 @@ class DScriptGenerator {
 		if(child.length > 0) {
 			for (var i: number = 0; i < child.length; ++i) {
 				var node : AssureIt.NodeModel = child[i];
+				if(node.Type == AssureIt.NodeType.Context) {
+					continue;
+				}
 				if(i != 0) {
 					program += " && ";
 				}
@@ -387,7 +390,7 @@ class DScriptGenerator {
 		program += "while(true) {" + this.linefeed;
 		program += this.indent + "@Export int main() {" + this.linefeed;
 		program += this.indent + this.indent + "RuntimeContext ctx = new RuntimeContext();" + this.linefeed;
-		program += this.indent + this.indent + "if(" + this.GenerateFunctionCall(rootNode) + ") { return 0; }" + this.linefeed;
+		program += this.indent + this.indent + "if(" + this.GenerateFunctionCall(rootNode) + " == null) { return 0; }" + this.linefeed;
 		program += this.indent + this.indent + "return 1;" + this.linefeed;
 		program += this.indent + "}" + this.linefeed;
 		program += "}" + this.linefeed;
