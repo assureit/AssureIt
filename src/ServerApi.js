@@ -1,6 +1,3 @@
-///<reference path='../d.ts/jquery.d.ts'/>
-///<reference path='./CaseModel.ts'/>
-///<reference path='./CommitModel.ts'/>
 var AssureIt;
 (function (AssureIt) {
     var default_success_callback = function (result) {
@@ -11,15 +8,11 @@ var AssureIt;
     };
 
     var ServerAPI = (function () {
-        function ServerAPI(basepath, isLocal) {
-            if (isLocal == null) {
-                isLocal = false;
-            }
+        function ServerAPI(basepath, recpath) {
             this.uri = basepath + "/api/1.0/";
             this.basepath = basepath;
-            if (!isLocal) {
-                this.basepath = basepath + "/";
-            }
+            this.recpath = recpath;
+            this.basepath = basepath + "/";
         }
         ServerAPI.prototype.RemoteCall = function (method, params) {
             var cmd = {
@@ -131,4 +124,3 @@ var AssureIt;
     })();
     AssureIt.ServerAPI = ServerAPI;
 })(AssureIt || (AssureIt = {}));
-
