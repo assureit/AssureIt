@@ -396,13 +396,13 @@ var DScriptGenerator = (function () {
         var program = "";
         program += this.GenerateRuntimeContext();
         program += this.GenerateCode(rootNode, flow) + this.linefeed;
-        program += "while(true) {" + this.linefeed;
-        program += this.indent + "@Export int main() {" + this.linefeed;
-        program += this.indent + this.indent + "RuntimeContext ctx = new RuntimeContext();" + this.linefeed;
-        program += this.indent + this.indent + "if(" + this.GenerateFunctionCall(rootNode) + " == null) { return 0; }" + this.linefeed;
-        program += this.indent + this.indent + "return 1;" + this.linefeed;
+        program += "@Export int main() {" + this.linefeed;
+        program += this.indent + "RuntimeContext ctx = new RuntimeContext();" + this.linefeed;
+        program += this.indent + "while(true) {" + this.linefeed;
+        program += this.indent + this.indent + this.GenerateFunctionCall(rootNode) + ";" + this.linefeed;
+        program += this.indent + this.indent + "sleep 30" + this.linefeed;
         program += this.indent + "}" + this.linefeed;
-        program += this.indent + "sleep 30;" + this.linefeed;
+        program += this.indent + "return 0;" + this.linefeed;
         program += "}" + this.linefeed;
         return program;
     };
@@ -488,12 +488,9 @@ var DScriptGenerator = (function () {
                 program += "import " + action.replace("()", "") + ".ts" + this.linefeed;
             }
         }
+        program += "import config.ts" + this.linefeed;
         program += this.linefeed;
         return program;
-    };
-
-    DScriptGenerator.prototype.GenerateGlobalLocationDecl = function () {
-        return "const LOCATION = \"\"" + this.linefeed + this.linefeed;
     };
 
     DScriptGenerator.prototype.codegen_ = function (ViewMap, rootNode, ASNData) {
@@ -519,7 +516,6 @@ var DScriptGenerator = (function () {
         }
         res += this.GenerateDShellDecl();
         res += this.GenerateImportStatement(ViewMap, flow);
-        res += this.GenerateGlobalLocationDecl();
         res += this.GenerateMainFunction(rootNode, flow);
         return res;
     };
