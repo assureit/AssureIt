@@ -263,7 +263,7 @@ class DScriptGenerator {
 				var goallabel: string = child[0].Label;
 				var parentgoallabel: string = context.Parent.Label;
 				program += this.indent + "DFault ret = " + goallabel + "(ctx);" + this.linefeed;
-				program += this.indent + "if (ret.location == \"" + reaction + "\") {" + this.linefeed;
+				program += this.indent + "if (ret.getLocation() == \"" + reaction + "\") {" + this.linefeed;
 				program += this.indent + this.indent + "ret = " + parentgoallabel + "(ctx);" + this.linefeed;
 				program += this.indent + "}" + this.linefeed;
 				program += this.indent + "return ret;" + this.linefeed;
@@ -303,14 +303,28 @@ class DScriptGenerator {
 		return this.GenerateFooter(Node, program + code);
 	}
 
+	GenerateGetDataFromRecFunction(DeclValue: string): string {
+		var program: string = "";
+		var monitor: string[] = DeclValue.replace("{", "").replace("}", "").split(" ");
+		program += this.indent + "boolean Monitor = GetDatafromRec(Location, " + monitor[0] + ") " + monitor[1] + " " + monitor[2] + ";" + this.linefeed;
+		return program;
+	}
+
 	GenerateLetDecl(ContextEnv: { [key: string]: string;}): string {
 		var program: string = "";
 		var DeclKeys: string[] = Object.keys(ContextEnv);
 		for (var j: number = 0; j < DeclKeys.length; j++) {
 			var DeclKey: string = DeclKeys[j];
-			console.log("DeclKey = " + DeclKey);
 			var DeclValue: string = ContextEnv[DeclKey];
-			program += this.indent + "let " + DeclKey+ " = " + DeclValue + ";" + this.linefeed;
+			if(DeclKey == "Monitor") {
+				program += this.GenerateGetDataFromRecFunction(DeclValue);
+			}
+			else if(DeclKey == "Reaction") {
+				program += this.indent + "String " + DeclKey + " = " + "\"" + DeclValue + "\";" + this.linefeed;
+			}
+			else {
+				program += this.indent + "let " + DeclKey+ " = " + DeclValue + ";" + this.linefeed;
+			}
 		}
 
 		return program;
@@ -322,7 +336,6 @@ class DScriptGenerator {
 		program += this.GenerateLetDecl(contextenv);
 		program += this.indent + "DFault ret = " + Function + ";" + this.linefeed;
 		program += this.indent + "dexec " + Function + this.linefeed;
-//		program += this.indent + "ctx.curl(id, " + Node.Label + ", " + "ret);" + this.linefeed;
 		program += this.indent + "return ret;" + this.linefeed;
 		return program;
 	}
@@ -460,25 +473,28 @@ class DScriptGenerator {
 		return map;
 	}
 
-	codegen_(ViewMap: {[index: string]: AssureIt.NodeModel }, rootNode: AssureIt.NodeModel, ASNData: string): string {
-		var res: string = "";
-		if(rootNode == null) {
-			return res;
-		}
-		var flow : { [key: string]: AssureIt.NodeModel[]; } = this.CollectNodeInfo(rootNode);
-
+	GenerateImportStatement(ViewMap: {[index: string]: AssureIt.NodeModel }, flow : { [key: string]: AssureIt.NodeModel[]; }): string {
+		var program: string = "";
 		var keys: string[] = Object.keys(flow);
 		for(var i: number = 0; i < keys.length; i++) {
 			var label: string = keys[i];
 			var element: AssureIt.NodeModel = ViewMap[label];
 			var action: string = this.GetAction(element);
 			if(label.charAt(0) == "E" && action.length > 0) {
-				res += "import " + action.replace("()", "") + ".ts" + this.linefeed;
+				program += "import " + action.replace("()", "") + ".ts" + this.linefeed;
 			}
 		}
+		program += this.linefeed;
+		return program;
+	}
 
+	codegen_(ViewMap: {[index: string]: AssureIt.NodeModel }, rootNode: AssureIt.NodeModel, ASNData: string): string {
+		var res: string = "";
+		if(rootNode == null) {
+			return res;
+		}
+		var flow : { [key: string]: AssureIt.NodeModel[]; } = this.CollectNodeInfo(rootNode);
 		var dataList : string[] = ASNData.split("\n");
-
 		var queue : AssureIt.NodeModel[] = [];
 		queue.push(rootNode);
 		while(queue.length != 0) {
@@ -493,6 +509,7 @@ class DScriptGenerator {
 				queue.push(childNode);
 			}
 		}
+		res += this.GenerateImportStatement(ViewMap, flow);
 		res += this.GenerateMainFunction(rootNode, flow);
 		return res;
 	}
