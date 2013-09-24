@@ -4,6 +4,8 @@ var __extends = this.__extends || function (d, b) {
     __.prototype = b.prototype;
     d.prototype = new __();
 };
+var generatedScript = "";
+
 var DScriptPlugIn = (function (_super) {
     __extends(DScriptPlugIn, _super);
     function DScriptPlugIn(plugInManager) {
@@ -253,7 +255,11 @@ var DScriptEditorPlugIn = (function (_super) {
             this.rootCaseModel = caseModel;
             this.highlighter.ClearHighlight();
             var Generator = new DScriptGenerator();
+<<<<<<< HEAD
             var script = Generator.codegen(orig_ElementMap, caseModel, ASNData);
+=======
+            generatedScript = Generator.codegen(orig_ElementMap, caseModel, ASNData);
+>>>>>>> 96b8b2e0f148aa54c1b8bde08062911f2247eaa0
 
             var DScriptMap = new DScriptActionMap();
             var ActionMapScript = DScriptMap.GetActionMap(orig_ElementMap, caseModel, ASNData);
@@ -261,7 +267,7 @@ var DScriptEditorPlugIn = (function (_super) {
             this.updateActionTable(DScriptMap.ActionMap);
 
             this.updateLineComment(this.editor_left, this.widgets, Generator);
-            this.editor_right.setValue(script);
+            this.editor_right.setValue(generatedScript);
         }
         this.editor_left.refresh();
         this.editor_right.refresh();
@@ -273,13 +279,26 @@ var DScriptSideMenuPlugIn = (function (_super) {
     __extends(DScriptSideMenuPlugIn, _super);
     function DScriptSideMenuPlugIn(plugInManager) {
         _super.call(this, plugInManager);
+<<<<<<< HEAD
+=======
+        this.AssureItAgentAPI = new AssureIt.AssureItAgentAPI("http://localhost:8081");
+>>>>>>> 96b8b2e0f148aa54c1b8bde08062911f2247eaa0
     }
     DScriptSideMenuPlugIn.prototype.IsEnabled = function (caseViewer, Case0, serverApi) {
         return true;
     };
 
     DScriptSideMenuPlugIn.prototype.AddMenu = function (caseViewer, Case0, serverApi) {
+<<<<<<< HEAD
         return new AssureIt.SideMenuModel('#', 'Deploy', "deploy", "glyphicon-list-alt", function (ev) {
+=======
+        var _this = this;
+        return new AssureIt.SideMenuModel('#', 'Deploy', "deploy", "glyphicon-list-alt", function (ev) {
+            var dscript = { 'main': '', 'lib': '' };
+            dscript.main = { 'main.ds': generatedScript };
+            dscript.lib = {};
+            _this.AssureItAgentAPI.Deploy(dscript);
+>>>>>>> 96b8b2e0f148aa54c1b8bde08062911f2247eaa0
         });
     };
     return DScriptSideMenuPlugIn;

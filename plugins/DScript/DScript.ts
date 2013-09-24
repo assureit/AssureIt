@@ -6,6 +6,8 @@
 /// <reference path="./DScriptActionMap.ts" />
 
 
+var generatedScript: string = "";
+
 class DScriptPlugIn extends AssureIt.PlugInSet {
 	static Use3Pane : boolean = true;
 
@@ -167,6 +169,7 @@ class DScriptEditorPlugIn extends AssureIt.ActionPlugIn {
 		else {
 			$(this.editor_right.getWrapperElement()).css({
 				width: '100%',
+
 				height: '100%',
 			});
 			this.action_table.css({
@@ -275,7 +278,7 @@ class DScriptEditorPlugIn extends AssureIt.ActionPlugIn {
 			this.rootCaseModel = caseModel;
 			this.highlighter.ClearHighlight();
 			var Generator: DScriptGenerator = new DScriptGenerator();
-			var script: string = Generator.codegen(orig_ElementMap, caseModel, ASNData);
+			generatedScript = Generator.codegen(orig_ElementMap, caseModel, ASNData);
 //--------------------------------------------------------------------
 			var DScriptMap: DScriptActionMap = new DScriptActionMap();
 			var ActionMapScript: string = DScriptMap.GetActionMap(orig_ElementMap, caseModel, ASNData);
@@ -283,7 +286,7 @@ class DScriptEditorPlugIn extends AssureIt.ActionPlugIn {
 			this.updateActionTable(DScriptMap.ActionMap);
 //--------------------------------------------------------------------
 			this.updateLineComment(this.editor_left, this.widgets, Generator);
-			this.editor_right.setValue(script);
+			this.editor_right.setValue(generatedScript);
 		}
 		this.editor_left.refresh();
 		this.editor_right.refresh();
@@ -292,8 +295,11 @@ class DScriptEditorPlugIn extends AssureIt.ActionPlugIn {
 
 class DScriptSideMenuPlugIn extends AssureIt.SideMenuPlugIn {
 
+	AssureItAgentAPI: AssureIt.AssureItAgentAPI;
+
 	constructor(plugInManager: AssureIt.PlugInManager) {
 		super(plugInManager);
+		this.AssureItAgentAPI = new AssureIt.AssureItAgentAPI("http://localhost:8081");   // TODO: change agent path
 	}
 
 	IsEnabled(caseViewer: AssureIt.CaseViewer, Case0: AssureIt.Case, serverApi: AssureIt.ServerAPI): boolean {
@@ -303,6 +309,10 @@ class DScriptSideMenuPlugIn extends AssureIt.SideMenuPlugIn {
 	AddMenu(caseViewer: AssureIt.CaseViewer, Case0: AssureIt.Case, serverApi: AssureIt.ServerAPI): AssureIt.SideMenuModel {
 
 		return new AssureIt.SideMenuModel('#', 'Deploy', "deploy", "glyphicon-list-alt"/* TODO: change icon */, (ev:Event)=>{
+			var dscript: AssureIt.DScript = { 'main': '', 'lib': ''};
+			dscript.main = { 'main.ds': generatedScript };
+			dscript.lib = {};   // TODO: add library here !!
+			this.AssureItAgentAPI.Deploy(dscript);
 		});
 	}
 
