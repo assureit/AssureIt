@@ -308,6 +308,7 @@ class DScriptGenerator {
 		var DeclKeys: string[] = Object.keys(ContextEnv);
 		for (var j: number = 0; j < DeclKeys.length; j++) {
 			var DeclKey: string = DeclKeys[j];
+			console.log("DeclKey = " + DeclKey);
 			var DeclValue: string = ContextEnv[DeclKey];
 			program += this.indent + "let " + DeclKey+ " = " + DeclValue + ";" + this.linefeed;
 		}
