@@ -14,6 +14,7 @@ class DScriptPlugIn extends AssureIt.PlugInSet {
 		var plugin: DScriptEditorPlugIn = new DScriptEditorPlugIn(plugInManager);
 		this.ActionPlugIn = plugin;
 		this.MenuBarContentsPlugIn = new DScriptMenuPlugIn(plugInManager, plugin);
+		this.SideMenuPlugIn = new DScriptSideMenuPlugIn(plugInManager);
 	}
 }
 
@@ -287,4 +288,22 @@ class DScriptEditorPlugIn extends AssureIt.ActionPlugIn {
 		this.editor_left.refresh();
 		this.editor_right.refresh();
 	}
+}
+
+class DScriptSideMenuPlugIn extends AssureIt.SideMenuPlugIn {
+
+	constructor(plugInManager: AssureIt.PlugInManager) {
+		super(plugInManager);
+	}
+
+	IsEnabled(caseViewer: AssureIt.CaseViewer, Case0: AssureIt.Case, serverApi: AssureIt.ServerAPI): boolean {
+		return true;
+	}
+
+	AddMenu(caseViewer: AssureIt.CaseViewer, Case0: AssureIt.Case, serverApi: AssureIt.ServerAPI): AssureIt.SideMenuModel {
+
+		return new AssureIt.SideMenuModel('#', 'Deploy', "deploy", "glyphicon-list-alt"/* TODO: change icon */, (ev:Event)=>{
+		});
+	}
+
 }
