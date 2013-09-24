@@ -33,6 +33,7 @@ src/PlugInManager.ts
 src/SelectComponent.ts
 src/ServerApi.ts
 src/RecApi.ts
+src/AssureItAgentApi.ts
 src/CommitModel.ts
 src/Pattern.ts
 src/SideMenuModel.ts
