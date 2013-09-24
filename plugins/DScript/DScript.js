@@ -259,7 +259,6 @@ var DScriptEditorPlugIn = (function (_super) {
 
             var DScriptMap = new DScriptActionMap();
             var ActionMapScript = DScriptMap.GetActionMap(orig_ElementMap, caseModel, ASNData);
-            console.log("ActionMapScript = " + ActionMapScript);
             this.updateActionTable(DScriptMap.ActionMap);
 
             this.updateLineComment(this.editor_left, this.widgets, Generator);
@@ -286,7 +285,54 @@ var DScriptSideMenuPlugIn = (function (_super) {
         return new AssureIt.SideMenuModel('#', 'Deploy', "deploy", "glyphicon-list-alt", function (ev) {
             var dscript = { 'main': '', 'lib': '' };
             dscript.main = { 'main.ds': generatedScript };
-            dscript.lib = {};
+            dscript.lib = {
+                "port_monitor.ds": "\n\
+require dshell;\n\
+\n\
+//let Monitor = true\n\
+\n\
+String GetDataFromRec(String location, String type) {\n\
+    command rec;\n\
+    String data = rec -m getLatestData -t $type -l $location\n\
+    return data;\n\
+}\n\
+\n\
+DFault PortMonitor() {\n\
+    print(\"PortMonitor called...\");\n\
+    DFault ret;\n\
+    if (Monitor) {\n\
+	ret = new DFault._new(\"UnKnown\");\n\
+    }\n\
+    else {\n\
+	ret = null;\n\
+    }\n\
+    return ret;\n\
+}\n\
+",
+                "port_reaction.ds": "\n\
+require dshell;\n\
+\n\
+//let Monitor = true\n\
+\n\
+String GetDataFromRec(String location, String type) {\n\
+    command rec;\n\
+    String data = rec -m getLatestData -t $type -l $location\n\
+    return data;\n\
+}\n\
+\n\
+DFault BlockIP() {\n\
+    print(\"BlockIP called...\");\n\
+    DFault ret = null;\n\
+    //    command iptables;\n\
+    //try {\n\
+    //    iptables -A INPUT -p tcp -s $ip --dport $port -j DROP\n\
+    //}\n\
+    //catch (Exception e) {\n\
+    //}\n\
+    return ret;\n\
+}\n\
+"
+            };
             _this.AssureItAgentAPI.Deploy(dscript);
         });
     };
