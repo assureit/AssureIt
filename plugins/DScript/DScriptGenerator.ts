@@ -336,6 +336,9 @@ class DScriptGenerator {
 			else if(DeclKey == "Reaction") {
 				program += this.indent + "String " + DeclKey + " = " + "\"" + DeclValue + "\";" + this.linefeed;
 			}
+			else if(DeclKey == "Location") {
+				program += this.indent + "let " + DeclKey+ " = \"" + DeclValue + "\";" + this.linefeed;
+			}
 			else {
 				program += this.indent + "let " + DeclKey+ " = " + DeclValue + ";" + this.linefeed;
 			}
@@ -348,8 +351,10 @@ class DScriptGenerator {
 		var program: string = "";
 		var contextenv: { [key: string]: string;} = this.GetContextEnvironment(Node);
 		program += this.GenerateLetDecl(Node, contextenv);
-		program += this.indent + "DFault ret = " + Function + ";" + this.linefeed;
-		program += this.indent + "dexec " + Function + this.linefeed;
+		program += this.indent + "if(location == LOCATION) {" + this.linefeed;
+		program += this.indent + this.indent + "DFault ret = " + Function + ";" + this.linefeed;
+		program += this.indent + this.indent + "dexec " + Function + this.linefeed;
+		program += this.indent + "}" + this.linefeed;
 		program += this.indent + "return ret;" + this.linefeed;
 		return program;
 	}
@@ -487,6 +492,10 @@ class DScriptGenerator {
 		return map;
 	}
 
+	GenerateDShellDecl(): string {
+		return "require dshell;" + this.linefeed + this.linefeed;
+	}
+
 	GenerateImportStatement(ViewMap: {[index: string]: AssureIt.NodeModel }, flow : { [key: string]: AssureIt.NodeModel[]; }): string {
 		var program: string = "";
 		var keys: string[] = Object.keys(flow);
@@ -502,8 +511,8 @@ class DScriptGenerator {
 		return program;
 	}
 
-	GenerateDShellDecl(): string {
-		return "require dshell;" + this.linefeed + this.linefeed;
+	GenerateGlobalLocationDecl(): string {
+		return "const LOCATION = \"\"" + this.linefeed + this.linefeed;
 	}
 
 	codegen_(ViewMap: {[index: string]: AssureIt.NodeModel }, rootNode: AssureIt.NodeModel, ASNData: string): string {
@@ -529,6 +538,7 @@ class DScriptGenerator {
 		}
 		res += this.GenerateDShellDecl();
 		res += this.GenerateImportStatement(ViewMap, flow);
+		res += this.GenerateGlobalLocationDecl();
 		res += this.GenerateMainFunction(rootNode, flow);
 		return res;
 	}

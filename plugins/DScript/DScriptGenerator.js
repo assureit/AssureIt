@@ -319,6 +319,8 @@ var DScriptGenerator = (function () {
                 program += this.GenerateGetDataFromRecFunction(Node, DeclValue);
             } else if (DeclKey == "Reaction") {
                 program += this.indent + "String " + DeclKey + " = " + "\"" + DeclValue + "\";" + this.linefeed;
+            } else if (DeclKey == "Location") {
+                program += this.indent + "let " + DeclKey + " = \"" + DeclValue + "\";" + this.linefeed;
             } else {
                 program += this.indent + "let " + DeclKey + " = " + DeclValue + ";" + this.linefeed;
             }
@@ -331,8 +333,10 @@ var DScriptGenerator = (function () {
         var program = "";
         var contextenv = this.GetContextEnvironment(Node);
         program += this.GenerateLetDecl(Node, contextenv);
-        program += this.indent + "DFault ret = " + Function + ";" + this.linefeed;
-        program += this.indent + "dexec " + Function + this.linefeed;
+        program += this.indent + "if(location == LOCATION) {" + this.linefeed;
+        program += this.indent + this.indent + "DFault ret = " + Function + ";" + this.linefeed;
+        program += this.indent + this.indent + "dexec " + Function + this.linefeed;
+        program += this.indent + "}" + this.linefeed;
         program += this.indent + "return ret;" + this.linefeed;
         return program;
     };
@@ -469,6 +473,10 @@ var DScriptGenerator = (function () {
         return map;
     };
 
+    DScriptGenerator.prototype.GenerateDShellDecl = function () {
+        return "require dshell;" + this.linefeed + this.linefeed;
+    };
+
     DScriptGenerator.prototype.GenerateImportStatement = function (ViewMap, flow) {
         var program = "";
         var keys = Object.keys(flow);
@@ -484,8 +492,8 @@ var DScriptGenerator = (function () {
         return program;
     };
 
-    DScriptGenerator.prototype.GenerateDShellDecl = function () {
-        return "require dshell;" + this.linefeed + this.linefeed;
+    DScriptGenerator.prototype.GenerateGlobalLocationDecl = function () {
+        return "const LOCATION = \"\"" + this.linefeed + this.linefeed;
     };
 
     DScriptGenerator.prototype.codegen_ = function (ViewMap, rootNode, ASNData) {
@@ -511,6 +519,7 @@ var DScriptGenerator = (function () {
         }
         res += this.GenerateDShellDecl();
         res += this.GenerateImportStatement(ViewMap, flow);
+        res += this.GenerateGlobalLocationDecl();
         res += this.GenerateMainFunction(rootNode, flow);
         return res;
     };
