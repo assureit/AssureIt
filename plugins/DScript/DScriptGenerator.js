@@ -485,10 +485,10 @@ var DScriptGenerator = (function () {
             var element = ViewMap[label];
             var action = this.GetAction(element);
             if (label.charAt(0) == "E" && action.length > 0) {
-                program += "import " + action.replace("()", "") + ".ts" + this.linefeed;
+                program += "import " + action.replace("()", "") + ".ds" + this.linefeed;
             }
         }
-        program += "import config.ts" + this.linefeed;
+        program += "import config.ds" + this.linefeed;
         program += this.linefeed;
         return program;
     };
