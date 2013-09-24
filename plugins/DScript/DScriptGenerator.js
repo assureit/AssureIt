@@ -378,6 +378,7 @@ var DScriptGenerator = (function () {
         program += this.indent + this.indent + "if(" + this.GenerateFunctionCall(rootNode) + " == null) { return 0; }" + this.linefeed;
         program += this.indent + this.indent + "return 1;" + this.linefeed;
         program += this.indent + "}" + this.linefeed;
+        program += this.indent + "sleep 30;" + this.linefeed;
         program += "}" + this.linefeed;
         return program;
     };
