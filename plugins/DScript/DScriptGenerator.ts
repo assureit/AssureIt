@@ -303,21 +303,35 @@ class DScriptGenerator {
 		return this.GenerateFooter(Node, program + code);
 	}
 
-	GenerateGetDataFromRecFunction(DeclValue: string): string {
+	GenerateGetDataFromRecFunction(Node: AssureIt.NodeModel, DeclValue: string): string {
 		var program: string = "";
 		var monitor: string[] = DeclValue.replace("{", "").replace("}", "").split(" ");
-		program += this.indent + "boolean Monitor = GetDatafromRec(Location, " + monitor[0] + ") " + monitor[1] + " " + monitor[2] + ";" + this.linefeed;
+		var monitorlen: number = monitor.length;
+		for(var i: number = monitorlen; i >= 0; i--) {
+			if(monitor[i] == "") {
+				monitor.splice(i, 1);
+			}
+		}
+		if(monitor.length != 3) {
+			this.errorMessage.push(new DScriptError(Node.Label, Node.LineNumber, "Monitor evaluation formula error"));
+		}
+		else {
+			var LHS: string = monitor[0];
+			var operand: string = monitor[1];
+			var RHS: string = monitor[2];
+			program += this.indent + "boolean Monitor = GetDatafromRec(Location, " + LHS + ") " + operand + " " + RHS + ";" + this.linefeed;
+		}
 		return program;
 	}
 
-	GenerateLetDecl(ContextEnv: { [key: string]: string;}): string {
+	GenerateLetDecl(Node: AssureIt.NodeModel, ContextEnv: { [key: string]: string;}): string {
 		var program: string = "";
 		var DeclKeys: string[] = Object.keys(ContextEnv);
 		for (var j: number = 0; j < DeclKeys.length; j++) {
 			var DeclKey: string = DeclKeys[j];
 			var DeclValue: string = ContextEnv[DeclKey];
 			if(DeclKey == "Monitor") {
-				program += this.GenerateGetDataFromRecFunction(DeclValue);
+				program += this.GenerateGetDataFromRecFunction(Node, DeclValue);
 			}
 			else if(DeclKey == "Reaction") {
 				program += this.indent + "String " + DeclKey + " = " + "\"" + DeclValue + "\";" + this.linefeed;
@@ -333,7 +347,7 @@ class DScriptGenerator {
 	GenerateFunction(Node: AssureIt.NodeModel, Function: string): string {
 		var program: string = "";
 		var contextenv: { [key: string]: string;} = this.GetContextEnvironment(Node);
-		program += this.GenerateLetDecl(contextenv);
+		program += this.GenerateLetDecl(Node, contextenv);
 		program += this.indent + "DFault ret = " + Function + ";" + this.linefeed;
 		program += this.indent + "dexec " + Function + this.linefeed;
 		program += this.indent + "return ret;" + this.linefeed;

@@ -289,22 +289,34 @@ var DScriptGenerator = (function () {
         return this.GenerateFooter(Node, program + code);
     };
 
-    DScriptGenerator.prototype.GenerateGetDataFromRecFunction = function (DeclValue) {
+    DScriptGenerator.prototype.GenerateGetDataFromRecFunction = function (Node, DeclValue) {
         var program = "";
         var monitor = DeclValue.replace("{", "").replace("}", "").split(" ");
-        console.log(monitor);
-        program += this.indent + "boolean Monitor = GetDatafromRec(Location, " + monitor[0] + ") " + monitor[1] + " " + monitor[2] + ";" + this.linefeed;
+        var monitorlen = monitor.length;
+        for (var i = monitorlen; i >= 0; i--) {
+            if (monitor[i] == "") {
+                monitor.splice(i, 1);
+            }
+        }
+        if (monitor.length != 3) {
+            this.errorMessage.push(new DScriptError(Node.Label, Node.LineNumber, "Monitor evaluation formula error"));
+        } else {
+            var LHS = monitor[0];
+            var operand = monitor[1];
+            var RHS = monitor[2];
+            program += this.indent + "boolean Monitor = GetDatafromRec(Location, " + LHS + ") " + operand + " " + RHS + ";" + this.linefeed;
+        }
         return program;
     };
 
-    DScriptGenerator.prototype.GenerateLetDecl = function (ContextEnv) {
+    DScriptGenerator.prototype.GenerateLetDecl = function (Node, ContextEnv) {
         var program = "";
         var DeclKeys = Object.keys(ContextEnv);
         for (var j = 0; j < DeclKeys.length; j++) {
             var DeclKey = DeclKeys[j];
             var DeclValue = ContextEnv[DeclKey];
             if (DeclKey == "Monitor") {
-                program += this.GenerateGetDataFromRecFunction(DeclValue);
+                program += this.GenerateGetDataFromRecFunction(Node, DeclValue);
             } else if (DeclKey == "Reaction") {
                 program += this.indent + "String " + DeclKey + " = " + "\"" + DeclValue + "\";" + this.linefeed;
             } else {
@@ -318,10 +330,9 @@ var DScriptGenerator = (function () {
     DScriptGenerator.prototype.GenerateFunction = function (Node, Function) {
         var program = "";
         var contextenv = this.GetContextEnvironment(Node);
-        program += this.GenerateLetDecl(contextenv);
+        program += this.GenerateLetDecl(Node, contextenv);
         program += this.indent + "DFault ret = " + Function + ";" + this.linefeed;
         program += this.indent + "dexec " + Function + this.linefeed;
-
         program += this.indent + "return ret;" + this.linefeed;
         return program;
     };
