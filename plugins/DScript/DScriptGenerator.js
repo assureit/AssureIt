@@ -246,21 +246,15 @@ var DScriptGenerator = (function () {
             var contextindex = this.GetContextIndex(goal);
             var context = goal.Children[contextindex];
             if (context.GetAnnotation("OnlyIf") != null) {
-                var Body = context.GetAnnotation("OnlyIf").Body;
-                Body = Body.replace("(", "").replace(")", "");
-                var BodyInfo = Body.split(" ");
-                for (var j = 0; j < child.length; j++) {
-                    var goallabel = child[j].Label;
-                    if (goallabel == BodyInfo[0]) {
-                        var parentgoallabel = context.Parent.Label;
-                        program += this.indent + "DFault ret = " + goallabel + "(ctx);" + this.linefeed;
-                        program += this.indent + "if (ret != null) {" + this.linefeed;
-                        program += this.indent + this.indent + "ret = " + parentgoallabel + "(ctx);" + this.linefeed;
-                        program += this.indent + "}" + this.linefeed;
-                        program += this.indent + "return ret;" + this.linefeed;
-                        return program;
-                    }
-                }
+                var reaction = context.Notes["Reaction"];
+                var goallabel = child[0].Label;
+                var parentgoallabel = context.Parent.Label;
+                program += this.indent + "DFault ret = " + goallabel + "(ctx);" + this.linefeed;
+                program += this.indent + "if (ret.location == \"" + reaction + "\") {" + this.linefeed;
+                program += this.indent + this.indent + "ret = " + parentgoallabel + "(ctx);" + this.linefeed;
+                program += this.indent + "}" + this.linefeed;
+                program += this.indent + "return ret;" + this.linefeed;
+                return program;
             }
         }
         return "";
@@ -312,7 +306,8 @@ var DScriptGenerator = (function () {
         var contextenv = this.GetContextEnvironment(Node);
         program += this.GenerateLetDecl(contextenv);
         program += this.indent + "DFault ret = " + Function + ";" + this.linefeed;
-        program += this.indent + "ctx.curl(id, " + Node.Label + ", " + "ret);" + this.linefeed;
+        program += this.indent + "dexec " + Function + this.linefeed;
+
         program += this.indent + "return ret;" + this.linefeed;
         return program;
     };
@@ -445,15 +440,27 @@ var DScriptGenerator = (function () {
                 map[Node.Label] = childList;
             }
         }
+
         return map;
     };
 
-    DScriptGenerator.prototype.codegen_ = function (rootNode, ASNData) {
+    DScriptGenerator.prototype.codegen_ = function (ViewMap, rootNode, ASNData) {
         var res = "";
         if (rootNode == null) {
             return res;
         }
         var flow = this.CollectNodeInfo(rootNode);
+
+        var keys = Object.keys(flow);
+        for (var i = 0; i < keys.length; i++) {
+            var label = keys[i];
+            var element = ViewMap[label];
+            var action = this.GetAction(element);
+            if (label.charAt(0) == "E" && action.length > 0) {
+                res += "import " + action.replace("()", "") + ".ts" + this.linefeed;
+            }
+        }
+
         var dataList = ASNData.split("\n");
 
         var queue = [];
@@ -474,8 +481,8 @@ var DScriptGenerator = (function () {
         return res;
     };
 
-    DScriptGenerator.prototype.codegen = function (Node, ASNData) {
-        return this.codegen_(Node, ASNData);
+    DScriptGenerator.prototype.codegen = function (ViewMap, Node, ASNData) {
+        return this.codegen_(ViewMap, Node, ASNData);
     };
     return DScriptGenerator;
 })();
