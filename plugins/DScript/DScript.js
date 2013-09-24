@@ -12,6 +12,7 @@ var DScriptPlugIn = (function (_super) {
         var plugin = new DScriptEditorPlugIn(plugInManager);
         this.ActionPlugIn = plugin;
         this.MenuBarContentsPlugIn = new DScriptMenuPlugIn(plugInManager, plugin);
+        this.SideMenuPlugIn = new DScriptSideMenuPlugIn(plugInManager);
     }
     DScriptPlugIn.Use3Pane = true;
     return DScriptPlugIn;
@@ -266,3 +267,19 @@ var DScriptEditorPlugIn = (function (_super) {
     };
     return DScriptEditorPlugIn;
 })(AssureIt.ActionPlugIn);
+
+var DScriptSideMenuPlugIn = (function (_super) {
+    __extends(DScriptSideMenuPlugIn, _super);
+    function DScriptSideMenuPlugIn(plugInManager) {
+        _super.call(this, plugInManager);
+    }
+    DScriptSideMenuPlugIn.prototype.IsEnabled = function (caseViewer, Case0, serverApi) {
+        return true;
+    };
+
+    DScriptSideMenuPlugIn.prototype.AddMenu = function (caseViewer, Case0, serverApi) {
+        return new AssureIt.SideMenuModel('#', 'Deploy', "deploy", "glyphicon-list-alt", function (ev) {
+        });
+    };
+    return DScriptSideMenuPlugIn;
+})(AssureIt.SideMenuPlugIn);
