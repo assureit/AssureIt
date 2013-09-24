@@ -250,7 +250,7 @@ var DScriptGenerator = (function () {
                 var goallabel = child[0].Label;
                 var parentgoallabel = context.Parent.Label;
                 program += this.indent + "DFault ret = " + goallabel + "(ctx);" + this.linefeed;
-                program += this.indent + "if (ret.location == \"" + reaction + "\") {" + this.linefeed;
+                program += this.indent + "if (ret.getLocation() == \"" + reaction + "\") {" + this.linefeed;
                 program += this.indent + this.indent + "ret = " + parentgoallabel + "(ctx);" + this.linefeed;
                 program += this.indent + "}" + this.linefeed;
                 program += this.indent + "return ret;" + this.linefeed;
@@ -289,13 +289,27 @@ var DScriptGenerator = (function () {
         return this.GenerateFooter(Node, program + code);
     };
 
+    DScriptGenerator.prototype.GenerateGetDataFromRecFunction = function (DeclValue) {
+        var program = "";
+        var monitor = DeclValue.replace("{", "").replace("}", "").split(" ");
+        console.log(monitor);
+        program += this.indent + "boolean Monitor = GetDatafromRec(Location, " + monitor[0] + ") " + monitor[1] + " " + monitor[2] + ";" + this.linefeed;
+        return program;
+    };
+
     DScriptGenerator.prototype.GenerateLetDecl = function (ContextEnv) {
         var program = "";
         var DeclKeys = Object.keys(ContextEnv);
         for (var j = 0; j < DeclKeys.length; j++) {
             var DeclKey = DeclKeys[j];
             var DeclValue = ContextEnv[DeclKey];
-            program += this.indent + "let " + DeclKey + " = " + DeclValue + ";" + this.linefeed;
+            if (DeclKey == "Monitor") {
+                program += this.GenerateGetDataFromRecFunction(DeclValue);
+            } else if (DeclKey == "Reaction") {
+                program += this.indent + "String " + DeclKey + " = " + "\"" + DeclValue + "\";" + this.linefeed;
+            } else {
+                program += this.indent + "let " + DeclKey + " = " + DeclValue + ";" + this.linefeed;
+            }
         }
 
         return program;
@@ -444,25 +458,28 @@ var DScriptGenerator = (function () {
         return map;
     };
 
-    DScriptGenerator.prototype.codegen_ = function (ViewMap, rootNode, ASNData) {
-        var res = "";
-        if (rootNode == null) {
-            return res;
-        }
-        var flow = this.CollectNodeInfo(rootNode);
-
+    DScriptGenerator.prototype.GenerateImportStatement = function (ViewMap, flow) {
+        var program = "";
         var keys = Object.keys(flow);
         for (var i = 0; i < keys.length; i++) {
             var label = keys[i];
             var element = ViewMap[label];
             var action = this.GetAction(element);
             if (label.charAt(0) == "E" && action.length > 0) {
-                res += "import " + action.replace("()", "") + ".ts" + this.linefeed;
+                program += "import " + action.replace("()", "") + ".ts" + this.linefeed;
             }
         }
+        program += this.linefeed;
+        return program;
+    };
 
+    DScriptGenerator.prototype.codegen_ = function (ViewMap, rootNode, ASNData) {
+        var res = "";
+        if (rootNode == null) {
+            return res;
+        }
+        var flow = this.CollectNodeInfo(rootNode);
         var dataList = ASNData.split("\n");
-
         var queue = [];
         queue.push(rootNode);
         while (queue.length != 0) {
@@ -477,6 +494,7 @@ var DScriptGenerator = (function () {
                 queue.push(childNode);
             }
         }
+        res += this.GenerateImportStatement(ViewMap, flow);
         res += this.GenerateMainFunction(rootNode, flow);
         return res;
     };
