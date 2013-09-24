@@ -484,6 +484,10 @@ var DScriptGenerator = (function () {
         return program;
     };
 
+    DScriptGenerator.prototype.GenerateDShellDecl = function () {
+        return "require dshell;" + this.linefeed + this.linefeed;
+    };
+
     DScriptGenerator.prototype.codegen_ = function (ViewMap, rootNode, ASNData) {
         var res = "";
         if (rootNode == null) {
@@ -505,6 +509,7 @@ var DScriptGenerator = (function () {
                 queue.push(childNode);
             }
         }
+        res += this.GenerateDShellDecl();
         res += this.GenerateImportStatement(ViewMap, flow);
         res += this.GenerateMainFunction(rootNode, flow);
         return res;

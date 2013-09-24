@@ -502,6 +502,10 @@ class DScriptGenerator {
 		return program;
 	}
 
+	GenerateDShellDecl(): string {
+		return "require dshell;" + this.linefeed + this.linefeed;
+	}
+
 	codegen_(ViewMap: {[index: string]: AssureIt.NodeModel }, rootNode: AssureIt.NodeModel, ASNData: string): string {
 		var res: string = "";
 		if(rootNode == null) {
@@ -523,6 +527,7 @@ class DScriptGenerator {
 				queue.push(childNode);
 			}
 		}
+		res += this.GenerateDShellDecl();
 		res += this.GenerateImportStatement(ViewMap, flow);
 		res += this.GenerateMainFunction(rootNode, flow);
 		return res;
