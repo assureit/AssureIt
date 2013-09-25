@@ -31,15 +31,15 @@ module AssureIt {
 		});
 	}
 
-	export interface DScript {
-		script : {
-			main : string;
-			lib : any;
-		}
-		meta : {
-			entry : any;
-		}
-	}
+// 	export interface DScript {
+// 		script : {
+// 			main : string;
+// 			lib : any;
+// 		}
+// 		meta : {
+// 			entry : any;
+// 		}
+// 	}
 
 	export class AssureItAgentAPI {
 		uri : string;
@@ -50,7 +50,7 @@ module AssureIt {
 			this.basepath = path;
 		}
 
-		Deploy(dscript: DScript) {
+		Deploy(dscript) {
 			RemoteProcedureCall(this.uri, "Deploy", dscript);
 		}
 

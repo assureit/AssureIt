@@ -1,6 +1,6 @@
 var DScriptActionMap = (function () {
     function DScriptActionMap() {
-        this.ActionMap = [];
+        this.ActionMap = {};
         this.ContextArray = [];
     }
     DScriptActionMap.prototype.GetContextLabel = function (Element) {
@@ -25,7 +25,7 @@ var DScriptActionMap = (function () {
         return "";
     };
 
-    DScriptActionMap.prototype.GetAction = function (Context) {
+    DScriptActionMap.prototype.GetAction = function (Context, ActionType) {
         var NotesKeys = Object.keys(Context.Notes);
         var Action = "";
         var Reaction = "";
@@ -34,7 +34,10 @@ var DScriptActionMap = (function () {
             if (NotesKeys[i] == "Reaction") {
                 Action = Context.Notes["Reaction"];
                 Reaction = this.GetReaction(Context);
-                this.ActionMap[Action] = Reaction;
+                this.ActionMap[Action] = {
+                    "reaction": Reaction,
+                    "actiontype": ActionType
+                };
             }
         }
         return;
@@ -45,20 +48,11 @@ var DScriptActionMap = (function () {
         this.GetContextLabel(Node);
         for (var i = 0; i < this.ContextArray.length; i++) {
             var Context = ViewMap[this.ContextArray[i]];
-            if (Context.Annotations.length > 0) {
-                this.GetAction(Context);
+            if (Context.GetAnnotation("OnlyIf")) {
+                this.GetAction(Context, "normal");
             }
         }
         return this.ActionMap;
-    };
-    DScriptActionMap.prototype.ToMonitorInfo = function () {
-        var ret = [];
-        for (var key in this.ActionMap) {
-            var tmp = {};
-            tmp[key] = "monitor";
-            ret.push(tmp);
-        }
-        return ret;
     };
     return DScriptActionMap;
 })();

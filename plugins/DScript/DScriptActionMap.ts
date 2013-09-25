@@ -2,11 +2,11 @@
 /// <reference path="../../src/PlugInManager.ts" />
 
 class DScriptActionMap {
-	ActionMap : { [key: string]: string;}[];
+	ActionMap : {};
 	ContextArray: string[];
 
 	constructor() {
-		this.ActionMap = [];
+		this.ActionMap = {};
 		this.ContextArray = [];
 	}
 
@@ -32,7 +32,7 @@ class DScriptActionMap {
 		return "";
 	}
 
-	GetAction(Context: AssureIt.NodeModel): void {
+	GetAction(Context: AssureIt.NodeModel, ActionType: String): void {
 		var NotesKeys: string[] = Object.keys(Context.Notes);
 		var Action: string = "";
 		var Reaction: string = "";
@@ -41,7 +41,10 @@ class DScriptActionMap {
 			if(NotesKeys[i] == "Reaction") {
 				Action = Context.Notes["Reaction"];
 				Reaction = this.GetReaction(Context);
-				this.ActionMap[Action] = Reaction;
+				this.ActionMap[Action] = {
+					"reaction" : Reaction,
+					"actiontype" : ActionType,
+				}
 			}
 		}
 		return;
@@ -52,19 +55,11 @@ class DScriptActionMap {
 		this.GetContextLabel(Node);
 		for(var i: number = 0; i < this.ContextArray.length; i++) {
 			var Context: AssureIt.NodeModel = ViewMap[this.ContextArray[i]];
-			if(Context.Annotations.length > 0) {
-				this.GetAction(Context);
+			if (Context.GetAnnotation("OnlyIf")) {
+				this.GetAction(Context, "normal");
 			}
+			//TODO: else if ...
 		}
 		return this.ActionMap;
-	}
-	ToMonitorInfo() {
-		var ret = [];
-		for (var key in this.ActionMap) {
-			var tmp = {};
-			tmp[key] = "monitor";
-			ret.push(tmp);
-		}
-		return ret;
 	}
 }

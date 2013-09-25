@@ -5,13 +5,13 @@
 /// <reference path="./DScriptGenerator.ts" />
 /// <reference path="./DScriptActionMap.ts" />
 
-var __dscript__ : AssureIt.DScript = {
+var __dscript__ = {
 	script : {
 		main : "",
 		lib : {},
 	},
 	meta : {
-		entry : [],
+		actions : {},
 	},
 };
 
@@ -252,7 +252,7 @@ class DScriptEditorPlugIn extends AssureIt.ActionPlugIn {
 			var row_src : string = tpl
 				.replace("${state}", key)
 				.replace("${fault}", "*")
-				.replace("${action}", ActionMap[key]);
+				.replace("${action}", ActionMap[key]["reaction"]);
 			var row : JQuery = $(row_src);
 			row.children().css(style);
 			table.append(row);
@@ -292,7 +292,7 @@ class DScriptEditorPlugIn extends AssureIt.ActionPlugIn {
 			var DScriptMap: DScriptActionMap = new DScriptActionMap();
 			DScriptMap.GetActionMap(orig_ElementMap, caseModel, ASNData);
 			__dscript__.script.main = script;
-			__dscript__.meta.entry = DScriptMap.ToMonitorInfo();
+			__dscript__.meta.actions = DScriptMap.ActionMap;
 			this.updateActionTable(DScriptMap.ActionMap);
 			this.updateLineComment(this.editor_left, this.widgets, Generator);
 			this.editor_right.setValue(script);
