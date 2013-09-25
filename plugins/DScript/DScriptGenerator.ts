@@ -534,7 +534,7 @@ class DScriptGenerator {
 			}
 		}
 		res += this.GenerateDShellDecl();
-		res += this.GenerateImportStatement(ViewMap, flow);
+		//res += this.GenerateImportStatement(ViewMap, flow); //now, not generate import
 		res += this.GenerateMainFunction(rootNode, flow);
 		return res;
 	}

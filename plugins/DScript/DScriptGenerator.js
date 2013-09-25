@@ -515,7 +515,7 @@ var DScriptGenerator = (function () {
             }
         }
         res += this.GenerateDShellDecl();
-        res += this.GenerateImportStatement(ViewMap, flow);
+
         res += this.GenerateMainFunction(rootNode, flow);
         return res;
     };
