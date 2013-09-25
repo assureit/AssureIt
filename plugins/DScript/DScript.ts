@@ -319,39 +319,22 @@ class DScriptSideMenuPlugIn extends AssureIt.SideMenuPlugIn {
 
 		return new AssureIt.SideMenuModel('#', 'Deploy', "deploy", "glyphicon-list-alt"/* TODO: change icon */, (ev:Event)=>{
 			__dscript__.script.lib = {
-			"PortMonitor.ds" : "\n\
-require dshell;\n\
-\n\
+				"PortMonitor.ds" : "\n\
 //let Monitor = true\n\
-\n\
-String GetDataFromRec(String location, String type) {\n\
-    command rec;\n\
-    String data = rec -m getLatestData -t $type -l $location\n\
-    return data;\n\
-}\n\
-\n\
-DFault PortMonitor() {\n\
+DFault PortMonitor(boolean Monitor) {\n\
     print(\"PortMonitor called...\");\n\
-    DFault ret;\n\
+    DFault ret = null;\n\
     if (Monitor) {\n\
-	ret = new DFault._new(\"UnKnown\");\n\
+        ret = DFault._new(\"UnKnown\");\n\
     }\n\
     else {\n\
-	ret = null;\n\
+        ret = null;\n\
     }\n\
     return ret;\n\
 }\n\
 ",
-	"BlockIP.ds" : "\n\
-require dshell;\n\
-\n\
+				"BlockIP.ds" : "\n\
 //let Monitor = true\n\
-\n\
-String GetDataFromRec(String location, String type) {\n\
-    command rec;\n\
-    String data = rec -m getLatestData -t $type -l $location\n\
-    return data;\n\
-}\n\
 \n\
 DFault BlockIP() {\n\
     print(\"BlockIP called...\");\n\
@@ -364,7 +347,14 @@ DFault BlockIP() {\n\
     //}\n\
     return ret;\n\
 }\n\
-"
+",
+				"GetDataFromRec" : "\n\
+String GetDataFromRec(String location, String type) {\n\
+    command rec;\n\
+    String data = rec -m getLatestData -t $type -l $location\n\
+    return data;\n\
+}\n\
+",
 			};   // TODO: add library here !!
 			console.log(__dscript__);
 			this.AssureItAgentAPI.Deploy(__dscript__);

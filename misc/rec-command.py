@@ -51,7 +51,7 @@ def main():
         req = urllib2.Request(default_url, req_data, header) 
         response = urllib2.urlopen(req)
         res_data = response.read()
-        print(res_data)
+        print(json.loads(res_data)["result"]["data"])
     except urllib2.URLError as e:
         #print(e)
         print(e.read())
