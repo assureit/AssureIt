@@ -304,7 +304,7 @@ var DScriptGenerator = (function () {
             var LHS = monitor[0];
             var operand = monitor[1];
             var RHS = monitor[2];
-            program += this.indent + "boolean Monitor = GetDatafromRec(Location, " + LHS + ") " + operand + " " + RHS + ";" + this.linefeed;
+            program += this.indent + "boolean Monitor = GetDataFromRec(Location, " + LHS + ") " + operand + " " + RHS + ";" + this.linefeed;
         }
         return program;
     };
