@@ -334,8 +334,8 @@ var DScriptGenerator = (function () {
         var contextenv = this.GetContextEnvironment(Node);
         program += this.GenerateLetDecl(Node, contextenv);
         program += this.indent + "if(Location == LOCATION) {" + this.linefeed;
-        program += this.indent + this.indent + "DFault ret = " + Function.replace("()", "") + ";" + this.linefeed;
-        program += this.indent + this.indent + "dexec " + Function + this.linefeed;
+        program += this.indent + this.indent + "DFault ret = " + Function + ";" + this.linefeed;
+        program += this.indent + this.indent + "dexec " + Function.replace("()", "") + this.linefeed;
         program += this.indent + "}" + this.linefeed;
         program += this.indent + "return ret;" + this.linefeed;
         return program;
@@ -392,18 +392,20 @@ var DScriptGenerator = (function () {
         return "class RutimeContext {" + this.linefeed + "}" + this.linefeed + this.linefeed;
     };
 
-    DScriptGenerator.prototype.GenerateMainFunction = function (rootNode, flow) {
+    DScriptGenerator.prototype.GenerateMainFunction = function (rootNode, flow, GenFlag) {
         var program = "";
         program += this.GenerateRuntimeContext();
         program += this.GenerateCode(rootNode, flow) + this.linefeed;
-        program += "@Export int main() {" + this.linefeed;
-        program += this.indent + "RuntimeContext ctx = new RuntimeContext();" + this.linefeed;
-        program += this.indent + "while(true) {" + this.linefeed;
-        program += this.indent + this.indent + this.GenerateFunctionCall(rootNode) + ";" + this.linefeed;
-        program += this.indent + this.indent + "sleep 30" + this.linefeed;
-        program += this.indent + "}" + this.linefeed;
-        program += this.indent + "return 0;" + this.linefeed;
-        program += "}" + this.linefeed;
+        if (GenFlag) {
+            program += "@Export int main() {" + this.linefeed;
+            program += this.indent + "RuntimeContext ctx = new RuntimeContext();" + this.linefeed;
+            program += this.indent + "while(true) {" + this.linefeed;
+            program += this.indent + this.indent + this.GenerateFunctionCall(rootNode) + ";" + this.linefeed;
+            program += this.indent + this.indent + "sleep 30" + this.linefeed;
+            program += this.indent + "}" + this.linefeed;
+            program += this.indent + "return 0;" + this.linefeed;
+            program += "}" + this.linefeed;
+        }
         return program;
     };
 
@@ -493,7 +495,7 @@ var DScriptGenerator = (function () {
         return program;
     };
 
-    DScriptGenerator.prototype.codegen_ = function (ViewMap, rootNode, ASNData) {
+    DScriptGenerator.prototype.codegen_ = function (ViewMap, rootNode, ASNData, GenFlag) {
         var res = "";
         if (rootNode == null) {
             return res;
@@ -514,14 +516,13 @@ var DScriptGenerator = (function () {
                 queue.push(childNode);
             }
         }
-        res += this.GenerateDShellDecl();
 
-        res += this.GenerateMainFunction(rootNode, flow);
+        res += this.GenerateMainFunction(rootNode, flow, GenFlag);
         return res;
     };
 
-    DScriptGenerator.prototype.codegen = function (ViewMap, Node, ASNData) {
-        return this.codegen_(ViewMap, Node, ASNData);
+    DScriptGenerator.prototype.codegen = function (ViewMap, Node, ASNData, GenFlag) {
+        return this.codegen_(ViewMap, Node, ASNData, GenFlag);
     };
     return DScriptGenerator;
 })();

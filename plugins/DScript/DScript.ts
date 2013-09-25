@@ -278,7 +278,8 @@ class DScriptEditorPlugIn extends AssureIt.ActionPlugIn {
 			this.rootCaseModel = caseModel;
 			this.highlighter.ClearHighlight();
 			var Generator: DScriptGenerator = new DScriptGenerator();
-			generatedScript = Generator.codegen(orig_ElementMap, caseModel, ASNData);
+			var genflag: boolean = false; //generate main function flag
+			generatedScript = Generator.codegen(orig_ElementMap, caseModel, ASNData, genflag);
 //--------------------------------------------------------------------
 			var DScriptMap: DScriptActionMap = new DScriptActionMap();
 			var ActionMapScript: string = DScriptMap.GetActionMap(orig_ElementMap, caseModel, ASNData);

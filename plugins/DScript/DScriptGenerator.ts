@@ -352,8 +352,8 @@ class DScriptGenerator {
 		var contextenv: { [key: string]: string;} = this.GetContextEnvironment(Node);
 		program += this.GenerateLetDecl(Node, contextenv);
 		program += this.indent + "if(Location == LOCATION) {" + this.linefeed;
-		program += this.indent + this.indent + "DFault ret = " + Function.replace("()", "") + ";" + this.linefeed;
-		program += this.indent + this.indent + "dexec " + Function + this.linefeed;
+		program += this.indent + this.indent + "DFault ret = " + Function + ";" + this.linefeed;
+		program += this.indent + this.indent + "dexec " + Function.replace("()", "") + this.linefeed;
 		program += this.indent + "}" + this.linefeed;
 		program += this.indent + "return ret;" + this.linefeed;
 		return program;
@@ -411,18 +411,20 @@ class DScriptGenerator {
 		return "class RutimeContext {" + this.linefeed + "}" + this.linefeed + this.linefeed;
 	}
 
-	GenerateMainFunction(rootNode: AssureIt.NodeModel, flow: { [key: string]: AssureIt.NodeModel[];}): string {
+	GenerateMainFunction(rootNode: AssureIt.NodeModel, flow: { [key: string]: AssureIt.NodeModel[];}, GenFlag: boolean): string {
 		var program: string = "";
 		program += this.GenerateRuntimeContext();
 		program += this.GenerateCode(rootNode, flow) + this.linefeed;
-		program += "@Export int main() {" + this.linefeed;
-		program += this.indent + "RuntimeContext ctx = new RuntimeContext();" + this.linefeed;
-		program += this.indent + "while(true) {" + this.linefeed;
-		program += this.indent + this.indent + this.GenerateFunctionCall(rootNode) + ";" + this.linefeed;
-		program += this.indent + this.indent + "sleep 30" + this.linefeed;
-		program += this.indent + "}" + this.linefeed;
-		program += this.indent + "return 0;" + this.linefeed;
-		program += "}" + this.linefeed;
+		if(GenFlag) {
+			program += "@Export int main() {" + this.linefeed;
+			program += this.indent + "RuntimeContext ctx = new RuntimeContext();" + this.linefeed;
+			program += this.indent + "while(true) {" + this.linefeed;
+			program += this.indent + this.indent + this.GenerateFunctionCall(rootNode) + ";" + this.linefeed;
+			program += this.indent + this.indent + "sleep 30" + this.linefeed;
+			program += this.indent + "}" + this.linefeed;
+			program += this.indent + "return 0;" + this.linefeed;
+			program += "}" + this.linefeed;
+		}
 		return program;
 	}
 
@@ -512,7 +514,7 @@ class DScriptGenerator {
 		return program;
 	}
 
-	codegen_(ViewMap: {[index: string]: AssureIt.NodeModel }, rootNode: AssureIt.NodeModel, ASNData: string): string {
+	codegen_(ViewMap: {[index: string]: AssureIt.NodeModel }, rootNode: AssureIt.NodeModel, ASNData: string, GenFlag: boolean): string {
 		var res: string = "";
 		if(rootNode == null) {
 			return res;
@@ -533,14 +535,14 @@ class DScriptGenerator {
 				queue.push(childNode);
 			}
 		}
-		res += this.GenerateDShellDecl();
+		//res += this.GenerateDShellDecl();
 		//res += this.GenerateImportStatement(ViewMap, flow); //now, not generate import
-		res += this.GenerateMainFunction(rootNode, flow);
+		res += this.GenerateMainFunction(rootNode, flow, GenFlag);
 		return res;
 	}
 
-	codegen(ViewMap: {[index: string]: AssureIt.NodeModel }, Node: AssureIt.NodeModel, ASNData : string): string {
-		return this.codegen_(ViewMap, Node, ASNData);
+	codegen(ViewMap: {[index: string]: AssureIt.NodeModel }, Node: AssureIt.NodeModel, ASNData : string, GenFlag: boolean): string {
+		return this.codegen_(ViewMap, Node, ASNData, GenFlag);
 	}
 }
 
