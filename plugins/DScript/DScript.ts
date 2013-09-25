@@ -24,7 +24,7 @@ class DScriptPlugIn extends AssureIt.PlugInSet {
 		var plugin: DScriptEditorPlugIn = new DScriptEditorPlugIn(plugInManager);
 		this.ActionPlugIn = plugin;
 		this.MenuBarContentsPlugIn = new DScriptMenuPlugIn(plugInManager, plugin);
-		this.SideMenuPlugIn = new DScriptSideMenuPlugIn(plugInManager);
+		this.SideMenuPlugIn = new DScriptSideMenuPlugIn(plugInManager, plugin);
 	}
 }
 
@@ -270,6 +270,7 @@ class DScriptEditorPlugIn extends AssureIt.ActionPlugIn {
 			this.highlighter.Highlight(decoder.GetASNError().line, decoder.GetASNError().toString());
 			Case.IdCounters = orig_IdCounters;
 			Case.ElementMap = orig_ElementMap;
+			caseModel = Case.ElementTop;
 		} else {
 			var ParentModel = this.rootCaseModel.Parent;
 			if (ParentModel != null) {
@@ -283,20 +284,21 @@ class DScriptEditorPlugIn extends AssureIt.ActionPlugIn {
 				this.caseViewer.ElementTop = caseModel;
 				Case.ElementTop = caseModel;
 			}
-			this.rootCaseModel = caseModel;
-			this.highlighter.ClearHighlight();
-			var genflag: boolean = false; //generate main function flag
-			var Generator: DScriptGenerator = new DScriptGenerator();
-			var script = Generator.codegen(orig_ElementMap, caseModel, ASNData, genflag);
-
-			var DScriptMap: DScriptActionMap = new DScriptActionMap();
-			DScriptMap.GetActionMap(orig_ElementMap, caseModel, ASNData);
-			__dscript__.script.main = script;
-			__dscript__.meta.actionmap = DScriptMap.ActionMap;
-			this.updateActionTable(DScriptMap.ActionMap);
-			this.updateLineComment(this.editor_left, this.widgets, Generator);
-			this.editor_right.setValue(script);
 		}
+		this.rootCaseModel = caseModel;
+		this.highlighter.ClearHighlight();
+		var genflag: boolean = false; //generate main function flag
+		var Generator: DScriptGenerator = new DScriptGenerator();
+		var script = Generator.codegen(orig_ElementMap, caseModel, ASNData, genflag);
+
+		var DScriptMap: DScriptActionMap = new DScriptActionMap();
+		DScriptMap.GetActionMap(orig_ElementMap, caseModel);
+		__dscript__.script.main = script;
+		__dscript__.meta.actionmap = DScriptMap.ActionMap;
+		this.updateActionTable(DScriptMap.ActionMap);
+		this.updateLineComment(this.editor_left, this.widgets, Generator);
+		this.editor_right.setValue(script);
+
 		this.editor_left.refresh();
 		this.editor_right.refresh();
 	}
@@ -305,10 +307,12 @@ class DScriptEditorPlugIn extends AssureIt.ActionPlugIn {
 class DScriptSideMenuPlugIn extends AssureIt.SideMenuPlugIn {
 
 	AssureItAgentAPI: AssureIt.AssureItAgentAPI;
+	editorPlugIn: DScriptEditorPlugIn;
 
-	constructor(plugInManager: AssureIt.PlugInManager) {
+	constructor(plugInManager: AssureIt.PlugInManager, editorPlugIn: DScriptEditorPlugIn) {
 		super(plugInManager);
 		this.AssureItAgentAPI = new AssureIt.AssureItAgentAPI("http://localhost:8081");   // TODO: change agent path
+		this.editorPlugIn = editorPlugIn;
 	}
 
 	IsEnabled(caseViewer: AssureIt.CaseViewer, Case0: AssureIt.Case, serverApi: AssureIt.ServerAPI): boolean {
@@ -316,8 +320,10 @@ class DScriptSideMenuPlugIn extends AssureIt.SideMenuPlugIn {
 	}
 
 	AddMenu(caseViewer: AssureIt.CaseViewer, Case0: AssureIt.Case, serverApi: AssureIt.ServerAPI): AssureIt.SideMenuModel {
-
+		var self = this;
 		return new AssureIt.SideMenuModel('#', 'Deploy', "deploy", "glyphicon-list-alt"/* TODO: change icon */, (ev:Event)=>{
+			self.editorPlugIn.rootCaseModel = Case0.ElementTop;
+			self.editorPlugIn.GenerateCode();
 			__dscript__.script.lib = {
 				"PortMonitor.ds" : "\n\
 //let Monitor = true\n\

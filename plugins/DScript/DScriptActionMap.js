@@ -43,7 +43,7 @@ var DScriptActionMap = (function () {
         return;
     };
 
-    DScriptActionMap.prototype.GetActionMap = function (ViewMap, Node, ASNData) {
+    DScriptActionMap.prototype.GetActionMap = function (ViewMap, Node) {
         var ActionMapScript = "";
         this.GetContextLabel(Node);
         for (var i = 0; i < this.ContextArray.length; i++) {

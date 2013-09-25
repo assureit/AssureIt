@@ -50,7 +50,7 @@ class DScriptActionMap {
 		return;
 	}
 
-	GetActionMap(ViewMap: {[index: string]: AssureIt.NodeModel }, Node: AssureIt.NodeModel, ASNData: string): any {
+	GetActionMap(ViewMap: {[index: string]: AssureIt.NodeModel }, Node: AssureIt.NodeModel): any {
 		var ActionMapScript: string = "";
 		this.GetContextLabel(Node);
 		for(var i: number = 0; i < this.ContextArray.length; i++) {
