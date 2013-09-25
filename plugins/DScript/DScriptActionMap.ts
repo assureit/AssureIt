@@ -47,7 +47,7 @@ class DScriptActionMap {
 		return;
 	}
 
-	GetActionMap(ViewMap: {[index: string]: AssureIt.NodeModel }, Node: AssureIt.NodeModel, ASNData: string): string {
+	GetActionMap(ViewMap: {[index: string]: AssureIt.NodeModel }, Node: AssureIt.NodeModel, ASNData: string): any {
 		var ActionMapScript: string = "";
 		this.GetContextLabel(Node);
 		for(var i: number = 0; i < this.ContextArray.length; i++) {
@@ -56,10 +56,15 @@ class DScriptActionMap {
 				this.GetAction(Context);
 			}
 		}
-		for(var key in this.ActionMap) {
-			console.log(key + " : " + this.ActionMap[key]);
-			ActionMapScript += key + " : " + this.ActionMap[key] + "\n";
+		return this.ActionMap;
+	}
+	ToMonitorInfo() {
+		var ret = [];
+		for (var key in this.ActionMap) {
+			var tmp = {};
+			tmp[key] = "monitor";
+			ret.push(tmp);
 		}
-		return ActionMapScript;
+		return ret;
 	}
 }

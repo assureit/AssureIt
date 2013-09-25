@@ -32,8 +32,13 @@ module AssureIt {
 	}
 
 	export interface DScript {
-		main: any;
-		lib: any;
+		script : {
+			main : string;
+			lib : any;
+		}
+		meta : {
+			entry : any;
+		}
 	}
 
 	export class AssureItAgentAPI {
@@ -46,11 +51,7 @@ module AssureIt {
 		}
 
 		Deploy(dscript: DScript) {
-			var params = {
-				script: dscript
-			};
-
-			RemoteProcedureCall(this.uri, "Deploy", params);
+			RemoteProcedureCall(this.uri, "Deploy", dscript);
 		}
 
 	}

@@ -4,7 +4,15 @@ var __extends = this.__extends || function (d, b) {
     __.prototype = b.prototype;
     d.prototype = new __();
 };
-var generatedScript = "";
+var __dscript__ = {
+    script: {
+        main: "",
+        lib: {}
+    },
+    meta: {
+        entry: []
+    }
+};
 
 var DScriptPlugIn = (function (_super) {
     __extends(DScriptPlugIn, _super);
@@ -254,16 +262,17 @@ var DScriptEditorPlugIn = (function (_super) {
             }
             this.rootCaseModel = caseModel;
             this.highlighter.ClearHighlight();
-            var Generator = new DScriptGenerator();
             var genflag = false;
-            generatedScript = Generator.codegen(orig_ElementMap, caseModel, ASNData, genflag);
+            var Generator = new DScriptGenerator();
+            var script = Generator.codegen(orig_ElementMap, caseModel, ASNData, genflag);
 
             var DScriptMap = new DScriptActionMap();
-            var ActionMapScript = DScriptMap.GetActionMap(orig_ElementMap, caseModel, ASNData);
+            DScriptMap.GetActionMap(orig_ElementMap, caseModel, ASNData);
+            __dscript__.script.main = script;
+            __dscript__.meta.entry = DScriptMap.ToMonitorInfo();
             this.updateActionTable(DScriptMap.ActionMap);
-
             this.updateLineComment(this.editor_left, this.widgets, Generator);
-            this.editor_right.setValue(generatedScript);
+            this.editor_right.setValue(script);
         }
         this.editor_left.refresh();
         this.editor_right.refresh();
@@ -284,9 +293,7 @@ var DScriptSideMenuPlugIn = (function (_super) {
     DScriptSideMenuPlugIn.prototype.AddMenu = function (caseViewer, Case0, serverApi) {
         var _this = this;
         return new AssureIt.SideMenuModel('#', 'Deploy', "deploy", "glyphicon-list-alt", function (ev) {
-            var dscript = { 'main': '', 'lib': '' };
-            dscript.main = { 'main.ds': generatedScript };
-            dscript.lib = {
+            __dscript__.script.lib = {
                 "PortMonitor.ds": "\n\
 require dshell;\n\
 \n\
@@ -334,7 +341,8 @@ DFault BlockIP() {\n\
 }\n\
 "
             };
-            _this.AssureItAgentAPI.Deploy(dscript);
+            console.log(__dscript__);
+            _this.AssureItAgentAPI.Deploy(__dscript__);
         });
     };
     return DScriptSideMenuPlugIn;
