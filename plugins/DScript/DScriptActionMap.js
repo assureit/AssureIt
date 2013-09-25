@@ -49,11 +49,16 @@ var DScriptActionMap = (function () {
                 this.GetAction(Context);
             }
         }
+        return this.ActionMap;
+    };
+    DScriptActionMap.prototype.ToMonitorInfo = function () {
+        var ret = [];
         for (var key in this.ActionMap) {
-            console.log(key + " : " + this.ActionMap[key]);
-            ActionMapScript += key + " : " + this.ActionMap[key] + "\n";
+            var tmp = {};
+            tmp[key] = "monitor";
+            ret.push(tmp);
         }
-        return ActionMapScript;
+        return ret;
     };
     return DScriptActionMap;
 })();

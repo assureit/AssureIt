@@ -31,11 +31,7 @@ var AssureIt;
             this.basepath = path;
         }
         AssureItAgentAPI.prototype.Deploy = function (dscript) {
-            var params = {
-                script: dscript
-            };
-
-            RemoteProcedureCall(this.uri, "Deploy", params);
+            RemoteProcedureCall(this.uri, "Deploy", dscript);
         };
         return AssureItAgentAPI;
     })();

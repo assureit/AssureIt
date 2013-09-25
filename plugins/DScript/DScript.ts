@@ -5,8 +5,16 @@
 /// <reference path="./DScriptGenerator.ts" />
 /// <reference path="./DScriptActionMap.ts" />
 
+var __dscript__ : AssureIt.DScript = {
+	script : {
+		main : "",
+		lib : {},
+	},
+	meta : {
+		entry : [],
+	},
+};
 
-var generatedScript: string = "";
 
 class DScriptPlugIn extends AssureIt.PlugInSet {
 	static Use3Pane : boolean = true;
@@ -277,15 +285,16 @@ class DScriptEditorPlugIn extends AssureIt.ActionPlugIn {
 			}
 			this.rootCaseModel = caseModel;
 			this.highlighter.ClearHighlight();
+
 			var Generator: DScriptGenerator = new DScriptGenerator();
-			generatedScript = Generator.codegen(orig_ElementMap, caseModel, ASNData);
-//--------------------------------------------------------------------
+			var script = Generator.codegen(orig_ElementMap, caseModel, ASNData);
 			var DScriptMap: DScriptActionMap = new DScriptActionMap();
-			var ActionMapScript: string = DScriptMap.GetActionMap(orig_ElementMap, caseModel, ASNData);
+			DScriptMap.GetActionMap(orig_ElementMap, caseModel, ASNData);
+			__dscript__.script.main = script;
+			__dscript__.meta.entry = DScriptMap.ToMonitorInfo();
 			this.updateActionTable(DScriptMap.ActionMap);
-//--------------------------------------------------------------------
 			this.updateLineComment(this.editor_left, this.widgets, Generator);
-			this.editor_right.setValue(generatedScript);
+			this.editor_right.setValue(script);
 		}
 		this.editor_left.refresh();
 		this.editor_right.refresh();
@@ -308,9 +317,7 @@ class DScriptSideMenuPlugIn extends AssureIt.SideMenuPlugIn {
 	AddMenu(caseViewer: AssureIt.CaseViewer, Case0: AssureIt.Case, serverApi: AssureIt.ServerAPI): AssureIt.SideMenuModel {
 
 		return new AssureIt.SideMenuModel('#', 'Deploy', "deploy", "glyphicon-list-alt"/* TODO: change icon */, (ev:Event)=>{
-			var dscript: AssureIt.DScript = { 'main': '', 'lib': ''};
-			dscript.main = { 'main.ds': generatedScript };
-			dscript.lib = {
+			__dscript__.script.lib = {
 			"PortMonitor.ds" : "\n\
 require dshell;\n\
 \n\
@@ -358,8 +365,8 @@ DFault BlockIP() {\n\
 }\n\
 "
 			};   // TODO: add library here !!
-			this.AssureItAgentAPI.Deploy(dscript);
+			console.log(__dscript__);
+			this.AssureItAgentAPI.Deploy(__dscript__);
 		});
 	}
-
 }
