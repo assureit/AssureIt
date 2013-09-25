@@ -325,7 +325,7 @@ DFault PortMonitor(boolean Monitor) {\n\
     print(\"PortMonitor called...\");\n\
     DFault ret = null;\n\
     if (Monitor) {\n\
-        ret = new DFault._new(\"UnKnown\");\n\
+        ret = DFault._new(\"UnKnown\");\n\
     }\n\
     else {\n\
         ret = null;\n\
