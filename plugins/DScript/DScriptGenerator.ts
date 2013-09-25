@@ -319,7 +319,7 @@ class DScriptGenerator {
 			var LHS: string = monitor[0];
 			var operand: string = monitor[1];
 			var RHS: string = monitor[2];
-			program += this.indent + "boolean Monitor = GetDataFromRec(Location, " + LHS + ") " + operand + " " + RHS + ";" + this.linefeed;
+			program += this.indent + "boolean Monitor = GetDataFromRec(Location, \"" + LHS + "\") " + operand + " " + RHS + ";" + this.linefeed;
 		}
 		return program;
 	}
