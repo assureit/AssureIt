@@ -333,8 +333,9 @@ var DScriptGenerator = (function () {
         var program = "";
         var contextenv = this.GetContextEnvironment(Node);
         program += this.GenerateLetDecl(Node, contextenv);
+        program += this.indent + "DFault ret;" + this.linefeed;
         program += this.indent + "if(Location == LOCATION) {" + this.linefeed;
-        program += this.indent + this.indent + "DFault ret = " + Function + ";" + this.linefeed;
+        program += this.indent + this.indent + "ret = " + Function + ";" + this.linefeed;
         program += this.indent + this.indent + "dexec " + Function.replace("()", "") + this.linefeed;
         program += this.indent + "}" + this.linefeed;
         program += this.indent + "return ret;" + this.linefeed;
