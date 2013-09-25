@@ -286,7 +286,7 @@ var DScriptSideMenuPlugIn = (function (_super) {
             var dscript = { 'main': '', 'lib': '' };
             dscript.main = { 'main.ds': generatedScript };
             dscript.lib = {
-                "port_monitor.ds": "\n\
+                "PortMonitor.ds": "\n\
 require dshell;\n\
 \n\
 //let Monitor = true\n\
@@ -309,7 +309,7 @@ DFault PortMonitor() {\n\
     return ret;\n\
 }\n\
 ",
-                "port_reaction.ds": "\n\
+                "BlockIP.ds": "\n\
 require dshell;\n\
 \n\
 //let Monitor = true\n\
