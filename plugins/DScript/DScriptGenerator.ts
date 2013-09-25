@@ -319,7 +319,7 @@ class DScriptGenerator {
 			var LHS: string = monitor[0];
 			var operand: string = monitor[1];
 			var RHS: string = monitor[2];
-			program += this.indent + "boolean Monitor = GetDataFromRec(Location, \"" + LHS + "\") " + operand + " " + RHS + ";" + this.linefeed;
+			program += this.indent + "let Monitor = GetDataFromRec(Location, \"" + LHS + "\") " + operand + " " + RHS + ";" + this.linefeed;
 		}
 		return program;
 	}
@@ -351,6 +351,10 @@ class DScriptGenerator {
 		var program: string = "";
 		var contextenv: { [key: string]: string;} = this.GetContextEnvironment(Node);
 		program += this.GenerateLetDecl(Node, contextenv);
+		program += this.indent
+			+ "DFault " + Function + " {"
+			+ __dscript__.script.funcdef[Function].replace(/\n/g, "\n" + this.indent + this.indent)
+			+ "}\n";
 		program += this.indent + "DFault ret = null;" + this.linefeed;
 		program += this.indent + "if(Location == LOCATION) {" + this.linefeed;
 		program += this.indent + this.indent + "ret = dlog " + Function + ";" + this.linefeed;
@@ -368,13 +372,15 @@ class DScriptGenerator {
 		var Action: string = this.GetAction(Node);
 		var ContextList : AssureIt.NodeModel[] = this.GetContextList(child);
 
+		console.log(program);
 		if(Monitor != null) {
 			program += this.GenerateFunction(Node, Monitor);
 		}
-
+		console.log(program);
 		if(Action != null) {
 			program += this.GenerateFunction(Node, Action);
 		}
+		console.log(program);
 
 		if(child.length != ContextList.length) {
 			this.errorMessage.push(new DScriptError(Node.Label, Node.LineNumber, "EvidenceSyntaxError"));

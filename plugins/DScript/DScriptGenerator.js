@@ -304,7 +304,7 @@ var DScriptGenerator = (function () {
             var LHS = monitor[0];
             var operand = monitor[1];
             var RHS = monitor[2];
-            program += this.indent + "boolean Monitor = GetDataFromRec(Location, \"" + LHS + "\") " + operand + " " + RHS + ";" + this.linefeed;
+            program += this.indent + "let Monitor = GetDataFromRec(Location, \"" + LHS + "\") " + operand + " " + RHS + ";" + this.linefeed;
         }
         return program;
     };
@@ -333,6 +333,7 @@ var DScriptGenerator = (function () {
         var program = "";
         var contextenv = this.GetContextEnvironment(Node);
         program += this.GenerateLetDecl(Node, contextenv);
+        program += this.indent + "DFault " + Function + " {" + __dscript__.script.funcdef[Function].replace(/\n/g, "\n" + this.indent + this.indent) + "}\n";
         program += this.indent + "DFault ret = null;" + this.linefeed;
         program += this.indent + "if(Location == LOCATION) {" + this.linefeed;
         program += this.indent + this.indent + "ret = dlog " + Function + ";" + this.linefeed;
@@ -349,13 +350,15 @@ var DScriptGenerator = (function () {
         var Action = this.GetAction(Node);
         var ContextList = this.GetContextList(child);
 
+        console.log(program);
         if (Monitor != null) {
             program += this.GenerateFunction(Node, Monitor);
         }
-
+        console.log(program);
         if (Action != null) {
             program += this.GenerateFunction(Node, Action);
         }
+        console.log(program);
 
         if (child.length != ContextList.length) {
             this.errorMessage.push(new DScriptError(Node.Label, Node.LineNumber, "EvidenceSyntaxError"));

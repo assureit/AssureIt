@@ -7,11 +7,36 @@ var __extends = this.__extends || function (d, b) {
 var __dscript__ = {
     script: {
         main: "",
-        lib: {}
+        lib: {},
+        funcdef: {}
     },
     meta: {
         actionmap: {}
     }
+};
+__dscript__.script.funcdef = {
+    "PortMonitor()": "\n\
+print(\"PortMonitor called...\");\n\
+DFault ret = null;\n\
+if (Monitor) {\n\
+\tret = fault(\"Computer is accessed by someone\");\n\
+}\n\
+else {\n\
+\tret = null;\n\
+}\n\
+return ret;\n\
+",
+    "BlockIP()": "\n\
+print(\"BlockIP called...\");\n\
+DFault ret = null;\n\
+//    command iptables;\n\
+//try {\n\
+//    iptables -A INPUT -p tcp -s $ip --dport $port -j DROP\n\
+//}\n\
+//catch (Exception e) {\n\
+//}\n\
+return ret;\n\
+"
 };
 
 var DScriptPlugIn = (function (_super) {
@@ -305,35 +330,6 @@ String GetDataFromRec(String location, String type) {\n\
     command rec;\n\
     String data = rec -m getLatestData -t $type -l $location\n\
     return data;\n\
-}\n\
-",
-                "PortMonitor.ds": "\n\
-//let Monitor = true\n\
-DFault PortMonitor(boolean Monitor) {\n\
-    print(\"PortMonitor called...\");\n\
-    DFault ret = null;\n\
-    if (Monitor) {\n\
-        ret = fault(\"Computer is accessed by someone\");\n\
-    }\n\
-    else {\n\
-        ret = null;\n\
-    }\n\
-    return ret;\n\
-}\n\
-",
-                "BlockIP.ds": "\n\
-//let Monitor = true\n\
-\n\
-DFault BlockIP() {\n\
-    print(\"BlockIP called...\");\n\
-    DFault ret = null;\n\
-    //    command iptables;\n\
-    //try {\n\
-    //    iptables -A INPUT -p tcp -s $ip --dport $port -j DROP\n\
-    //}\n\
-    //catch (Exception e) {\n\
-    //}\n\
-    return ret;\n\
 }\n\
 "
             };
