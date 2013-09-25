@@ -56,7 +56,7 @@ class DScriptActionMap {
 		for(var i: number = 0; i < this.ContextArray.length; i++) {
 			var Context: AssureIt.NodeModel = ViewMap[this.ContextArray[i]];
 			if (Context.GetAnnotation("OnlyIf")) {
-				this.GetAction(Context, "normal");
+				this.GetAction(Context, "monitor"); //FIX ME!!
 			}
 			//TODO: else if ...
 		}

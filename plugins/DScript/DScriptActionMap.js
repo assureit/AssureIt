@@ -49,7 +49,7 @@ var DScriptActionMap = (function () {
         for (var i = 0; i < this.ContextArray.length; i++) {
             var Context = ViewMap[this.ContextArray[i]];
             if (Context.GetAnnotation("OnlyIf")) {
-                this.GetAction(Context, "normal");
+                this.GetAction(Context, "monitor");
             }
         }
         return this.ActionMap;
