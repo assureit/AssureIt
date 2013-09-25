@@ -325,6 +325,13 @@ class DScriptSideMenuPlugIn extends AssureIt.SideMenuPlugIn {
 			self.editorPlugIn.rootCaseModel = Case0.ElementTop;
 			self.editorPlugIn.GenerateCode();
 			__dscript__.script.lib = {
+				"GetDataFromRec.ds" : "\n\
+String GetDataFromRec(String location, String type) {\n\
+    command rec;\n\
+    String data = rec -m getLatestData -t $type -l $location\n\
+    return data;\n\
+}\n\
+",
 				"PortMonitor.ds" : "\n\
 //let Monitor = true\n\
 DFault PortMonitor(boolean Monitor) {\n\
@@ -354,14 +361,7 @@ DFault BlockIP() {\n\
     return ret;\n\
 }\n\
 ",
-				"GetDataFromRec" : "\n\
-String GetDataFromRec(String location, String type) {\n\
-    command rec;\n\
-    String data = rec -m getLatestData -t $type -l $location\n\
-    return data;\n\
-}\n\
-",
-			};   // TODO: add library here !!
+			};
 			console.log(__dscript__);
 			this.AssureItAgentAPI.Deploy(__dscript__);
 		});

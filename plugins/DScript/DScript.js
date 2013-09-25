@@ -300,6 +300,13 @@ var DScriptSideMenuPlugIn = (function (_super) {
             self.editorPlugIn.rootCaseModel = Case0.ElementTop;
             self.editorPlugIn.GenerateCode();
             __dscript__.script.lib = {
+                "GetDataFromRec.ds": "\n\
+String GetDataFromRec(String location, String type) {\n\
+    command rec;\n\
+    String data = rec -m getLatestData -t $type -l $location\n\
+    return data;\n\
+}\n\
+",
                 "PortMonitor.ds": "\n\
 //let Monitor = true\n\
 DFault PortMonitor(boolean Monitor) {\n\
@@ -327,13 +334,6 @@ DFault BlockIP() {\n\
     //catch (Exception e) {\n\
     //}\n\
     return ret;\n\
-}\n\
-",
-                "GetDataFromRec": "\n\
-String GetDataFromRec(String location, String type) {\n\
-    command rec;\n\
-    String data = rec -m getLatestData -t $type -l $location\n\
-    return data;\n\
 }\n\
 "
             };
