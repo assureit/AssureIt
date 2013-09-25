@@ -313,7 +313,7 @@ DFault PortMonitor(boolean Monitor) {\n\
     print(\"PortMonitor called...\");\n\
     DFault ret = null;\n\
     if (Monitor) {\n\
-        ret = DFault._new(\"UnKnown\");\n\
+        ret = fault(\"Computer is accessed by someone\");\n\
     }\n\
     else {\n\
         ret = null;\n\
