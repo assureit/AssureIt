@@ -10,7 +10,7 @@ var __dscript__ = {
         lib: {}
     },
     meta: {
-        actions: {}
+        actionmap: {}
     }
 };
 
@@ -269,7 +269,7 @@ var DScriptEditorPlugIn = (function (_super) {
             var DScriptMap = new DScriptActionMap();
             DScriptMap.GetActionMap(orig_ElementMap, caseModel, ASNData);
             __dscript__.script.main = script;
-            __dscript__.meta.actions = DScriptMap.ActionMap;
+            __dscript__.meta.actionmap = DScriptMap.ActionMap;
             this.updateActionTable(DScriptMap.ActionMap);
             this.updateLineComment(this.editor_left, this.widgets, Generator);
             this.editor_right.setValue(script);
