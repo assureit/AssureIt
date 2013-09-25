@@ -28,8 +28,8 @@ class TimeLineSideMenuPlugIn extends AssureIt.SideMenuPlugIn {
 		return new AssureIt.SideMenuModel(loc, "Change History", "history", "glyphicon-time", (ev:Event)=>{});
 	}
 }
-
 class TimeLineKeyPlugIn extends AssureIt.ShortcutKeyPlugIn {
+
 
 	constructor(public plugInManager: AssureIt.PlugInManager) {
 		super(plugInManager);
@@ -39,7 +39,7 @@ class TimeLineKeyPlugIn extends AssureIt.ShortcutKeyPlugIn {
 		return true;
 	}
 
-	RegisterKeyEvents(Case0: AssureIt.Case, serverApi: AssureIt.ServerAPI) : boolean {
+	RegisterKeyEvents(Case0: AssureIt.Case, caseViewer: AssureIt.CaseViewer, serverApi: AssureIt.ServerAPI) : boolean {
 		$("body").keydown((e)=>{
 			if(e.keyCode == 37/*left*/ && e.shiftKey) {
 				this.ShowPreview(Case0, serverApi);

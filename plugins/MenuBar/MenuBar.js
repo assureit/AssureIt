@@ -113,43 +113,6 @@ var MenuBar = (function () {
         this.caseViewer.Screen.SetOffset(parentOffSet.left - CurrentParentView.AbsX, parentOffSet.top - CurrentParentView.AbsY);
     };
 
-    MenuBar.prototype.Search = function () {
-        var thisLabel = this.node.children("h4").text();
-        var thisNodeView = this.caseViewer.ViewMap[thisLabel];
-        var currentNodeModel = thisNodeView.Source;
-
-        console.log("before loop");
-        while (currentNodeModel.Parent != null) {
-            currentNodeModel = currentNodeModel.Parent;
-        }
-
-        var Keyword = prompt("Enter some words you want to search");
-        var HitNodes = [];
-
-        console.log(currentNodeModel.SearchNode(Keyword, HitNodes));
-
-        var currentNodeColor = [];
-
-        var flag = false;
-
-        for (var i = 0; i < HitNodes.length; i++) {
-            var thisNodeLabel = HitNodes[i].Label;
-            currentNodeColor[i] = this.caseViewer.ViewMap[thisNodeLabel].SVGShape.GetColor();
-            this.caseViewer.ViewMap[thisNodeLabel].SVGShape.SetColor("#ffff00", "#ffff00");
-        }
-
-        //		ScreenManager.SetCaseCenter(this.caseViewer.ViewMap[HitNodes[0].Label].AbsX, this.caseViewer.ViewMap[HitNodes[0].Label].AbsY, this.caseViewer.ViewMap[HitNodes[0].Label].HTMLDoc);
-        $('body').on("keydown", function (e) {
-            if (e.keyCode == 27) {
-                e.stopPropagation();
-                for (var i = 0; i < HitNodes.length; i++) {
-                    var thisNodeLabel = HitNodes[i].Label;
-                    this.caseViewer.ViewMap[thisNodeLabel].SVGShape.SetColor(currentNodeColor[i]["fill"], currentNodeColor[i]["stroke"]);
-                }
-            }
-        });
-    };
-
     MenuBar.prototype.Center = function () {
         var thisLabel = this.node.children("h4").text();
         var thisNodeView = this.caseViewer.ViewMap[thisLabel];
@@ -173,10 +136,6 @@ var MenuBar = (function () {
 
         $('#evidence').click(function () {
             _this.AddNode(AssureIt.NodeType.Evidence);
-        });
-
-        $('#search').click(function () {
-            _this.Search();
         });
 
         $('#remove').click(function () {

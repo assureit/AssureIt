@@ -1,3 +1,6 @@
+///<reference path='../../d.ts/jquery.d.ts'/>
+///<reference path='../../src/CaseModel.ts'/>
+///<reference path='../../src/CaseViewer.ts'/>
 var __extends = this.__extends || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
     function __() { this.constructor = d; }
@@ -29,6 +32,8 @@ var ScaleUpActionPlugIn = (function (_super) {
     ScaleUpActionPlugIn.prototype.SetPosition = function (x, y) {
         console.log(x, y);
 
+        //x = $('#layer0').position().left;
+        //y = $('#layer0').position().top;
         var mat = ((this.ShapeGroup[0])).transform.baseVal.getItem(0).matrix;
         mat.e = x;
         mat.f = y;
@@ -40,6 +45,7 @@ var ScaleUpActionPlugIn = (function (_super) {
         var self = this;
         this.ScreenManager = caseViewer.Screen;
 
+        //$('.node').unbind('mouseenter').unbind('mouseleave');
         $('.node').hover(function (e) {
             var scale = self.ScreenManager.GetScale();
             if (scale < self.THRESHHOLD) {

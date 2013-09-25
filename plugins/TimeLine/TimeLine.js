@@ -1,3 +1,7 @@
+/// <reference path="../../src/CaseModel.ts" />
+/// <reference path="../../src/ServerApi.ts" />
+/// <reference path="../../src/PlugInManager.ts" />
+/// <reference path="../../src/SideMenuModel.ts" />
 var __extends = this.__extends || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
     function __() { this.constructor = d; }
@@ -31,7 +35,6 @@ var TimeLineSideMenuPlugIn = (function (_super) {
     };
     return TimeLineSideMenuPlugIn;
 })(AssureIt.SideMenuPlugIn);
-
 var TimeLineKeyPlugIn = (function (_super) {
     __extends(TimeLineKeyPlugIn, _super);
     function TimeLineKeyPlugIn(plugInManager) {
@@ -42,7 +45,7 @@ var TimeLineKeyPlugIn = (function (_super) {
         return true;
     };
 
-    TimeLineKeyPlugIn.prototype.RegisterKeyEvents = function (Case0, serverApi) {
+    TimeLineKeyPlugIn.prototype.RegisterKeyEvents = function (Case0, caseViewer, serverApi) {
         var _this = this;
         $("body").keydown(function (e) {
             if (e.keyCode == 37 && e.shiftKey) {

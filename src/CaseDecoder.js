@@ -1,3 +1,6 @@
+/// <reference path="../d.ts/jquery.d.ts" />
+/// <reference path="../d.ts/ASNParser.d.ts" />
+/// <reference path="CaseModel.ts" />
 var __extends = this.__extends || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
     function __() { this.constructor = d; }
@@ -27,7 +30,7 @@ var AssureIt;
             _super.apply(this, arguments);
             this.NodeModelMap = {};
         }
-        JsonParser.prototype.InitNodeModelMap = function (NodeList) {
+        JsonParser.prototype.InitNodeModelMap = function (NodeList/* TODO: remove any type */ ) {
             for (var i = 0; i < NodeList.length; i++) {
                 this.NodeModelMap[NodeList[i]["Label"]] = NodeList[i];
             }
@@ -65,7 +68,7 @@ var AssureIt;
             }
         };
 
-        JsonParser.prototype.Parse = function (JsonData) {
+        JsonParser.prototype.Parse = function (JsonData/* TODO: remove any type */ ) {
             var DCaseName = JsonData["DCaseName"];
             var NodeCount = JsonData["NodeCount"];
             var TopGoalLabel = JsonData["TopGoalLabel"];
@@ -203,6 +206,7 @@ var AssureIt;
                     Model.SetAnnotation(obj["Annotations"][i].Name, obj["Annotations"][i].Body);
                 }
             } else {
+                //TODO
             }
             return Model;
         };

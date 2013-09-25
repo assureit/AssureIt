@@ -119,42 +119,6 @@ class MenuBar {
 		this.caseViewer.Screen.SetOffset(parentOffSet.left-CurrentParentView.AbsX, parentOffSet.top-CurrentParentView.AbsY);
 	}
 
-	Search(): void {
-		var thisLabel: string = this.node.children("h4").text();
-		var thisNodeView: AssureIt.NodeView = this.caseViewer.ViewMap[thisLabel];
-		var currentNodeModel: AssureIt.NodeModel = thisNodeView.Source;
-
-		while (currentNodeModel.Parent != null) {
-			currentNodeModel = currentNodeModel.Parent;
-		}
-
-		var Keyword: string = prompt("Enter some words you want to search");
-		var HitNodes: AssureIt.NodeModel[] = [];
-
-		console.log(currentNodeModel.SearchNode(Keyword, HitNodes));
-
-		var currentNodeColor: {[index: string]: string}[] = [];
-
-		var flag: boolean = false;
-
-		for (var i = 0; i < HitNodes.length; i++) {
-			var thisNodeLabel: string = HitNodes[i].Label;
-			currentNodeColor[i] = this.caseViewer.ViewMap[thisNodeLabel].SVGShape.GetColor();
-			this.caseViewer.ViewMap[thisNodeLabel].SVGShape.SetColor("#ffff00", "#ffff00");
-		}
-
-//		ScreenManager.SetCaseCenter(this.caseViewer.ViewMap[HitNodes[0].Label].AbsX, this.caseViewer.ViewMap[HitNodes[0].Label].AbsY, this.caseViewer.ViewMap[HitNodes[0].Label].HTMLDoc);
-
-		$('body').on("keydown", function(e: JQueryEventObject) {
-			if (e.keyCode == 27) {
-				for (var i = 0; i < HitNodes.length; i++) {
-					var thisNodeLabel: string = HitNodes[i].Label;
-					this.caseViewer.ViewMap[thisNodeLabel].SVGShape.SetColor(currentNodeColor[i]["fill"], currentNodeColor[i]["stroke"]);
-				}
-			}
-		}
-	}
-
 	Center(): void {
 		var thisLabel: string = this.node.children("h4").text();
 		var thisNodeView: AssureIt.NodeView = this.caseViewer.ViewMap[thisLabel];
@@ -180,17 +144,11 @@ class MenuBar {
 			this.AddNode(AssureIt.NodeType.Evidence);
 		});
 
-		$('#search').click(() => {
-			this.Search();
-		});
-
 		$('#remove').click(() => {
 			this.RemoveNode();
 			$('#menu').remove();
 		});
-
 	}
-
 }
 
 

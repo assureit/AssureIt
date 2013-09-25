@@ -1,3 +1,5 @@
+/// <reference path="./CaseModel.ts" />
+/// <reference path="./CaseViewer.ts" />
 var Pattern = (function () {
     function Pattern() {
         this.Goal = AssureIt.NodeType.Goal;

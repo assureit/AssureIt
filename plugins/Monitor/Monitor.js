@@ -4,6 +4,10 @@ var __extends = this.__extends || function (d, b) {
     __.prototype = b.prototype;
     d.prototype = new __();
 };
+/// <reference path="../../src/CaseModel.ts" />
+/// <reference path="../../src/CaseViewer.ts" />
+/// <reference path="../../src/PlugInManager.ts" />
+/// <reference path="../../src/RecApi.ts" />
 var monitorManager = null;
 
 function extractTypeFromCondition(condition) {
@@ -19,6 +23,7 @@ function extractTypeFromCondition(condition) {
     }
 
     if (types.length != 1) {
+        // TODO: alert
     }
 
     return types[0];
@@ -85,6 +90,8 @@ function blushAllAncestor(caseViewer, nodeModel, fill, stroke) {
     if (contextNode != null) {
         caseViewer.ViewMap[contextNode.Label].SVGShape.SetColor(fill, stroke);
     }
+    /* TODO: blush all ancestor node */
+    //blushAllAncestor(caseViewer, nodeModel.Parent, fill, stroke);
 }
 
 var MonitorNode = (function () {
@@ -113,6 +120,7 @@ var MonitorNode = (function () {
             var latestData = RECAPI.getLatestData(this.Location, this.Type);
 
             if (latestData == null) {
+                // TODO: alert
                 console.log("latest data is null");
             } else {
                 this.LatestData = latestData;
@@ -327,6 +335,7 @@ var MonitorTableWindow = (function () {
             "bInfo": true,
             "bAutoWidth": true
         });
+        //$('.monitor-table-fail').attr('bgcolor', '#FF9999');   // TODO: set color
     };
 
     MonitorTableWindow.prototype.Open = function () {

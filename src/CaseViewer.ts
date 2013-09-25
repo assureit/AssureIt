@@ -751,10 +751,21 @@ module AssureIt {
 		}
 
 		SetCaseCenter(DCaseX: number, DCaseY: number, HTMLDoc: HTMLDoc): void {
-			var NewOffsetX = this.OffsetX + (this.GetPageCenterX() - (this.OffsetX + DCaseX)) - HTMLDoc.Width/2;
-			var NewOffsetY = this.OffsetY + (this.GetPageCenterY() - (this.OffsetY + DCaseY)) - HTMLDoc.Height/2;
+			var NewOffsetX = this.ConvertX(DCaseX, HTMLDoc);
+			var NewOffsetY = this.ConvertY(DCaseY, HTMLDoc);
 			this.SetOffset(NewOffsetX, NewOffsetY);
 		}
 
+		ConvertX(DCaseX: number, HTMLDoc: HTMLDoc): number {
+			var ConvertedX = this.OffsetX + (this.GetPageCenterX() - (this.OffsetX + DCaseX)) - HTMLDoc.Width/2;
+			return ConvertedX;
+
+		}
+
+		ConvertY(DCaseY: number, HTMLDoc: HTMLDoc): number {
+
+			var ConvertedY = this.OffsetY + (this.GetPageCenterY() - (this.OffsetY + DCaseY)) - HTMLDoc.Height/2;
+			return ConvertedY;
+		}
 	}
 }

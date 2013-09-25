@@ -19,6 +19,7 @@
 /// <reference path="../plugins/ColorTheme/ColorTheme.ts" />
 /// <reference path="../plugins/Export/Export.ts" />
 /// <reference path="../plugins/SearchNode/SearchNode.ts" />
+/// <reference path="../plugins/TimeLine/TimeLine.ts" />
 /// <reference path="../d.ts/jquery.d.ts" />
 
 $(function () {
@@ -38,6 +39,7 @@ $(function () {
 	pluginManager.SetPlugIn("monitor", new MonitorPlugIn(pluginManager));
 	pluginManager.SetPlugIn("export", new ExportPlugIn(pluginManager));
 	pluginManager.SetPlugIn("portraitlayout", new LayoutPortraitPlugIn(pluginManager));
+	pluginManager.SetPlugIn("search", new SearchNodePlugIn(pluginManager));
 	pluginManager.SetUseLayoutEngine("portraitlayout");
 
 	/*
@@ -69,6 +71,7 @@ $(function () {
 	var Screen = new AssureIt.ScreenManager(shapelayer, contentlayer, controllayer, backgroundlayer);
 
 	var Viewer = new AssureIt.CaseViewer(Case0, pluginManager, serverApi, Screen);
+	pluginManager.RegisterKeyEvents(Case0, Viewer, serverApi);
 	Viewer.Draw();
 });
 
