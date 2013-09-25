@@ -389,7 +389,7 @@ var DScriptGenerator = (function () {
     };
 
     DScriptGenerator.prototype.GenerateRuntimeContext = function () {
-        return "class RutimeContext {" + this.linefeed + "}" + this.linefeed + this.linefeed;
+        return "class RuntimeContext {" + this.linefeed + "}" + this.linefeed + this.linefeed;
     };
 
     DScriptGenerator.prototype.GenerateMainFunction = function (rootNode, flow, GenFlag) {

@@ -408,7 +408,7 @@ class DScriptGenerator {
 	}
 
 	GenerateRuntimeContext(): string {
-		return "class RutimeContext {" + this.linefeed + "}" + this.linefeed + this.linefeed;
+		return "class RuntimeContext {" + this.linefeed + "}" + this.linefeed + this.linefeed;
 	}
 
 	GenerateMainFunction(rootNode: AssureIt.NodeModel, flow: { [key: string]: AssureIt.NodeModel[];}, GenFlag: boolean): string {
