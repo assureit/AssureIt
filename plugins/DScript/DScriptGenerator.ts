@@ -353,7 +353,7 @@ class DScriptGenerator {
 		program += this.GenerateLetDecl(Node, contextenv);
 		program += this.indent + "DFault ret = null;" + this.linefeed;
 		program += this.indent + "if(Location == LOCATION) {" + this.linefeed;
-		program += this.indent + this.indent + "ret = dexec " + Function.replace("()", "") + ";" + this.linefeed;
+		program += this.indent + this.indent + "ret = dlog " + Function + ";" + this.linefeed;
 //		program += this.indent + this.indent + "dexec " + Function.replace("()", "") + this.linefeed;
 		program += this.indent + "}" + this.linefeed;
 		program += this.indent + "return ret;" + this.linefeed;
