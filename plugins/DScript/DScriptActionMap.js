@@ -1,58 +1,54 @@
 var DScriptActionMap = (function () {
-    function DScriptActionMap() {
-        this.ActionMap = {};
-        this.ContextArray = [];
+    function DScriptActionMap(rootNode) {
+        this.body = {};
+        this.rootNode = rootNode;
+        this.Extract();
     }
-    DScriptActionMap.prototype.GetContextLabel = function (Element) {
-        for (var i = 0; i < Element.Children.length; i++) {
-            var Children = Element.Children[i];
-            if (Children.Type == AssureIt.NodeType.Context) {
-                this.ContextArray.push(Children.Label);
+    DScriptActionMap.prototype.SearchNodeByType = function (root, type) {
+        var ret = [];
+        for (var i = 0; i < root.Children.length; i++) {
+            var child = root.Children[i];
+            if (child.Type == type) {
+                ret.push(child);
+            } else {
+                ret = ret.concat(this.SearchNodeByType(child, type));
             }
-            this.GetContextLabel(Children);
         }
-        return;
+        return ret;
     };
 
-    DScriptActionMap.prototype.GetReaction = function (Context) {
-        var Parent = Context.Parent;
-        for (var i = 0; i < Parent.Children.length; i++) {
-            var Child = Parent.Children[i];
-            if (Child.Type != AssureIt.NodeType.Context) {
-                return Child.Label;
-            }
+    DScriptActionMap.prototype.GenActionMap = function (node) {
+        var ret = null;
+        var action = node.GetNote("Reaction");
+        if (!(action == null)) {
+            var reaction = node.Parent.Label;
+            ret = {
+                "action": action,
+                "reaction": reaction,
+                "actiontype": null
+            };
         }
-        return "";
+        return ret;
+    };
+    DScriptActionMap.prototype.AddActionMap = function (actionMap) {
+        this.body[actionMap["action"]] = actionMap;
     };
 
-    DScriptActionMap.prototype.GetAction = function (Context, ActionType) {
-        var NotesKeys = Object.keys(Context.Notes);
-        var Action = "";
-        var Reaction = "";
+    DScriptActionMap.prototype.Extract = function () {
+        var contexts = this.SearchNodeByType(this.rootNode, AssureIt.NodeType.Context);
+        var elementMap = this.rootNode.Case.ElementMap;
 
-        for (var i = 0; i < NotesKeys.length; i++) {
-            if (NotesKeys[i] == "Reaction") {
-                Action = Context.Notes["Reaction"];
-                Reaction = this.GetReaction(Context);
-                this.ActionMap[Action] = {
-                    "reaction": Reaction,
-                    "actiontype": ActionType
-                };
-            }
+        for (var i = 0; i < contexts.length; i++) {
+            var context = contexts[i];
+            var actionMap = this.GenActionMap(context);
+            if (actionMap == null)
+                continue;
+
+            this.AddActionMap(actionMap);
         }
-        return;
     };
-
-    DScriptActionMap.prototype.GetActionMap = function (ViewMap, Node) {
-        var ActionMapScript = "";
-        this.GetContextLabel(Node);
-        for (var i = 0; i < this.ContextArray.length; i++) {
-            var Context = ViewMap[this.ContextArray[i]];
-            if (Context.GetAnnotation("OnlyIf")) {
-                this.GetAction(Context, "monitor");
-            }
-        }
-        return this.ActionMap;
+    DScriptActionMap.prototype.GetBody = function () {
+        return this.body;
     };
     return DScriptActionMap;
 })();

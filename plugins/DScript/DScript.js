@@ -212,11 +212,11 @@ var DScriptEditorPlugIn = (function (_super) {
         });
     };
 
-    DScriptEditorPlugIn.prototype.updateActionTable = function (ActionMap) {
+    DScriptEditorPlugIn.prototype.updateActionTable = function (actionMap) {
         var table = $('#dscript-action-table');
         var table_width = table.parent().width();
-        var header = $("<tr><th>state</th><th>fault</th><th>action</th></tr>");
-        var tpl = "<tr><td>${state}</td><td>${fault}</td><td>${action}</td></tr>";
+        var header = $("<tr><th>action</th><th>fault</th><th>reaction</th></tr>");
+        var tpl = "<tr><td>${action}</td><td>${fault}</td><td>${reaction}</td></tr>";
         var style = {
             maxWidth: table_width / 3,
             minWidth: table_width / 3,
@@ -228,8 +228,8 @@ var DScriptEditorPlugIn = (function (_super) {
         table.children().remove();
         header.children().css(style);
         table.append(header);
-        for (var key in ActionMap) {
-            var row_src = tpl.replace("${state}", key).replace("${fault}", "*").replace("${action}", ActionMap[key]["reaction"]);
+        for (var key in actionMap) {
+            var row_src = tpl.replace("${action}", actionMap[key]["action"]).replace("${fault}", "*").replace("${reaction}", actionMap[key]["reaction"]);
             var row = $(row_src);
             row.children().css(style);
             table.append(row);
@@ -268,11 +268,11 @@ var DScriptEditorPlugIn = (function (_super) {
         var Generator = new DScriptGenerator();
         var script = Generator.codegen(orig_ElementMap, caseModel, ASNData, genflag);
 
-        var DScriptMap = new DScriptActionMap();
-        DScriptMap.GetActionMap(orig_ElementMap, caseModel);
+        var DScriptMap = new DScriptActionMap(caseModel);
+        var actionMap = DScriptMap.GetBody();
         __dscript__.script.main = script;
-        __dscript__.meta.actionmap = DScriptMap.ActionMap;
-        this.updateActionTable(DScriptMap.ActionMap);
+        __dscript__.meta.actionmap = actionMap;
+        this.updateActionTable(actionMap);
         this.updateLineComment(this.editor_left, this.widgets, Generator);
         this.editor_right.setValue(script);
 

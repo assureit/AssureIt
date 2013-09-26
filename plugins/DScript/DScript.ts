@@ -232,11 +232,11 @@ class DScriptEditorPlugIn extends AssureIt.ActionPlugIn {
 		});
 	}
 
-	updateActionTable(ActionMap : any) : void {
+	updateActionTable(actionMap : any) : void {
 		var table : JQuery = $('#dscript-action-table');
 		var table_width = table.parent().width();
-		var header : JQuery = $("<tr><th>state</th><th>fault</th><th>action</th></tr>");
-		var tpl : string = "<tr><td>${state}</td><td>${fault}</td><td>${action}</td></tr>";
+		var header : JQuery = $("<tr><th>action</th><th>fault</th><th>reaction</th></tr>");
+		var tpl : string = "<tr><td>${action}</td><td>${fault}</td><td>${reaction}</td></tr>";
 		var style : any = {
             maxWidth: table_width / 3,
 			minWidth: table_width / 3,
@@ -248,11 +248,11 @@ class DScriptEditorPlugIn extends AssureIt.ActionPlugIn {
 		table.children().remove();
 		header.children().css(style);
 		table.append(header);
-		for (var key in ActionMap) {
+		for (var key in actionMap) {
 			var row_src : string = tpl
-				.replace("${state}", key)
+				.replace("${action}", actionMap[key]["action"])
 				.replace("${fault}", "*")
-				.replace("${action}", ActionMap[key]["reaction"]);
+				.replace("${reaction}", actionMap[key]["reaction"]);
 			var row : JQuery = $(row_src);
 			row.children().css(style);
 			table.append(row);
@@ -291,11 +291,11 @@ class DScriptEditorPlugIn extends AssureIt.ActionPlugIn {
 		var Generator: DScriptGenerator = new DScriptGenerator();
 		var script = Generator.codegen(orig_ElementMap, caseModel, ASNData, genflag);
 
-		var DScriptMap: DScriptActionMap = new DScriptActionMap();
-		DScriptMap.GetActionMap(orig_ElementMap, caseModel);
-		__dscript__.script.main = script;
-		__dscript__.meta.actionmap = DScriptMap.ActionMap;
-		this.updateActionTable(DScriptMap.ActionMap);
+ 		var DScriptMap: DScriptActionMap = new DScriptActionMap(caseModel);
+		var actionMap = DScriptMap.GetBody();
+ 		__dscript__.script.main = script;
+ 		__dscript__.meta.actionmap = actionMap;
+ 		this.updateActionTable(actionMap);
 		this.updateLineComment(this.editor_left, this.widgets, Generator);
 		this.editor_right.setValue(script);
 
