@@ -316,13 +316,19 @@ var DScriptGenerator = (function () {
             var DeclKey = DeclKeys[j];
             var DeclValue = ContextEnv[DeclKey];
             if (DeclKey == "Monitor") {
-                program += this.GenerateGetDataFromRecFunction(Node, DeclValue);
             } else if (DeclKey == "Reaction") {
                 program += this.indent + "String " + DeclKey + " = " + "\"" + DeclValue + "\";" + this.linefeed;
             } else if (DeclKey == "Location") {
                 program += this.indent + "let " + DeclKey + " = \"" + DeclValue + "\";" + this.linefeed;
             } else {
                 program += this.indent + "let " + DeclKey + " = " + DeclValue + ";" + this.linefeed;
+            }
+        }
+        for (var j = 0; j < DeclKeys.length; j++) {
+            var DeclKey = DeclKeys[j];
+            var DeclValue = ContextEnv[DeclKey];
+            if (DeclKey == "Monitor") {
+                program += this.GenerateGetDataFromRecFunction(Node, DeclValue);
             }
         }
 

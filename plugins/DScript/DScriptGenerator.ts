@@ -331,7 +331,7 @@ class DScriptGenerator {
 			var DeclKey: string = DeclKeys[j];
 			var DeclValue: string = ContextEnv[DeclKey];
 			if(DeclKey == "Monitor") {
-				program += this.GenerateGetDataFromRecFunction(Node, DeclValue);
+				// lazy generation
 			}
 			else if(DeclKey == "Reaction") {
 				program += this.indent + "String " + DeclKey + " = " + "\"" + DeclValue + "\";" + this.linefeed;
@@ -341,6 +341,13 @@ class DScriptGenerator {
 			}
 			else {
 				program += this.indent + "let " + DeclKey+ " = " + DeclValue + ";" + this.linefeed;
+			}
+		}
+		for (var j: number = 0; j < DeclKeys.length; j++) {
+			var DeclKey: string = DeclKeys[j];
+			var DeclValue: string = ContextEnv[DeclKey];
+			if(DeclKey == "Monitor") {
+				program += this.GenerateGetDataFromRecFunction(Node, DeclValue);
 			}
 		}
 
