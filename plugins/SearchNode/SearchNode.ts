@@ -59,9 +59,11 @@ class SearchWordKeyPlugIn extends AssureIt.ShortcutKeyPlugIn {
 	RegisterKeyEvents(Case0: AssureIt.Case, caseViewer: AssureIt.CaseViewer, serverApi: AssureIt.ServerAPI) : boolean {
 		this.caseViewer = caseViewer;
 		$("body").keydown((e)=>{
-			if (e.keyCode == 70) {
-				console.log("here");
-				this.Search(Case0, caseViewer,serverApi);
+			if (e.ctrlKey) {
+				if (e.keyCode == 70/*f*/) {
+					console.log("here");
+					this.Search(Case0, caseViewer,serverApi);
+				}
 			}
 		});
 		return true;
@@ -69,6 +71,10 @@ class SearchWordKeyPlugIn extends AssureIt.ShortcutKeyPlugIn {
 
 	Search(Case0: AssureIt.Case, caseViewer: AssureIt.CaseViewer ,serverApi: AssureIt.ServerAPI): void {
 		var Keyword: string = prompt("Enter some words you want to search");
+		if (Keyword == "") {
+			return;
+		}
+
 		var TopNodeModel: AssureIt.NodeModel = Case0.ElementTop;
 
 		var HitNodes: AssureIt.NodeModel[] = [];
@@ -80,12 +86,12 @@ class SearchWordKeyPlugIn extends AssureIt.ShortcutKeyPlugIn {
 		for (var i = 0; i < HitNodes.length; i++) {
 			var thisNodeLabel: string = HitNodes[i].Label;
 			currentNodeColor[i] = caseViewer.ViewMap[thisNodeLabel].SVGShape.GetColor();
-			console.log("before");
 			caseViewer.ViewMap[thisNodeLabel].SVGShape.SetColor("#ffff00", "#ffff00");
 		}
 
-		console.log("after");
 		var nodeIndex: number = 0;
+		var moveFlag: boolean = false;
+
 
 		var screenManager = caseViewer.Screen;
 
@@ -96,37 +102,49 @@ class SearchWordKeyPlugIn extends AssureIt.ShortcutKeyPlugIn {
 		var destinationX = screenManager.ConvertX(NodePosX, currentHTML);
 		var destinationY = screenManager.ConvertY(NodePosY, currentHTML);
 
-		this.Move(destinationX, destinationY, 500);
+		this.Move(destinationX, destinationY, 500, ()=>{});
 
-		$("body").keydown((e: JQueryEventObject)=> {
-			console.log(e.keyCode);
+		var controllSearch = (e: JQueryEventObject)=> {
 			if (e.keyCode == 81/*q*/) {
+				$("body").unbind("keydown",controllSearch);
 				for (var i = 0; i < HitNodes.length; i++) {
 					var thisNodeLabel: string = HitNodes[i].Label;
 					caseViewer.ViewMap[thisNodeLabel].SVGShape.SetColor(currentNodeColor[i]["fill"], currentNodeColor[i]["stroke"]);
 				}
-			} else if (e.keyCode == 13/*Enter*/) {
-				if (HitNodes.length == 1) {
-					return;
-				}
-
-				nodeIndex++;
-				if (nodeIndex == HitNodes.length) {
-					nodeIndex = 0;
-				}
-
-				NodePosX    = caseViewer.ViewMap[HitNodes[nodeIndex].Label].AbsX;
-				NodePosY    = caseViewer.ViewMap[HitNodes[nodeIndex].Label].AbsY;
-				currentHTML = caseViewer.ViewMap[HitNodes[nodeIndex].Label].HTMLDoc;
-				var destinationX = screenManager.ConvertX(NodePosX, currentHTML);
-				var destinationY = screenManager.ConvertY(NodePosY, currentHTML);
-
-				this.Move(destinationX, destinationY, 500);
 			}
-		});
+
+			if (e.keyCode == 13/*Enter*/) {
+			//	if (screenManager.GetLogicalOffsetX() == destinationX && screenManager.GetLogicalOffsetY() == destinationY) {
+			//		moveFlag == false;
+			//	}
+
+				if (!moveFlag) {
+					if (HitNodes.length == 1) {
+						return;
+					}
+
+					nodeIndex++;
+					if (nodeIndex == HitNodes.length) {
+						nodeIndex = 0;
+					}
+
+					NodePosX    = caseViewer.ViewMap[HitNodes[nodeIndex].Label].AbsX;
+					NodePosY    = caseViewer.ViewMap[HitNodes[nodeIndex].Label].AbsY;
+					currentHTML = caseViewer.ViewMap[HitNodes[nodeIndex].Label].HTMLDoc;
+					destinationX = screenManager.ConvertX(NodePosX, currentHTML);
+					destinationY = screenManager.ConvertY(NodePosY, currentHTML);
+					moveFlag = true;
+					this.Move(destinationX, destinationY, 500, ()=>{
+						moveFlag = false;
+					});
+					console.log("after calling Move");
+				}
+			}
+		};
+		$("body").keydown(controllSearch);
 	}
 
-	Move(logicalOffsetX: number, logicalOffsetY: number, duration: number) {
+	Move (logicalOffsetX: number, logicalOffsetY: number, duration: number, callback: ()=> void) {
 		var cycle = 1000/30;
 		var cycles = duration/cycle;
 		var screenManager = this.caseViewer.Screen;
@@ -141,6 +159,7 @@ class SearchWordKeyPlugIn extends AssureIt.ShortcutKeyPlugIn {
 		var count = 0;
 
 		var move = ()=> {
+			console.log("move function");
 			if(count < cycles) {
 				count += 1;
 				currentX += deltaX;
@@ -148,12 +167,10 @@ class SearchWordKeyPlugIn extends AssureIt.ShortcutKeyPlugIn {
 				screenManager.SetLogicalOffset(currentX, currentY, 1);
 				setTimeout(move, cycle);
 			} else {
-				screenManager.SetScale(1);
 				screenManager.SetLogicalOffset(logicalOffsetX, logicalOffsetY, 1);
+				callback();
 			}
 		}
 		move();
 	}
 }
-
-

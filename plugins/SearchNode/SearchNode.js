@@ -67,9 +67,11 @@ var SearchWordKeyPlugIn = (function (_super) {
         var _this = this;
         this.caseViewer = caseViewer;
         $("body").keydown(function (e) {
-            if (e.keyCode == 70) {
-                console.log("here");
-                _this.Search(Case0, caseViewer, serverApi);
+            if (e.ctrlKey) {
+                if (e.keyCode == 70) {
+                    console.log("here");
+                    _this.Search(Case0, caseViewer, serverApi);
+                }
             }
         });
         return true;
@@ -78,6 +80,10 @@ var SearchWordKeyPlugIn = (function (_super) {
     SearchWordKeyPlugIn.prototype.Search = function (Case0, caseViewer, serverApi) {
         var _this = this;
         var Keyword = prompt("Enter some words you want to search");
+        if (Keyword == "") {
+            return;
+        }
+
         var TopNodeModel = Case0.ElementTop;
 
         var HitNodes = [];
@@ -89,12 +95,11 @@ var SearchWordKeyPlugIn = (function (_super) {
         for (var i = 0; i < HitNodes.length; i++) {
             var thisNodeLabel = HitNodes[i].Label;
             currentNodeColor[i] = caseViewer.ViewMap[thisNodeLabel].SVGShape.GetColor();
-            console.log("before");
             caseViewer.ViewMap[thisNodeLabel].SVGShape.SetColor("#ffff00", "#ffff00");
         }
 
-        console.log("after");
         var nodeIndex = 0;
+        var moveFlag = false;
 
         var screenManager = caseViewer.Screen;
 
@@ -105,37 +110,46 @@ var SearchWordKeyPlugIn = (function (_super) {
         var destinationX = screenManager.ConvertX(NodePosX, currentHTML);
         var destinationY = screenManager.ConvertY(NodePosY, currentHTML);
 
-        this.Move(destinationX, destinationY, 500);
+        this.Move(destinationX, destinationY, 500, function () {
+        });
 
-        $("body").keydown(function (e) {
-            console.log(e.keyCode);
+        var controllSearch = function (e) {
             if (e.keyCode == 81) {
+                $("body").unbind("keydown", controllSearch);
                 for (var i = 0; i < HitNodes.length; i++) {
                     var thisNodeLabel = HitNodes[i].Label;
                     caseViewer.ViewMap[thisNodeLabel].SVGShape.SetColor(currentNodeColor[i]["fill"], currentNodeColor[i]["stroke"]);
                 }
-            } else if (e.keyCode == 13) {
-                if (HitNodes.length == 1) {
-                    return;
-                }
-
-                nodeIndex++;
-                if (nodeIndex == HitNodes.length) {
-                    nodeIndex = 0;
-                }
-
-                NodePosX = caseViewer.ViewMap[HitNodes[nodeIndex].Label].AbsX;
-                NodePosY = caseViewer.ViewMap[HitNodes[nodeIndex].Label].AbsY;
-                currentHTML = caseViewer.ViewMap[HitNodes[nodeIndex].Label].HTMLDoc;
-                var destinationX = screenManager.ConvertX(NodePosX, currentHTML);
-                var destinationY = screenManager.ConvertY(NodePosY, currentHTML);
-
-                _this.Move(destinationX, destinationY, 500);
             }
-        });
+
+            if (e.keyCode == 13) {
+                if (!moveFlag) {
+                    if (HitNodes.length == 1) {
+                        return;
+                    }
+
+                    nodeIndex++;
+                    if (nodeIndex == HitNodes.length) {
+                        nodeIndex = 0;
+                    }
+
+                    NodePosX = caseViewer.ViewMap[HitNodes[nodeIndex].Label].AbsX;
+                    NodePosY = caseViewer.ViewMap[HitNodes[nodeIndex].Label].AbsY;
+                    currentHTML = caseViewer.ViewMap[HitNodes[nodeIndex].Label].HTMLDoc;
+                    destinationX = screenManager.ConvertX(NodePosX, currentHTML);
+                    destinationY = screenManager.ConvertY(NodePosY, currentHTML);
+                    moveFlag = true;
+                    _this.Move(destinationX, destinationY, 500, function () {
+                        moveFlag = false;
+                    });
+                    console.log("after calling Move");
+                }
+            }
+        };
+        $("body").keydown(controllSearch);
     };
 
-    SearchWordKeyPlugIn.prototype.Move = function (logicalOffsetX, logicalOffsetY, duration) {
+    SearchWordKeyPlugIn.prototype.Move = function (logicalOffsetX, logicalOffsetY, duration, callback) {
         var cycle = 1000 / 30;
         var cycles = duration / cycle;
         var screenManager = this.caseViewer.Screen;
@@ -150,6 +164,7 @@ var SearchWordKeyPlugIn = (function (_super) {
         var count = 0;
 
         var move = function () {
+            console.log("move function");
             if (count < cycles) {
                 count += 1;
                 currentX += deltaX;
@@ -157,8 +172,8 @@ var SearchWordKeyPlugIn = (function (_super) {
                 screenManager.SetLogicalOffset(currentX, currentY, 1);
                 setTimeout(move, cycle);
             } else {
-                screenManager.SetScale(1);
                 screenManager.SetLogicalOffset(logicalOffsetX, logicalOffsetY, 1);
+                callback();
             }
         };
         move();
