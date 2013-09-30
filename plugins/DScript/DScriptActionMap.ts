@@ -43,7 +43,7 @@ class DScriptActionMap {
 			ret = {
 				"action" : action,
 				"reaction" : reaction,
-				"actiontype" : null,
+				"actiontype" : "Monitor",
 			};
 		}
 		return ret;

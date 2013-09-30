@@ -18,12 +18,12 @@ __dscript__.script.funcdef = {
     "PortMonitor()": "\n\
 print(\"PortMonitor called...\");\n\
 DFault ret = null;\n\
-if (Monitor) {\n\
-\tret = fault(\"Computer is accessed by someone\");\n\
-}\n\
-else {\n\
-\tret = null;\n\
-}\n\
+//if (Monitor) {\n\
+//\tret = fault(\"Computer is accessed by someone\");\n\
+//}\n\
+//else {\n\
+//\tret = null;\n\
+//}\n\
 return ret;\n\
 ",
     "BlockIP()": "\n\

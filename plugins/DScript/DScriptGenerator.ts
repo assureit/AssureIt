@@ -360,7 +360,7 @@ class DScriptGenerator {
 		program += this.GenerateLetDecl(Node, contextenv);
 		program += this.indent
 			+ "DFault " + Function + " {"
-			+ __dscript__.script.funcdef[Function].replace(/\n/g, "\n" + this.indent + this.indent)
+			+ __dscript__.script.funcdef[Function].replace(/\n/g, "\n" + this.indent + "\t")
 			+ "}\n";
 		program += this.indent + "DFault ret = null;" + this.linefeed;
 		program += this.indent + "if(Location == LOCATION) {" + this.linefeed;
