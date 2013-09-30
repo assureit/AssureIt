@@ -327,9 +327,10 @@ var DScriptSideMenuPlugIn = (function (_super) {
             __dscript__.script.lib = {
                 "GetDataFromRec.ds": "\n\
 String GetDataFromRec(String location, String type) {\n\
-    command rec;\n\
-    String data = rec -m getLatestData -t $type -l $location\n\
-    return data;\n\
+    //command rec;\n\
+    //String data = rec -m getLatestData -t $type -l $location\n\
+    //return data;\n\
+    return \"SuccessData\";   // FIXME\n\
 }\n\
 "
             };
