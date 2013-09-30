@@ -263,9 +263,9 @@ class DScriptGenerator {
 				var goallabel: string = child[0].Label;
 				var parentgoallabel: string = context.Parent.Label;
 				program += this.indent + "DFault ret = " + goallabel + "(ctx);" + this.linefeed;
-				program += this.indent + "if (ret.getLocation() == \"" + reaction + "\") {" + this.linefeed;
-				program += this.indent + this.indent + "ret = " + parentgoallabel + "(ctx);" + this.linefeed;
-				program += this.indent + "}" + this.linefeed;
+				//program += this.indent + "if (ret.getLocation() == \"" + reaction + "\") {" + this.linefeed;
+				//program += this.indent + this.indent + "ret = " + parentgoallabel + "(ctx);" + this.linefeed;
+				//program += this.indent + "}" + this.linefeed;
 				program += this.indent + "return ret;" + this.linefeed;
 				return program;
 			}
@@ -319,9 +319,44 @@ class DScriptGenerator {
 			var LHS: string = monitor[0];
 			var operand: string = monitor[1];
 			var RHS: string = monitor[2];
-			program += this.indent + "let Monitor = GetDataFromRec(Location, \"" + LHS + "\") " + operand + " " + RHS + ";" + this.linefeed;
+			//program += this.indent + "let Monitor = GetDataFromRec(Location, \"" + LHS + "\") " + operand + " " + RHS + ";" + this.linefeed;
+			program += this.indent + "\tboolean Monitor = GetDataFromRec(Location, Type) " + operand + " " + RHS + ";" + this.linefeed;
 		}
 		return program;
+	}
+
+	private ExtractMonitorTypeFromCondition(condition: string): string {
+		var text: string = condition
+							.replace(/\{/g, " ")
+							.replace(/\}/g, " ")
+							.replace(/\(/g, " ")
+							.replace(/\)/g, " ")
+							.replace(/<=/g, " ")
+							.replace(/>=/g, " ")
+							.replace(/</g, " ")
+							.replace(/>/g, " ");
+
+		var words: string[] = text.split(" ");
+		var types: string[] = [];
+
+		function isBoolean(word: string): boolean {
+			if(word == "true" || word == "false") {
+				return true;
+			}
+			return false;
+		}
+
+		for(var i: number = 0; i < words.length; i++) {
+			if(words[i] != "" && !isBoolean(words[i]) && !$.isNumeric(words[i])) {
+				types.push(words[i]);
+			}
+		}
+
+		if(types.length != 1) {
+			// TODO: alert
+		}
+
+		return types[0];
 	}
 
 	GenerateLetDecl(Node: AssureIt.NodeModel, ContextEnv: { [key: string]: string;}): string {
@@ -331,23 +366,16 @@ class DScriptGenerator {
 			var DeclKey: string = DeclKeys[j];
 			var DeclValue: string = ContextEnv[DeclKey];
 			if(DeclKey == "Monitor") {
-				// lazy generation
+				program += this.indent + "let Type = \"" + this.ExtractMonitorTypeFromCondition(DeclValue) + "\";" + this.linefeed;
 			}
 			else if(DeclKey == "Reaction") {
-				program += this.indent + "String " + DeclKey + " = " + "\"" + DeclValue + "\";" + this.linefeed;
+				// do nothing
 			}
 			else if(DeclKey == "Location") {
 				program += this.indent + "let " + DeclKey+ " = \"" + DeclValue + "\";" + this.linefeed;
 			}
 			else {
 				program += this.indent + "let " + DeclKey+ " = " + DeclValue + ";" + this.linefeed;
-			}
-		}
-		for (var j: number = 0; j < DeclKeys.length; j++) {
-			var DeclKey: string = DeclKeys[j];
-			var DeclValue: string = ContextEnv[DeclKey];
-			if(DeclKey == "Monitor") {
-				program += this.GenerateGetDataFromRecFunction(Node, DeclValue);
 			}
 		}
 
@@ -358,10 +386,13 @@ class DScriptGenerator {
 		var program: string = "";
 		var contextenv: { [key: string]: string;} = this.GetContextEnvironment(Node);
 		program += this.GenerateLetDecl(Node, contextenv);
-		program += this.indent
-			+ "DFault " + Function + " {"
-			+ __dscript__.script.funcdef[Function].replace(/\n/g, "\n" + this.indent + "\t")
-			+ "}\n";
+		program += this.indent + "DFault " + Function + " {" + this.linefeed;
+
+		if("Monitor" in contextenv) {
+			program += this.GenerateGetDataFromRecFunction(Node, contextenv["Monitor"]);
+		}
+
+		program += __dscript__.script.funcdef[Function].replace(/\n/g, "\n" + this.indent + "\t") + "}\n";
 		program += this.indent + "DFault ret = null;" + this.linefeed;
 		program += this.indent + "if(Location == LOCATION) {" + this.linefeed;
 		program += this.indent + this.indent + "ret = dlog " + Function + ";" + this.linefeed;

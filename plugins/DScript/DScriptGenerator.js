@@ -250,9 +250,7 @@ var DScriptGenerator = (function () {
                 var goallabel = child[0].Label;
                 var parentgoallabel = context.Parent.Label;
                 program += this.indent + "DFault ret = " + goallabel + "(ctx);" + this.linefeed;
-                program += this.indent + "if (ret.getLocation() == \"" + reaction + "\") {" + this.linefeed;
-                program += this.indent + this.indent + "ret = " + parentgoallabel + "(ctx);" + this.linefeed;
-                program += this.indent + "}" + this.linefeed;
+
                 program += this.indent + "return ret;" + this.linefeed;
                 return program;
             }
@@ -304,9 +302,35 @@ var DScriptGenerator = (function () {
             var LHS = monitor[0];
             var operand = monitor[1];
             var RHS = monitor[2];
-            program += this.indent + "let Monitor = GetDataFromRec(Location, \"" + LHS + "\") " + operand + " " + RHS + ";" + this.linefeed;
+
+            program += this.indent + "\tboolean Monitor = GetDataFromRec(Location, Type) " + operand + " " + RHS + ";" + this.linefeed;
         }
         return program;
+    };
+
+    DScriptGenerator.prototype.ExtractMonitorTypeFromCondition = function (condition) {
+        var text = condition.replace(/\{/g, " ").replace(/\}/g, " ").replace(/\(/g, " ").replace(/\)/g, " ").replace(/<=/g, " ").replace(/>=/g, " ").replace(/</g, " ").replace(/>/g, " ");
+
+        var words = text.split(" ");
+        var types = [];
+
+        function isBoolean(word) {
+            if (word == "true" || word == "false") {
+                return true;
+            }
+            return false;
+        }
+
+        for (var i = 0; i < words.length; i++) {
+            if (words[i] != "" && !isBoolean(words[i]) && !$.isNumeric(words[i])) {
+                types.push(words[i]);
+            }
+        }
+
+        if (types.length != 1) {
+        }
+
+        return types[0];
     };
 
     DScriptGenerator.prototype.GenerateLetDecl = function (Node, ContextEnv) {
@@ -316,19 +340,12 @@ var DScriptGenerator = (function () {
             var DeclKey = DeclKeys[j];
             var DeclValue = ContextEnv[DeclKey];
             if (DeclKey == "Monitor") {
+                program += this.indent + "let Type = \"" + this.ExtractMonitorTypeFromCondition(DeclValue) + "\";" + this.linefeed;
             } else if (DeclKey == "Reaction") {
-                program += this.indent + "String " + DeclKey + " = " + "\"" + DeclValue + "\";" + this.linefeed;
             } else if (DeclKey == "Location") {
                 program += this.indent + "let " + DeclKey + " = \"" + DeclValue + "\";" + this.linefeed;
             } else {
                 program += this.indent + "let " + DeclKey + " = " + DeclValue + ";" + this.linefeed;
-            }
-        }
-        for (var j = 0; j < DeclKeys.length; j++) {
-            var DeclKey = DeclKeys[j];
-            var DeclValue = ContextEnv[DeclKey];
-            if (DeclKey == "Monitor") {
-                program += this.GenerateGetDataFromRecFunction(Node, DeclValue);
             }
         }
 
@@ -339,7 +356,13 @@ var DScriptGenerator = (function () {
         var program = "";
         var contextenv = this.GetContextEnvironment(Node);
         program += this.GenerateLetDecl(Node, contextenv);
-        program += this.indent + "DFault " + Function + " {" + __dscript__.script.funcdef[Function].replace(/\n/g, "\n" + this.indent + "\t") + "}\n";
+        program += this.indent + "DFault " + Function + " {" + this.linefeed;
+
+        if ("Monitor" in contextenv) {
+            program += this.GenerateGetDataFromRecFunction(Node, contextenv["Monitor"]);
+        }
+
+        program += __dscript__.script.funcdef[Function].replace(/\n/g, "\n" + this.indent + "\t") + "}\n";
         program += this.indent + "DFault ret = null;" + this.linefeed;
         program += this.indent + "if(Location == LOCATION) {" + this.linefeed;
         program += this.indent + this.indent + "ret = dlog " + Function + ";" + this.linefeed;
