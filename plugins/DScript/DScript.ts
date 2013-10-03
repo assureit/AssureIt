@@ -19,12 +19,12 @@ __dscript__.script.funcdef = { //FIX ME!! on the assumption that extract functio
 	"PortMonitor()" : "\n\
 print(\"PortMonitor called...\");\n\
 DFault ret = null;\n\
-//if (Monitor) {\n\
-//\tret = fault(\"Computer is accessed by someone\");\n\
-//}\n\
-//else {\n\
-//\tret = null;\n\
-//}\n\
+if (Monitor) {\n\
+\tret = null;\n\
+}\n\
+else {\n\
+\tret = fault(\"Computer is accessed by someone\");\n\
+}\n\
 return ret;\n\
 ",
 	"BlockIP()" : "\n\
@@ -352,11 +352,10 @@ class DScriptSideMenuPlugIn extends AssureIt.SideMenuPlugIn {
 			self.editorPlugIn.GenerateCode();
 			__dscript__.script.lib = {
 				"GetDataFromRec.ds" : "\n\
-String GetDataFromRec(String location, String type) {\n\
-    //command rec;\n\
-    //String data = rec -m getLatestData -t $type -l $location\n\
-    //return data;\n\
-    return \"SuccessData\";   // FIXME\n\
+int GetDataFromRec(String location, String type) {\n\
+    command rec;\n\
+    String data = rec -m getLatestData -t $type -l $location\n\
+    return (int)data.replaceAll(\"\\n\", \"\");\n\
 }\n\
 ",
 			};
