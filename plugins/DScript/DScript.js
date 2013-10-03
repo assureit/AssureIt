@@ -315,7 +315,7 @@ var DScriptSideMenuPlugIn = (function (_super) {
         this.editorPlugIn = editorPlugIn;
     }
     DScriptSideMenuPlugIn.prototype.IsEnabled = function (caseViewer, Case0, serverApi) {
-        return true;
+        return Case0.IsEditable();
     };
 
     DScriptSideMenuPlugIn.prototype.AddMenu = function (caseViewer, Case0, serverApi) {

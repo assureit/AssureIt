@@ -342,7 +342,7 @@ class DScriptSideMenuPlugIn extends AssureIt.SideMenuPlugIn {
 	}
 
 	IsEnabled(caseViewer: AssureIt.CaseViewer, Case0: AssureIt.Case, serverApi: AssureIt.ServerAPI): boolean {
-		return true;
+		return Case0.IsEditable();
 	}
 
 	AddMenu(caseViewer: AssureIt.CaseViewer, Case0: AssureIt.Case, serverApi: AssureIt.ServerAPI): AssureIt.SideMenuModel {
