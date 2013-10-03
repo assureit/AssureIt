@@ -9,7 +9,7 @@ def parse_args():
     parser.add_argument('-u', '--url', nargs='?', type=str, default=None)
     parser.add_argument('-l', '--location', nargs='?', type=str, default=None)
     parser.add_argument('-t', '--type', nargs='?', type=str, default=None)
-    parser.add_argument('-r', '--rawdata', nargs='?', type=int, default=None)
+    parser.add_argument('-d', '--data', nargs='?', type=int, default=None)
     parser.add_argument('-m', '--method', nargs='?', type=str, default=None)
     args = parser.parse_args();
     return args
@@ -51,7 +51,8 @@ def main():
         req = urllib2.Request(default_url, req_data, header) 
         response = urllib2.urlopen(req)
         res_data = response.read()
-        print(json.loads(res_data)["result"]["data"])
+        if json.loads(res_data)["result"]:
+            print(json.loads(res_data)["result"]["data"])
     except urllib2.URLError as e:
         #print(e)
         print(e.read())
