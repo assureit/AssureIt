@@ -70,7 +70,12 @@ var SearchWordKeyPlugIn = (function (_super) {
             if (e.ctrlKey) {
                 if (e.keyCode == 70) {
                     console.log("here");
-                    _this.Search(Case0, caseViewer, serverApi);
+                    _this.CreateSearchWindow();
+                    $('#searchform').show(2000);
+                    $('#searchbutton').click(function (e) {
+                        e.preventDefault();
+                        _this.Search(Case0, caseViewer, serverApi);
+                    });
                 }
             }
         });
@@ -79,13 +84,13 @@ var SearchWordKeyPlugIn = (function (_super) {
 
     SearchWordKeyPlugIn.prototype.Search = function (Case0, caseViewer, serverApi) {
         var _this = this;
-        var Keyword = prompt("Enter some words you want to search");
+        var Keyword = $('#searchform input:first').val();
+
         if (Keyword == "") {
             return;
         }
 
         var TopNodeModel = Case0.ElementTop;
-
         var HitNodes = [];
 
         console.log(TopNodeModel.SearchNode(Keyword, HitNodes));
@@ -102,7 +107,6 @@ var SearchWordKeyPlugIn = (function (_super) {
         var moveFlag = false;
 
         var screenManager = caseViewer.Screen;
-
         var NodePosX = caseViewer.ViewMap[HitNodes[nodeIndex].Label].AbsX;
         var NodePosY = caseViewer.ViewMap[HitNodes[nodeIndex].Label].AbsY;
         var currentHTML = caseViewer.ViewMap[HitNodes[nodeIndex].Label].HTMLDoc;
@@ -115,7 +119,9 @@ var SearchWordKeyPlugIn = (function (_super) {
 
         var controllSearch = function (e) {
             if (e.keyCode == 81) {
-                $("body").unbind("keydown", controllSearch);
+                $('body').unbind("keydown", controllSearch);
+                $('#searchform').hide(2000);
+                $('#searchform').remove();
                 for (var i = 0; i < HitNodes.length; i++) {
                     var thisNodeLabel = HitNodes[i].Label;
                     caseViewer.ViewMap[thisNodeLabel].SVGShape.SetColor(currentNodeColor[i]["fill"], currentNodeColor[i]["stroke"]);
@@ -146,7 +152,17 @@ var SearchWordKeyPlugIn = (function (_super) {
                 }
             }
         };
-        $("body").keydown(controllSearch);
+        $('body').keydown(controllSearch);
+    };
+
+    SearchWordKeyPlugIn.prototype.CreateSearchWindow = function () {
+        $('<form name="searchform" id="searchform" action="#"><input type="text" name="keyword" id="keyword"/><input type="submit" value="search" name="searchbutton" id="searchbutton"/></form>').appendTo($('body'));
+
+        $('#searchform').css({ width: '200px', background: '"url(./img/input.gif)" "left" "top" "no-repeat"', display: 'block', height: '24px', position: 'float', top: 0, left: 0 });
+
+        $('#keyword').css({ width: '156px', position: 'absolute', top: '3px', left: '12px', border: "'1px' 'solid' '#FFF'" });
+
+        $('#searchbutton').css({ position: 'absolute', top: '3px', left: '174px' });
     };
 
     SearchWordKeyPlugIn.prototype.Move = function (logicalOffsetX, logicalOffsetY, duration, callback) {

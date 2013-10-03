@@ -56,13 +56,19 @@ class SearchWordKeyPlugIn extends AssureIt.ShortcutKeyPlugIn {
 		super(plugInManager);
 	}
 
-	RegisterKeyEvents(Case0: AssureIt.Case, caseViewer: AssureIt.CaseViewer, serverApi: AssureIt.ServerAPI) : boolean {
+	RegisterKeyEvents(Case0: AssureIt.Case, caseViewer: AssureIt.CaseViewer, serverApi: AssureIt.ServerAPI): boolean {
 		this.caseViewer = caseViewer;
 		$("body").keydown((e)=>{
 			if (e.ctrlKey) {
 				if (e.keyCode == 70/*f*/) {
 					console.log("here");
-					this.Search(Case0, caseViewer,serverApi);
+					$("#searchform").remove();
+					this.CreateSearchWindow();
+					$('#searchform').show(2000);
+					$('#searchbutton').click((e: JQueryEventObject)=> {
+						e.preventDefault();
+						this.Search(Case0, caseViewer,serverApi);
+					});
 				}
 			}
 		});
@@ -70,13 +76,13 @@ class SearchWordKeyPlugIn extends AssureIt.ShortcutKeyPlugIn {
 	}
 
 	Search(Case0: AssureIt.Case, caseViewer: AssureIt.CaseViewer ,serverApi: AssureIt.ServerAPI): void {
-		var Keyword: string = prompt("Enter some words you want to search");
+		var Keyword: string = $('#searchform input:first').val();
+
 		if (Keyword == "") {
 			return;
 		}
 
 		var TopNodeModel: AssureIt.NodeModel = Case0.ElementTop;
-
 		var HitNodes: AssureIt.NodeModel[] = [];
 
 		console.log(TopNodeModel.SearchNode(Keyword, HitNodes));
@@ -92,12 +98,10 @@ class SearchWordKeyPlugIn extends AssureIt.ShortcutKeyPlugIn {
 		var nodeIndex: number = 0;
 		var moveFlag: boolean = false;
 
-
 		var screenManager = caseViewer.Screen;
-
-		var NodePosX    = caseViewer.ViewMap[HitNodes[nodeIndex].Label].AbsX;
-		var NodePosY    = caseViewer.ViewMap[HitNodes[nodeIndex].Label].AbsY;
-		var currentHTML = caseViewer.ViewMap[HitNodes[nodeIndex].Label].HTMLDoc;
+		var NodePosX      = caseViewer.ViewMap[HitNodes[nodeIndex].Label].AbsX;
+		var NodePosY      = caseViewer.ViewMap[HitNodes[nodeIndex].Label].AbsY;
+		var currentHTML   = caseViewer.ViewMap[HitNodes[nodeIndex].Label].HTMLDoc;
 
 		var destinationX = screenManager.ConvertX(NodePosX, currentHTML);
 		var destinationY = screenManager.ConvertY(NodePosY, currentHTML);
@@ -106,7 +110,9 @@ class SearchWordKeyPlugIn extends AssureIt.ShortcutKeyPlugIn {
 
 		var controllSearch = (e: JQueryEventObject)=> {
 			if (e.keyCode == 81/*q*/) {
-				$("body").unbind("keydown",controllSearch);
+				$('body').unbind("keydown",controllSearch);
+				$('#searchform').hide(2000);
+				$('#searchform').remove();
 				for (var i = 0; i < HitNodes.length; i++) {
 					var thisNodeLabel: string = HitNodes[i].Label;
 					caseViewer.ViewMap[thisNodeLabel].SVGShape.SetColor(currentNodeColor[i]["fill"], currentNodeColor[i]["stroke"]);
@@ -114,10 +120,6 @@ class SearchWordKeyPlugIn extends AssureIt.ShortcutKeyPlugIn {
 			}
 
 			if (e.keyCode == 13/*Enter*/) {
-			//	if (screenManager.GetLogicalOffsetX() == destinationX && screenManager.GetLogicalOffsetY() == destinationY) {
-			//		moveFlag == false;
-			//	}
-
 				if (!moveFlag) {
 					if (HitNodes.length == 1) {
 						return;
@@ -128,9 +130,9 @@ class SearchWordKeyPlugIn extends AssureIt.ShortcutKeyPlugIn {
 						nodeIndex = 0;
 					}
 
-					NodePosX    = caseViewer.ViewMap[HitNodes[nodeIndex].Label].AbsX;
-					NodePosY    = caseViewer.ViewMap[HitNodes[nodeIndex].Label].AbsY;
-					currentHTML = caseViewer.ViewMap[HitNodes[nodeIndex].Label].HTMLDoc;
+					NodePosX     = caseViewer.ViewMap[HitNodes[nodeIndex].Label].AbsX;
+					NodePosY     = caseViewer.ViewMap[HitNodes[nodeIndex].Label].AbsY;
+					currentHTML  = caseViewer.ViewMap[HitNodes[nodeIndex].Label].HTMLDoc;
 					destinationX = screenManager.ConvertX(NodePosX, currentHTML);
 					destinationY = screenManager.ConvertY(NodePosY, currentHTML);
 					moveFlag = true;
@@ -141,8 +143,20 @@ class SearchWordKeyPlugIn extends AssureIt.ShortcutKeyPlugIn {
 				}
 			}
 		};
-		$("body").keydown(controllSearch);
+		$('body').keydown(controllSearch);
 	}
+
+	CreateSearchWindow(): void {
+		$('<form name="searchform" id="searchform" action="#"><input type="text" name="keyword" id="keyword"/><input type="submit" value="search" name="searchbutton" id="searchbutton"/></form>').appendTo($('body'));
+
+		$('#searchform').css({width: '200px', background: '"url(./img/input.gif)" "left" "top" "no-repeat"', display: 'block', height: '24px', position: 'float', top: 0, left: 0});
+
+		$('#keyword').css({width: '156px', position: 'absolute', top: '3px', left: '12px', border: "'1px' 'solid' '#FFF'"});
+
+		$('#searchbutton').css({position: 'absolute', top: '3px', left: '174px'});
+
+	}
+
 
 	Move (logicalOffsetX: number, logicalOffsetY: number, duration: number, callback: ()=> void) {
 		var cycle = 1000/30;
