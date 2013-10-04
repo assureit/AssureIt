@@ -1,8 +1,8 @@
-///<reference path="../../src/CaseModel.ts" />
-///<reference path="../../src/CaseEncoder.ts" />
-///<reference path="../../src/ServerApi.ts" />
-///<reference path="../../src/PlugInManager.ts" />
-///<reference path="../Editor/Editor.ts" />
+/// <reference path="../../src/CaseModel.ts" />
+/// <reference path="../../src/CaseEncoder.ts" />
+/// <reference path="../../src/ServerApi.ts" />
+/// <reference path="../../src/PlugInManager.ts" />
+/// <reference path="../Editor/Editor.ts" />
 var __extends = this.__extends || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
     function __() { this.constructor = d; }
@@ -66,69 +66,75 @@ var SearchWordKeyPlugIn = (function (_super) {
     SearchWordKeyPlugIn.prototype.RegisterKeyEvents = function (Case0, caseViewer, serverApi) {
         var _this = this;
         this.caseViewer = caseViewer;
+        this.SearchStarted = false;
+        this.HasStarted = false;
         $("body").keydown(function (e) {
             if (e.ctrlKey) {
                 if (e.keyCode == 70) {
-                    console.log("here");
-                    _this.CreateSearchWindow();
-                    $('#searchform').show(2000);
-                    $('#searchbutton').click(function (e) {
-                        e.preventDefault();
-                        _this.Search(Case0, caseViewer, serverApi);
-                    });
+                    e.preventDefault();
+                    if ($('#searchform').length != 1) {
+                        console.log("here");
+                        _this.CreateSearchWindow();
+                        $('#searchform').show(2000);
+                        $('#searchform input:first').focus();
+                        $('#searchbutton').click(function (ev) {
+                            ev.preventDefault();
+                            if (!_this.HasStarted) {
+                                _this.Search(Case0, caseViewer, serverApi, _this.SearchStarted);
+                                _this.HasStarted = true;
+                            } else {
+                                var tempstring = $('#searchform input:first').val();
+                                console.log(tempstring);
+                            }
+                        });
+                    }
                 }
             }
         });
         return true;
     };
 
-    SearchWordKeyPlugIn.prototype.Search = function (Case0, caseViewer, serverApi) {
+    SearchWordKeyPlugIn.prototype.Search = function (Case0, caseViewer, serverApi, SearchStarted) {
         var _this = this;
         var Keyword = $('#searchform input:first').val();
+        var nodeIndex = 0;
+        var moveFlag = false;
+        var TopNodeModel = Case0.ElementTop;
+        var HitNodes = [];
 
         if (Keyword == "") {
             return;
         }
 
-        var TopNodeModel = Case0.ElementTop;
-        var HitNodes = [];
-
         console.log(TopNodeModel.SearchNode(Keyword, HitNodes));
 
         var currentNodeColor = [];
 
-        for (var i = 0; i < HitNodes.length; i++) {
-            var thisNodeLabel = HitNodes[i].Label;
-            currentNodeColor[i] = caseViewer.ViewMap[thisNodeLabel].SVGShape.GetColor();
-            caseViewer.ViewMap[thisNodeLabel].SVGShape.SetColor("#ffff00", "#ffff00");
-        }
-
-        var nodeIndex = 0;
-        var moveFlag = false;
-
-        var screenManager = caseViewer.Screen;
+        this.Color(HitNodes, currentNodeColor, caseViewer, SearchStarted);
         var NodePosX = caseViewer.ViewMap[HitNodes[nodeIndex].Label].AbsX;
         var NodePosY = caseViewer.ViewMap[HitNodes[nodeIndex].Label].AbsY;
         var currentHTML = caseViewer.ViewMap[HitNodes[nodeIndex].Label].HTMLDoc;
-
+        var screenManager = caseViewer.Screen;
         var destinationX = screenManager.ConvertX(NodePosX, currentHTML);
         var destinationY = screenManager.ConvertY(NodePosY, currentHTML);
 
-        this.Move(destinationX, destinationY, 500, function () {
+        console.log('X=' + destinationX + 'Y=' + destinationY);
+        console.log("start moving");
+        this.Move(destinationX, destinationY, 100, function () {
         });
+
+        SearchStarted = true;
 
         var controllSearch = function (e) {
             if (e.keyCode == 81) {
                 $('body').unbind("keydown", controllSearch);
-                $('#searchform').hide(2000);
+                _this.Color(HitNodes, currentNodeColor, caseViewer, SearchStarted);
                 $('#searchform').remove();
-                for (var i = 0; i < HitNodes.length; i++) {
-                    var thisNodeLabel = HitNodes[i].Label;
-                    caseViewer.ViewMap[thisNodeLabel].SVGShape.SetColor(currentNodeColor[i]["fill"], currentNodeColor[i]["stroke"]);
-                }
+                _this.HasStarted = false;
             }
 
             if (e.keyCode == 13) {
+                console.log("pushed enter button");
                 if (!moveFlag) {
                     if (HitNodes.length == 1) {
                         return;
@@ -144,8 +150,11 @@ var SearchWordKeyPlugIn = (function (_super) {
                     currentHTML = caseViewer.ViewMap[HitNodes[nodeIndex].Label].HTMLDoc;
                     destinationX = screenManager.ConvertX(NodePosX, currentHTML);
                     destinationY = screenManager.ConvertY(NodePosY, currentHTML);
+
+                    console.log('X=' + destinationX + 'Y=' + destinationY);
                     moveFlag = true;
-                    _this.Move(destinationX, destinationY, 500, function () {
+
+                    _this.Move(destinationX, destinationY, 100, function () {
                         moveFlag = false;
                     });
                     console.log("after calling Move");
@@ -156,13 +165,28 @@ var SearchWordKeyPlugIn = (function (_super) {
     };
 
     SearchWordKeyPlugIn.prototype.CreateSearchWindow = function () {
-        $('<form name="searchform" id="searchform" action="#"><input type="text" name="keyword" id="keyword"/><input type="submit" value="search" name="searchbutton" id="searchbutton"/></form>').appendTo($('body'));
+        $('<form name="searchform" id="searchform" action="#"><input type="text" name="keyword" class="keyword"/><input type="submit" value="search" name="searchbutton" id="searchbutton"/></form>').appendTo($('body'));
 
         $('#searchform').css({ width: '200px', background: '"url(./img/input.gif)" "left" "top" "no-repeat"', display: 'block', height: '24px', position: 'float', top: 0, left: 0 });
 
-        $('#keyword').css({ width: '156px', position: 'absolute', top: '3px', left: '12px', border: "'1px' 'solid' '#FFF'" });
+        $('.keyword').css({ width: '156px', position: 'absolute', top: '3px', left: '12px', border: "'1px' 'solid' '#FFF'" });
 
         $('#searchbutton').css({ position: 'absolute', top: '3px', left: '174px' });
+    };
+
+    SearchWordKeyPlugIn.prototype.Color = function (HitNodes, currentNodeColor, caseViewer, enterFlag) {
+        if (enterFlag) {
+            for (var i = 0; i < HitNodes.length; i++) {
+                var thisNodeLabel = HitNodes[i].Label;
+                caseViewer.ViewMap[thisNodeLabel].SVGShape.SetColor(currentNodeColor[i]["fill"], currentNodeColor[i]["stroke"]);
+            }
+        } else {
+            for (var i = 0; i < HitNodes.length; i++) {
+                var thisNodeLabel = HitNodes[i].Label;
+                currentNodeColor[i] = caseViewer.ViewMap[thisNodeLabel].SVGShape.GetColor();
+                caseViewer.ViewMap[thisNodeLabel].SVGShape.SetColor("#ffff00", "#ffff00");
+            }
+        }
     };
 
     SearchWordKeyPlugIn.prototype.Move = function (logicalOffsetX, logicalOffsetY, duration, callback) {
