@@ -159,10 +159,10 @@ var DScriptEditorPlugIn = (function (_super) {
         });
         $('#CodeMirror').focus();
         $('#background').click(function () {
-            $('#dscript-editor-wrapper').blur();
+            wrapper.blur();
         });
         window.setTimeout(function () {
-            $('#dscript-editor-wrapper').removeClass();
+            wrapper.removeClass();
         }, 1300);
         self.ASNEditor.refresh();
         self.DScriptEditor.refresh();
@@ -214,15 +214,15 @@ var DScriptEditorPlugIn = (function (_super) {
     DScriptEditorPlugIn.prototype.GenerateCode = function () {
         var decoder = new AssureIt.CaseDecoder();
         var ASNData = this.ASNEditor.getValue();
-        var Case = this.RootNodeModel.Case;
-        var orig_IdCounters = Case.ReserveIdCounters(this.RootNodeModel);
-        var orig_ElementMap = Case.ReserveElementMap(this.RootNodeModel);
-        var nodeModel = decoder.ParseASN(Case, ASNData, this.RootNodeModel);
+        var case0 = this.RootNodeModel.Case;
+        var orig_IdCounters = case0.ReserveIdCounters(this.RootNodeModel);
+        var orig_ElementMap = case0.ReserveElementMap(this.RootNodeModel);
+        var nodeModel = decoder.ParseASN(case0, ASNData, this.RootNodeModel);
         if (nodeModel == null) {
             this.Highlighter.Highlight(decoder.GetASNError().line, decoder.GetASNError().toString());
-            Case.IdCounters = orig_IdCounters;
-            Case.ElementMap = orig_ElementMap;
-            nodeModel = Case.ElementTop;
+            case0.IdCounters = orig_IdCounters;
+            case0.ElementMap = orig_ElementMap;
+            nodeModel = case0.ElementTop;
         } else {
             var ParentModel = this.RootNodeModel.Parent;
             if (ParentModel != null) {
@@ -234,7 +234,7 @@ var DScriptEditorPlugIn = (function (_super) {
                 }
             } else {
                 this.CaseViewer.ElementTop = nodeModel;
-                Case.ElementTop = nodeModel;
+                case0.ElementTop = nodeModel;
             }
         }
         this.RootNodeModel = nodeModel;
@@ -264,11 +264,11 @@ var DScriptSideMenuPlugIn = (function (_super) {
         this.AssureItAgentAPI = new AssureIt.AssureItAgentAPI("http://localhost:8081");
         this.editorPlugIn = editorPlugIn;
     }
-    DScriptSideMenuPlugIn.prototype.IsEnabled = function (caseViewer, Case0, serverApi) {
-        return Case0.IsEditable();
+    DScriptSideMenuPlugIn.prototype.IsEnabled = function (caseViewer, case0, serverApi) {
+        return case0.IsEditable();
     };
 
-    DScriptSideMenuPlugIn.prototype.AddMenu = function (caseViewer, Case0, serverApi) {
+    DScriptSideMenuPlugIn.prototype.AddMenu = function (caseViewer, case0, serverApi) {
         var _this = this;
         var self = this;
         return new AssureIt.SideMenuModel('#', 'Deploy', "deploy", "glyphicon-list-alt", function (ev) {

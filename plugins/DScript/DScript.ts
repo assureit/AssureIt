@@ -236,10 +236,10 @@ class DScriptEditorPlugIn extends AssureIt.ActionPlugIn {
 			});
 		$('#CodeMirror').focus();
 		$('#background').click(function(){
-			$('#dscript-editor-wrapper').blur();
+			wrapper.blur();
 		});
 		window.setTimeout(function() {
-			$('#dscript-editor-wrapper').removeClass();
+			wrapper.removeClass();
 		}, 1300);
 		self.ASNEditor.refresh();
 		self.DScriptEditor.refresh();
@@ -294,15 +294,15 @@ class DScriptEditorPlugIn extends AssureIt.ActionPlugIn {
 	GenerateCode(): void {
 		var decoder: AssureIt.CaseDecoder = new AssureIt.CaseDecoder();
 		var ASNData: string = this.ASNEditor.getValue();
-		var Case: AssureIt.Case = this.RootNodeModel.Case;
-		var orig_IdCounters = Case.ReserveIdCounters(this.RootNodeModel);
-		var orig_ElementMap = Case.ReserveElementMap(this.RootNodeModel);
-		var nodeModel = decoder.ParseASN(Case, ASNData, this.RootNodeModel);
+		var case0: AssureIt.Case = this.RootNodeModel.Case;
+		var orig_IdCounters = case0.ReserveIdCounters(this.RootNodeModel);
+		var orig_ElementMap = case0.ReserveElementMap(this.RootNodeModel);
+		var nodeModel = decoder.ParseASN(case0, ASNData, this.RootNodeModel);
 		if (nodeModel == null) {
 			this.Highlighter.Highlight(decoder.GetASNError().line, decoder.GetASNError().toString());
-			Case.IdCounters = orig_IdCounters;
-			Case.ElementMap = orig_ElementMap;
-			nodeModel = Case.ElementTop;
+			case0.IdCounters = orig_IdCounters;
+			case0.ElementMap = orig_ElementMap;
+			nodeModel = case0.ElementTop;
 		} else {
 			var ParentModel = this.RootNodeModel.Parent;
 			if (ParentModel != null) {
@@ -314,7 +314,7 @@ class DScriptEditorPlugIn extends AssureIt.ActionPlugIn {
 				}
 			} else {
 				this.CaseViewer.ElementTop = nodeModel;
-				Case.ElementTop = nodeModel;
+				case0.ElementTop = nodeModel;
 			}
 		}
 		this.RootNodeModel = nodeModel;
@@ -347,11 +347,11 @@ class DScriptSideMenuPlugIn extends AssureIt.SideMenuPlugIn {
 		this.editorPlugIn = editorPlugIn;
 	}
 
-	IsEnabled(caseViewer: AssureIt.CaseViewer, Case0: AssureIt.Case, serverApi: AssureIt.ServerAPI): boolean {
-		return Case0.IsEditable();
+	IsEnabled(caseViewer: AssureIt.CaseViewer, case0: AssureIt.Case, serverApi: AssureIt.ServerAPI): boolean {
+		return case0.IsEditable();
 	}
 
-	AddMenu(caseViewer: AssureIt.CaseViewer, Case0: AssureIt.Case, serverApi: AssureIt.ServerAPI): AssureIt.SideMenuModel {
+	AddMenu(caseViewer: AssureIt.CaseViewer, case0: AssureIt.Case, serverApi: AssureIt.ServerAPI): AssureIt.SideMenuModel {
 		var self = this;
 		return new AssureIt.SideMenuModel('#', 'Deploy', "deploy", "glyphicon-list-alt"/* TODO: change icon */, (ev:Event)=>{
 			self.editorPlugIn.GenerateCode();
