@@ -10,33 +10,35 @@ class ExportPlugIn extends AssureIt.PlugInSet {
 		super(plugInManager);
 		var plugin: ExportActionPlugIn = new ExportActionPlugIn(plugInManager);
 		this.ActionPlugIn = plugin;
-		this.MenuBarContentsPlugIn = new ExportMenuPlugIn(plugInManager, plugin);
+		this.SideMenuPlugIn = new ExportMenuPlugIn(plugInManager, plugin);
 	}
 
 }
 
-class ExportMenuPlugIn extends AssureIt.MenuBarContentsPlugIn {
+class ExportMenuPlugIn extends AssureIt.SideMenuPlugIn {
 	editorPlugIn: ExportActionPlugIn;
 	constructor(plugInManager: AssureIt.PlugInManager, editorPlugIn: ExportActionPlugIn) {
 		super(plugInManager);
 		this.editorPlugIn = editorPlugIn;
 	}
 
-	IsEnabled(caseViewer: AssureIt.CaseViewer, caseModel: AssureIt.NodeModel): boolean {
+	IsEnabled(caseViewer: AssureIt.CaseViewer, Case0: AssureIt.Case, serverApi: AssureIt.ServerAPI): boolean {
 		return true;
 	}
 
-	Delegate(caseViewer: AssureIt.CaseViewer, caseModel: AssureIt.NodeModel, element: JQuery, serverApi: AssureIt.ServerAPI): boolean {
-		element.append('<a href="#" ><img id="export-xml" src="' + serverApi.basepath + 'images/icon.png" title="Export XML" alt="XML" /></a>');
-		element.append('<a href="#" ><img id="export-pdf" src="' + serverApi.basepath + 'images/icon.png" title="Export PDF" alt="XML" /></a>');
-		element.append('<a href="#" ><img id="export-png" src="' + serverApi.basepath + 'images/icon.png" title="Export PNG" alt="XML" /></a>');
-		$('#export-pdf').unbind('click');
-		$('#export-xml').unbind('click');
-		$('#export-png').unbind('click');
-		$('#export-pdf').click(this.editorPlugIn.ExportPdf);
-		$('#export-xml').click(this.editorPlugIn.ExportXml);
-		$('#export-png').click(this.editorPlugIn.ExportPng);
-		return true;
+	AddMenu(caseViewer: AssureIt.CaseViewer, Case0: AssureIt.Case, serverApi: AssureIt.ServerAPI): AssureIt.SideMenuModel {
+		//element.append('<a href="#" ><img id="export-xml" src="' + serverApi.basepath + 'images/icon.png" title="Export XML" alt="XML" /></a>');
+		//element.append('<a href="#" ><img id="export-pdf" src="' + serverApi.basepath + 'images/icon.png" title="Export PDF" alt="XML" /></a>');
+		//element.append('<a href="#" ><img id="export-png" src="' + serverApi.basepath + 'images/icon.png" title="Export PNG" alt="XML" /></a>');
+		//$('#export-pdf').unbind('click');
+		//$('#export-xml').unbind('click');
+		//$('#export-png').unbind('click');
+		//$('#export-pdf').click(this.editorPlugIn.ExportPdf);
+		//$('#export-xml').click(this.editorPlugIn.ExportXml);
+		//$('#export-png').click(this.editorPlugIn.ExportPng);
+		return new AssureIt.SideMenuModel('#', "Export to XML", "export-xml", "glyphicon-floppy-disk", (ev:Event)=> {
+			this.editorPlugIn.ExportXml(ev);	
+		});
 	}
 }
 
