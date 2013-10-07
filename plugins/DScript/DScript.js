@@ -58,17 +58,17 @@ var DScriptMenuPlugIn = (function (_super) {
         _super.call(this, plugInManager);
         this.editorPlugIn = editorPlugIn;
     }
-    DScriptMenuPlugIn.prototype.IsEnabled = function (caseViewer, caseModel) {
+    DScriptMenuPlugIn.prototype.IsEnabled = function (caseViewer, nodeModel) {
         return true;
     };
 
-    DScriptMenuPlugIn.prototype.Delegate = function (caseViewer, caseModel, element, serverApi) {
+    DScriptMenuPlugIn.prototype.Delegate = function (caseViewer, nodeModel, element, serverApi) {
         element.append('<a href="#" ><img id="dscript"  src="' + serverApi.basepath + 'images/dse.png" title="DScript" alt="dscript" /></a>');
         $('#dscript').unbind('click');
         $('#dscript').bind('click', {
             editorPlugIn: this.editorPlugIn,
             caseViewer: caseViewer,
-            caseModel: caseModel
+            nodeModel: nodeModel
         }, this.editorPlugIn.ShowEditor);
         return true;
     };
@@ -103,7 +103,6 @@ var DScriptEditorPlugIn = (function (_super) {
 
         var wrapper = $("#dscript-editor-wrapper");
         wrapper.append(this.ASNEditor.getWrapperElement()).append(this.DScriptEditor.getWrapperElement()).append(this.ActionTable);
-
         wrapper.css({
             position: 'absolute',
             top: '5%',
@@ -120,13 +119,12 @@ var DScriptEditorPlugIn = (function (_super) {
     };
 
     DScriptEditorPlugIn.prototype.ShowEditor = function (ev) {
-        console.log("show editor");
         var self = ev.data.editorPlugIn;
-        self.RootCaseModel = ev.data.caseModel;
+        self.RootNodeModel = ev.data.nodeModel;
         var encoder = new AssureIt.CaseEncoder();
-        var encoded = encoder.ConvertToASN(self.RootCaseModel, false);
+        var encoded = encoder.ConvertToASN(self.RootNodeModel, false);
         self.ASNEditor.setValue(encoded);
-        if (ev.data.caseModel.Case.IsEditable()) {
+        if (ev.data.nodeModel.Case.IsEditable()) {
             self.ASNEditor.setOption("readOnly", false);
         } else {
             self.ASNEditor.setOption("readOnly", true);
@@ -136,14 +134,14 @@ var DScriptEditorPlugIn = (function (_super) {
         wrapper.css("display", "block").addClass("animated fadeInDown").focus().one("blur", function (e, node) {
             e.stopPropagation();
             var topNodeModel = self.CaseViewer.ElementTop;
-            var topNodeView = self.CaseViewer.ViewMap[self.RootCaseModel.Label];
+            var topNodeView = self.CaseViewer.ViewMap[self.RootNodeModel.Label];
             self.CaseViewer.DeleteViewsRecursive(topNodeView);
-            if (self.RootCaseModel.Parent == null) {
+            if (self.RootNodeModel.Parent == null) {
                 var caseView = new AssureIt.NodeView(self.CaseViewer, topNodeModel);
                 self.CaseViewer.ViewMap[topNodeModel.Label] = caseView;
             }
             self.CaseViewer.Draw();
-            var centeringNodeView = self.CaseViewer.ViewMap[self.RootCaseModel.Label];
+            var centeringNodeView = self.CaseViewer.ViewMap[self.RootNodeModel.Label];
             self.CaseViewer.Screen.SetCaseCenter(centeringNodeView.AbsX, centeringNodeView.AbsY, centeringNodeView.HTMLDoc);
 
             wrapper.addClass("animated fadeOutUp");
@@ -216,36 +214,36 @@ var DScriptEditorPlugIn = (function (_super) {
     DScriptEditorPlugIn.prototype.GenerateCode = function () {
         var decoder = new AssureIt.CaseDecoder();
         var ASNData = this.ASNEditor.getValue();
-        var Case = this.RootCaseModel.Case;
-        var orig_IdCounters = Case.ReserveIdCounters(this.RootCaseModel);
-        var orig_ElementMap = Case.ReserveElementMap(this.RootCaseModel);
-        var caseModel = decoder.ParseASN(Case, ASNData, this.RootCaseModel);
-        if (caseModel == null) {
+        var Case = this.RootNodeModel.Case;
+        var orig_IdCounters = Case.ReserveIdCounters(this.RootNodeModel);
+        var orig_ElementMap = Case.ReserveElementMap(this.RootNodeModel);
+        var nodeModel = decoder.ParseASN(Case, ASNData, this.RootNodeModel);
+        if (nodeModel == null) {
             this.Highlighter.Highlight(decoder.GetASNError().line, decoder.GetASNError().toString());
             Case.IdCounters = orig_IdCounters;
             Case.ElementMap = orig_ElementMap;
-            caseModel = Case.ElementTop;
+            nodeModel = Case.ElementTop;
         } else {
-            var ParentModel = this.RootCaseModel.Parent;
+            var ParentModel = this.RootNodeModel.Parent;
             if (ParentModel != null) {
-                caseModel.Parent = ParentModel;
+                nodeModel.Parent = ParentModel;
                 for (var i in ParentModel.Children) {
-                    if (ParentModel.Children[i].Label == this.RootCaseModel.Label) {
-                        ParentModel.Children[i] = caseModel;
+                    if (ParentModel.Children[i].Label == this.RootNodeModel.Label) {
+                        ParentModel.Children[i] = nodeModel;
                     }
                 }
             } else {
-                this.CaseViewer.ElementTop = caseModel;
-                Case.ElementTop = caseModel;
+                this.CaseViewer.ElementTop = nodeModel;
+                Case.ElementTop = nodeModel;
             }
         }
-        this.RootCaseModel = caseModel;
+        this.RootNodeModel = nodeModel;
         this.Highlighter.ClearHighlight();
         var genflag = false;
         var Generator = new DScriptGenerator();
-        var script = Generator.codegen(orig_ElementMap, caseModel, ASNData, genflag);
+        var script = Generator.codegen(orig_ElementMap, nodeModel, ASNData, genflag);
 
-        var DScriptMap = new DScriptActionMap(caseModel);
+        var DScriptMap = new DScriptActionMap(nodeModel);
         var actionMap = DScriptMap.GetBody();
         __dscript__.script.main = script;
         __dscript__.meta.actionmap = actionMap;
@@ -274,7 +272,7 @@ var DScriptSideMenuPlugIn = (function (_super) {
         var _this = this;
         var self = this;
         return new AssureIt.SideMenuModel('#', 'Deploy', "deploy", "glyphicon-list-alt", function (ev) {
-            self.editorPlugIn.RootCaseModel = Case0.ElementTop;
+            self.editorPlugIn.RootNodeModel = Case0.ElementTop;
             self.editorPlugIn.GenerateCode();
             __dscript__.script.lib = {
                 "GetDataFromRec.ds": "\n\

@@ -55,17 +55,17 @@ class DScriptMenuPlugIn extends AssureIt.MenuBarContentsPlugIn {
 		super(plugInManager);
 	}
 
-	IsEnabled(caseViewer: AssureIt.CaseViewer, caseModel: AssureIt.NodeModel): boolean {
+	IsEnabled(caseViewer: AssureIt.CaseViewer, nodeModel: AssureIt.NodeModel): boolean {
 		return true;
 	}
 
-	Delegate(caseViewer: AssureIt.CaseViewer, caseModel: AssureIt.NodeModel, element: JQuery, serverApi: AssureIt.ServerAPI): boolean {
+	Delegate(caseViewer: AssureIt.CaseViewer, nodeModel: AssureIt.NodeModel, element: JQuery, serverApi: AssureIt.ServerAPI): boolean {
 		element.append('<a href="#" ><img id="dscript"  src="' + serverApi.basepath + 'images/dse.png" title="DScript" alt="dscript" /></a>');
 		$('#dscript').unbind('click');
 		$('#dscript').bind('click', {
 			editorPlugIn : this.editorPlugIn,
 			caseViewer : caseViewer,
-			caseModel : caseModel,
+			nodeModel : nodeModel,
 		}, this.editorPlugIn.ShowEditor);
 		return true;
 	}
@@ -79,7 +79,7 @@ class DScriptEditorPlugIn extends AssureIt.ActionPlugIn {
 	Widgets: any[]; /*FIXME*/
 	Highlighter: ErrorHighlight;
 	CaseViewer: AssureIt.CaseViewer;
-	RootCaseModel: AssureIt.NodeModel;
+	RootNodeModel: AssureIt.NodeModel;
 
 	constructor(plugInManager: AssureIt.PlugInManager) {
 		super(plugInManager);
@@ -110,7 +110,6 @@ class DScriptEditorPlugIn extends AssureIt.ActionPlugIn {
 			.append(this.ASNEditor.getWrapperElement())
 			.append(this.DScriptEditor.getWrapperElement())
 			.append(this.ActionTable);
-
 		wrapper.css({
 			position: 'absolute',
 			top: '5%',
@@ -192,13 +191,12 @@ class DScriptEditorPlugIn extends AssureIt.ActionPlugIn {
 	}
 
 	ShowEditor(ev) { // callback function on DScriptMenu click event
-		console.log("show editor");
 		var self = ev.data.editorPlugIn;
-		self.RootCaseModel = ev.data.caseModel;
+		self.RootNodeModel = ev.data.nodeModel;
 		var encoder: AssureIt.CaseEncoder = new AssureIt.CaseEncoder();
-		var encoded: string = encoder.ConvertToASN(self.RootCaseModel, false);
+		var encoded: string = encoder.ConvertToASN(self.RootNodeModel, false);
 		self.ASNEditor.setValue(encoded);
-		if(ev.data.caseModel.Case.IsEditable()) {
+		if(ev.data.nodeModel.Case.IsEditable()) {
 			self.ASNEditor.setOption("readOnly", false);
 		} else {
 			self.ASNEditor.setOption("readOnly", true);
@@ -212,14 +210,14 @@ class DScriptEditorPlugIn extends AssureIt.ActionPlugIn {
 			.one("blur", function(e: JQueryEventObject, node: JQuery) {
 				e.stopPropagation();
 				var topNodeModel = self.CaseViewer.ElementTop;
-				var topNodeView = self.CaseViewer.ViewMap[self.RootCaseModel.Label];
+				var topNodeView = self.CaseViewer.ViewMap[self.RootNodeModel.Label];
 				self.CaseViewer.DeleteViewsRecursive(topNodeView);
-				if (self.RootCaseModel.Parent == null /* ElementTop */) {
+				if (self.RootNodeModel.Parent == null /* ElementTop */) {
 					var caseView : AssureIt.NodeView = new AssureIt.NodeView(self.CaseViewer, topNodeModel);
 					self.CaseViewer.ViewMap[topNodeModel.Label] = caseView;
 				}
 				self.CaseViewer.Draw();
-				var centeringNodeView = self.CaseViewer.ViewMap[self.RootCaseModel.Label];
+				var centeringNodeView = self.CaseViewer.ViewMap[self.RootNodeModel.Label];
 				self.CaseViewer.Screen.SetCaseCenter(centeringNodeView.AbsX, centeringNodeView.AbsY, centeringNodeView.HTMLDoc);
 
 				wrapper.addClass("animated fadeOutUp");
@@ -296,36 +294,36 @@ class DScriptEditorPlugIn extends AssureIt.ActionPlugIn {
 	GenerateCode(): void {
 		var decoder: AssureIt.CaseDecoder = new AssureIt.CaseDecoder();
 		var ASNData: string = this.ASNEditor.getValue();
-		var Case: AssureIt.Case = this.RootCaseModel.Case;
-		var orig_IdCounters = Case.ReserveIdCounters(this.RootCaseModel);
-		var orig_ElementMap = Case.ReserveElementMap(this.RootCaseModel);
-		var caseModel = decoder.ParseASN(Case, ASNData, this.RootCaseModel);
-		if (caseModel == null) {
+		var Case: AssureIt.Case = this.RootNodeModel.Case;
+		var orig_IdCounters = Case.ReserveIdCounters(this.RootNodeModel);
+		var orig_ElementMap = Case.ReserveElementMap(this.RootNodeModel);
+		var nodeModel = decoder.ParseASN(Case, ASNData, this.RootNodeModel);
+		if (nodeModel == null) {
 			this.Highlighter.Highlight(decoder.GetASNError().line, decoder.GetASNError().toString());
 			Case.IdCounters = orig_IdCounters;
 			Case.ElementMap = orig_ElementMap;
-			caseModel = Case.ElementTop;
+			nodeModel = Case.ElementTop;
 		} else {
-			var ParentModel = this.RootCaseModel.Parent;
+			var ParentModel = this.RootNodeModel.Parent;
 			if (ParentModel != null) {
-				caseModel.Parent = ParentModel;
+				nodeModel.Parent = ParentModel;
 				for (var i in ParentModel.Children) {
-					if (ParentModel.Children[i].Label == this.RootCaseModel.Label) {
-						ParentModel.Children[i] = caseModel;
+					if (ParentModel.Children[i].Label == this.RootNodeModel.Label) {
+						ParentModel.Children[i] = nodeModel;
 					}
 				}
 			} else {
-				this.CaseViewer.ElementTop = caseModel;
-				Case.ElementTop = caseModel;
+				this.CaseViewer.ElementTop = nodeModel;
+				Case.ElementTop = nodeModel;
 			}
 		}
-		this.RootCaseModel = caseModel;
+		this.RootNodeModel = nodeModel;
 		this.Highlighter.ClearHighlight();
 		var genflag: boolean = false; //generate main function flag
 		var Generator: DScriptGenerator = new DScriptGenerator();
-		var script = Generator.codegen(orig_ElementMap, caseModel, ASNData, genflag);
+		var script = Generator.codegen(orig_ElementMap, nodeModel, ASNData, genflag);
 
- 		var DScriptMap: DScriptActionMap = new DScriptActionMap(caseModel);
+ 		var DScriptMap: DScriptActionMap = new DScriptActionMap(nodeModel);
 		var actionMap = DScriptMap.GetBody();
  		__dscript__.script.main = script;
  		__dscript__.meta.actionmap = actionMap;
@@ -356,7 +354,7 @@ class DScriptSideMenuPlugIn extends AssureIt.SideMenuPlugIn {
 	AddMenu(caseViewer: AssureIt.CaseViewer, Case0: AssureIt.Case, serverApi: AssureIt.ServerAPI): AssureIt.SideMenuModel {
 		var self = this;
 		return new AssureIt.SideMenuModel('#', 'Deploy', "deploy", "glyphicon-list-alt"/* TODO: change icon */, (ev:Event)=>{
-			self.editorPlugIn.RootCaseModel = Case0.ElementTop;
+			self.editorPlugIn.RootNodeModel = Case0.ElementTop;
 			self.editorPlugIn.GenerateCode();
 			__dscript__.script.lib = {
 				"GetDataFromRec.ds" : "\n\
