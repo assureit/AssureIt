@@ -10,7 +10,7 @@ var ExportPlugIn = (function (_super) {
         _super.call(this, plugInManager);
         var plugin = new ExportActionPlugIn(plugInManager);
         this.ActionPlugIn = plugin;
-        this.MenuBarContentsPlugIn = new ExportMenuPlugIn(plugInManager, plugin);
+        this.SideMenuPlugIn = new ExportMenuPlugIn(plugInManager, plugin);
     }
     return ExportPlugIn;
 })(AssureIt.PlugInSet);
@@ -21,24 +21,18 @@ var ExportMenuPlugIn = (function (_super) {
         _super.call(this, plugInManager);
         this.editorPlugIn = editorPlugIn;
     }
-    ExportMenuPlugIn.prototype.IsEnabled = function (caseViewer, caseModel) {
+    ExportMenuPlugIn.prototype.IsEnabled = function (caseViewer, Case0, serverApi) {
         return true;
     };
 
-    ExportMenuPlugIn.prototype.Delegate = function (caseViewer, caseModel, element, serverApi) {
-        element.append('<a href="#" ><img id="export-xml" src="' + serverApi.basepath + 'images/icon.png" title="Export XML" alt="XML" /></a>');
-        element.append('<a href="#" ><img id="export-pdf" src="' + serverApi.basepath + 'images/icon.png" title="Export PDF" alt="XML" /></a>');
-        element.append('<a href="#" ><img id="export-png" src="' + serverApi.basepath + 'images/icon.png" title="Export PNG" alt="XML" /></a>');
-        $('#export-pdf').unbind('click');
-        $('#export-xml').unbind('click');
-        $('#export-png').unbind('click');
-        $('#export-pdf').click(this.editorPlugIn.ExportPdf);
-        $('#export-xml').click(this.editorPlugIn.ExportXml);
-        $('#export-png').click(this.editorPlugIn.ExportPng);
-        return true;
+    ExportMenuPlugIn.prototype.AddMenu = function (caseViewer, Case0, serverApi) {
+        var _this = this;
+        return new AssureIt.SideMenuModel('#', "Export to XML", "export-xml", "glyphicon-floppy-disk", function (ev) {
+            _this.editorPlugIn.ExportXml(ev);
+        });
     };
     return ExportMenuPlugIn;
-})(AssureIt.MenuBarContentsPlugIn);
+})(AssureIt.SideMenuPlugIn);
 
 var ExportActionPlugIn = (function (_super) {
     __extends(ExportActionPlugIn, _super);
