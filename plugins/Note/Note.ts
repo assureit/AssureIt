@@ -29,7 +29,7 @@ class NoteHTMLRenderPlugIn extends AssureIt.HTMLRenderPlugIn {
 				break;
 			default:
 				var note = nodeModel.Notes[key];
-				$('<p style="color: DarkOliveGreen">' + key + ": " + note + '</p>').appendTo($note);
+				$('<p style="color: DarkOliveGreen">' + key + ":: " + note + '</p>').appendTo($note);
 				$note.appendTo(element);
 			}
 		}
