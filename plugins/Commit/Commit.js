@@ -30,7 +30,7 @@ var CommitWindow = (function () {
         modal.appendTo($('layer2'));
     };
 
-    CommitWindow.prototype.UpdateLastModified = function (case0, lastModified) {
+    CommitWindow.prototype.UpdateLastModified = function (summary, case0, lastModified) {
         if (lastModified == null)
             lastModified = {};
         var userName = $.cookie('userName');
@@ -40,10 +40,12 @@ var CommitWindow = (function () {
         oldcase.SetElementTop(root);
         var res = {};
 
+        var added = [], deleted = [], modified = [];
         for (var i in case0.ElementMap) {
             var node = case0.ElementMap[i];
             var oldnode = oldcase.ElementMap[i];
             if (oldnode == null) {
+                added.push(i);
                 res[i] = { userName: $.cookie('userName'), role: 'admin' };
             } else if (node.Equals(oldnode)) {
                 if (lastModified[i] != null) {
@@ -52,10 +54,20 @@ var CommitWindow = (function () {
                     res[i] = { userName: $.cookie('userName'), role: 'admin' };
                 }
             } else {
+                modified.push(i);
                 res[i] = { userName: $.cookie('userName'), role: 'admin' };
             }
         }
-        return res;
+
+        for (var i in oldcase.ElementMap) {
+            if (case0.ElementMap[i] == null) {
+                deleted.push(i);
+            }
+        }
+        summary.lastModified = res;
+        summary.added = added;
+        summary.modified = modified;
+        summary.deleted = deleted;
     };
 
     CommitWindow.prototype.MakeSummary = function (case0) {
@@ -67,7 +79,7 @@ var CommitWindow = (function () {
 
         summary.count = Object.keys(case0.ElementMap).length;
 
-        summary.lastModified = this.UpdateLastModified(case0, oldsummary.lastModified);
+        this.UpdateLastModified(summary, case0, oldsummary.lastModified);
 
         return summary;
     };

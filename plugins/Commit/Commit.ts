@@ -34,7 +34,7 @@ class CommitWindow {
 		modal.appendTo($('layer2'));
 	}
 
-	UpdateLastModified(case0: AssureIt.Case, lastModified: any) : any{
+	UpdateLastModified(summary: any, case0: AssureIt.Case, lastModified: any) : void{
 		if (lastModified == null) lastModified = {};
 		var userName = $.cookie('userName');
 		var oldcase = new AssureIt.Case('oldCase', case0.oldsummary, case0.oldasn, case0.CaseId, case0.CommitId, null);
@@ -44,10 +44,12 @@ class CommitWindow {
 		var res = {};
 
 		/* Compare case0.ElementMap and oldcase.ElementMap */
+		var added: string[] = [], deleted: string[] = [], modified: string = [];
 		for (var i in case0.ElementMap) {
 			var node = case0.ElementMap[i];
 			var oldnode = oldcase.ElementMap[i];
 			if (oldnode == null) {
+				added.push(i);
 				res[i] = {userName: $.cookie('userName'), role: 'admin'};
 			} else if (node.Equals(oldnode)) {
 				if (lastModified[i] != null) {
@@ -56,10 +58,20 @@ class CommitWindow {
 					res[i] = {userName: $.cookie('userName'), role: 'admin'};
 				}
 			} else {
+				modified.push(i);
 				res[i] = {userName: $.cookie('userName'), role: 'admin'}
 			}
 		}
-		return res;
+
+		for (var i in oldcase.ElementMap) {
+			if (case0.ElementMap[i] == null) {
+				deleted.push(i);
+			}
+		}
+		summary.lastModified = res;
+		summary.added = added;
+		summary.modified = modified;
+		summary.deleted = deleted;
 	}
 
 	MakeSummary(case0: AssureIt.Case): any {
@@ -72,7 +84,7 @@ class CommitWindow {
 		summary.count = Object.keys(case0.ElementMap).length;
 
 		/* TODO update summary.lastModified */
-		summary.lastModified = this.UpdateLastModified(case0, oldsummary.lastModified);
+		this.UpdateLastModified(summary, case0, oldsummary.lastModified);
 
 		return summary;
 	}
