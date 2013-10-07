@@ -379,15 +379,12 @@ var DScriptGenerator = (function () {
         var Action = this.GetAction(Node);
         var ContextList = this.GetContextList(child);
 
-        console.log(program);
         if (Monitor != null) {
             program += this.GenerateFunction(Node, Monitor);
         }
-        console.log(program);
         if (Action != null) {
             program += this.GenerateFunction(Node, Action);
         }
-        console.log(program);
 
         if (child.length != ContextList.length) {
             this.errorMessage.push(new DScriptError(Node.Label, Node.LineNumber, "EvidenceSyntaxError"));
