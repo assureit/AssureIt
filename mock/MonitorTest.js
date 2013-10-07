@@ -50,7 +50,7 @@ $(function () {
         ]
     };
 
-    var Case0 = new AssureIt.Case(JsonData.DCaseName, {}, 1, 0, pluginManager);
+    var Case0 = new AssureIt.Case(JsonData.DCaseName, {}, "", 1, 0, pluginManager);
     var caseDecoder = new AssureIt.CaseDecoder();
     var root = caseDecoder.ParseJson(Case0, JsonData);
 

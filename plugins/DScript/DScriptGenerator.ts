@@ -258,7 +258,7 @@ class DScriptGenerator {
 			var goal: AssureIt.NodeModel = child[i];
 			var contextindex: number = this.GetContextIndex(goal);
 			var context: AssureIt.NodeModel = goal.Children[contextindex];
-			if(context.GetAnnotation("OnlyIf") != null) {
+			if(context != null && context.GetAnnotation("OnlyIf") != null) {
 				var reaction: string = context.Notes["Reaction"];
 				var goallabel: string = child[0].Label;
 				var parentgoallabel: string = context.Parent.Label;

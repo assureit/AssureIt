@@ -245,7 +245,7 @@ var DScriptGenerator = (function () {
             var goal = child[i];
             var contextindex = this.GetContextIndex(goal);
             var context = goal.Children[contextindex];
-            if (context.GetAnnotation("OnlyIf") != null) {
+            if (context != null && context.GetAnnotation("OnlyIf") != null) {
                 var reaction = context.Notes["Reaction"];
                 var goallabel = child[0].Label;
                 var parentgoallabel = context.Parent.Label;
