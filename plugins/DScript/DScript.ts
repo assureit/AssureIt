@@ -41,118 +41,77 @@ return ret;\n\
 };
 
 class DScriptPlugIn extends AssureIt.PlugInSet {
-//	static Use3Pane : boolean = true;
-
 	constructor(public plugInManager: AssureIt.PlugInManager) {
 		super(plugInManager);
-		var plugin: DScriptEditorPlugIn = new DScriptEditorPlugIn(plugInManager);
-		this.ActionPlugIn = plugin;
-		this.MenuBarContentsPlugIn = new DScriptMenuPlugIn(plugInManager, plugin);
-		this.SideMenuPlugIn = new DScriptSideMenuPlugIn(plugInManager, plugin);
+		var editorPlugIn: DScriptEditorPlugIn = new DScriptEditorPlugIn(plugInManager);
+		this.ActionPlugIn = editorPlugIn;
+		this.MenuBarContentsPlugIn = new DScriptMenuPlugIn(plugInManager, editorPlugIn);
+		this.SideMenuPlugIn = new DScriptSideMenuPlugIn(plugInManager, editorPlugIn);
 	}
 }
 
 class DScriptMenuPlugIn extends AssureIt.MenuBarContentsPlugIn {
-	editorPlugIn: DScriptEditorPlugIn;
-	constructor(plugInManager: AssureIt.PlugInManager, editorPlugIn: DScriptEditorPlugIn) {
+	constructor(plugInManager: AssureIt.PlugInManager, public editorPlugIn: DScriptEditorPlugIn) {
 		super(plugInManager);
-		this.editorPlugIn = editorPlugIn;
 	}
 
-	IsEnabled(caseViewer: AssureIt.CaseViewer, caseModel: AssureIt.NodeModel) : boolean {
+	IsEnabled(caseViewer: AssureIt.CaseViewer, caseModel: AssureIt.NodeModel): boolean {
 		return true;
 	}
 
 	Delegate(caseViewer: AssureIt.CaseViewer, caseModel: AssureIt.NodeModel, element: JQuery, serverApi: AssureIt.ServerAPI): boolean {
-		var self = this;
-		element.append('<a href="#" ><img id="dscript"  src="'+serverApi.basepath+'images/dse.png" title="DScript" alt="dscript" /></a>');
-
-		$('#dscript').unbind('dblclick');
-		$('#dscript').click((ev) => {
-				var encoder : AssureIt.CaseEncoder = new AssureIt.CaseEncoder();
-				var encoded = encoder.ConvertToASN(caseModel, false);
-				this.editorPlugIn.rootCaseModel = caseModel;
-				this.editorPlugIn.editor_left.setValue(encoded);
-				if(caseModel.Case.IsEditable()) {
-					this.editorPlugIn.editor_left.setOption("readOnly", false);
-				} else {
-					this.editorPlugIn.editor_left.setOption("readOnly", true);
-				}
-				$('#dscript-editor-wrapper')
-					.css({display: 'block'})
-					.addClass("animated fadeInDown")
-					.focus()
-					.one("blur", {node : caseModel}, function(e: JQueryEventObject, node: JQuery) {
-						e.stopPropagation();
-						var TopNodeModel = self.editorPlugIn.caseViewer.ElementTop;
-						var TopNodeView = self.editorPlugIn.caseViewer.ViewMap[caseModel.Label];
-						self.editorPlugIn.caseViewer.DeleteViewsRecursive(TopNodeView);
-						if (caseModel.Parent == null /* ElementTop */) {
-							var caseView : AssureIt.NodeView = new AssureIt.NodeView(self.editorPlugIn.caseViewer, TopNodeModel);
-							self.editorPlugIn.caseViewer.ViewMap[TopNodeModel.Label] = caseView;
-						}
-						self.editorPlugIn.caseViewer.Draw();
-						var centeringNodeView = self.editorPlugIn.caseViewer.ViewMap[self.editorPlugIn.rootCaseModel.Label];
-						caseViewer.Screen.SetCaseCenter(centeringNodeView.AbsX, centeringNodeView.AbsY, centeringNodeView.HTMLDoc);
-
-						var $this = $(this);
-						$this.addClass("animated fadeOutUp");
-						window.setTimeout(function() {
-							$this.removeClass();
-							$this.css({display: 'none'});
-						}, 1300);
-						TopNodeModel.EnableEditFlag();
-					})
-					.on("keydown", function(e: JQueryEventObject) {
-						if(e.keyCode == 27 /* ESC */){
-							e.stopPropagation();
-							$('#dscript-editor-wrapper').blur();
-							$('#dscript-editor-wrapper').unbind('keydown');
-						}
-					});
-				$('#CodeMirror').focus();
-				$('#background').click(function(){
-					$('#dscript-editor-wrapper').blur();
-				});
-				window.setTimeout(function() {
-					$('#dscript-editor-wrapper').removeClass();
-				}, 1300);
-				this.editorPlugIn.editor_left.refresh();
-				this.editorPlugIn.editor_right.refresh();
-				this.editorPlugIn.GenerateCode();
-		});
+		element.append('<a href="#" ><img id="dscript"  src="' + serverApi.basepath + 'images/dse.png" title="DScript" alt="dscript" /></a>');
+		$('#dscript').unbind('click');
+		$('#dscript').bind('click', {
+			editorPlugIn : this.editorPlugIn,
+			caseViewer : caseViewer,
+			caseModel : caseModel,
+		}, this.editorPlugIn.ShowEditor);
 		return true;
 	}
 }
 
 class DScriptEditorPlugIn extends AssureIt.ActionPlugIn {
-	editor_left:  any;
-	editor_right: any;
-	action_table: JQuery;
-	widgets : any[]; /*FIXME*/
-	highlighter : ErrorHighlight;
-	rootCaseModel: AssureIt.NodeModel;
-	caseViewer: AssureIt.CaseViewer;
-	constructor(plugInManager: AssureIt.PlugInManager) {
-		this.widgets = [];
-		super(plugInManager);
+	ASNEditor; //CodeMirror Object
+	DScriptEditor; //CodeMirror Object
+	ActionTable: JQuery;
 
-		this.editor_left = CodeMirror.fromTextArea(document.getElementById('dscript-editor-left'), {
+	Widgets: any[]; /*FIXME*/
+	Highlighter: ErrorHighlight;
+	CaseViewer: AssureIt.CaseViewer;
+	RootCaseModel: AssureIt.NodeModel;
+
+	constructor(plugInManager: AssureIt.PlugInManager) {
+		super(plugInManager);
+		this.Widgets = [];
+
+		this.ASNEditor = new CodeMirror($("<div/>").get(0), {
 			lineNumbers: true,
 			mode: "text/x-csrc",
 			lineWrapping: true,
 		});
-		this.editor_right = CodeMirror.fromTextArea(document.getElementById('dscript-editor-right'), {
+		this.DScriptEditor = new CodeMirror($("<div/>").get(0), {
 			lineNumbers: true,
 			mode: "text/x-csrc",
 			readOnly: true,
 			placeholder: "Generated DScript code goes here.",
 			lineWrapping: true,
 		});
-		this.action_table = $('<table id="dscript-action-table"></table>');
-		$("#dscript-editor-wrapper").append($("<div>").append(this.action_table));
+		this.ActionTable = $("<table>");
 
-		$('#dscript-editor-wrapper').css({
+		this.Highlighter = new ErrorHighlight(this.ASNEditor);
+		var self = this;
+		this.ASNEditor.on("change", function(e: JQueryEventObject) {
+			self.GenerateCode();
+		});
+
+		var wrapper = $("#dscript-editor-wrapper");
+		wrapper
+			.append(this.ASNEditor.getWrapperElement())
+			.append(this.DScriptEditor.getWrapperElement())
+			.append(this.ActionTable);
+
+		wrapper.css({
 			position: 'absolute',
 			top: '5%',
 			left: '5%',
@@ -163,133 +122,158 @@ class DScriptEditorPlugIn extends AssureIt.ActionPlugIn {
 		});
 
 		/* FIXME Replace it with sophisticated style. */
-		$(this.editor_left.getWrapperElement()).css({
-			width: '100%',
-			height: '100%',
-		});
-		$(this.editor_right.getWrapperElement()).css({
-			width: '100%',
-			height: '100%',
-		});
-		$('#dscript-editor-left').parent()
-			.css({
-				width: '50%',
-				height: '100%',
-				float: 'left',
-				display: 'block',
-			});
-		$('#dscript-editor-right').parent()
-			.css({
-				width: '50%',
-				height: '100%',
-				float: 'right',
-				display: 'block',
-			});
-		$('#dscript-action-table').parent()
-			.css({
-				display: 'none',
-			});
-// 		if (DScriptPlugIn.Use3Pane) {
-// 			$(this.editor_left.getWrapperElement()).css({
-// 				width: '100%',
-// 				height: '100%',
-// 			});
-// 			$(this.editor_right.getWrapperElement()).css({
-// 				width: '100%',
-// 				height: '100%',
-// 			});
-// 			this.action_table.css({
-// 				width: '100%',
-// 			});
-// 			$('#dscript-editor-left').parent()
-// 				.css({
-// 					width: '50%',
-// 					height: '50%',
-// 					float: 'left',
-// 					display: 'block',
-// 				});
-// 			$('#dscript-editor-right').parent()
-// 				.css({
-// 					width: '50%',
-// 					height: '50%',
-// 					float: 'right',
-// 					display: 'block',
-// 				});
-// 			$('#dscript-action-table').parent()
-// 				.css({
-// 					width: '100%',
-// 					height: '50%',
-// 					display: 'block',
-// 					clear: 'both',
-// 					borderTop: 'solid 1px',
-// 				});
-// 		}
-// 		else {
-// 			$(this.editor_right.getWrapperElement()).css({
-// 				width: '100%',
+		// 		if (DScriptPlugIn.Use3Pane) {
+		// 			$(this.ASNEditor.getWrapperElement()).css({
+		// 				width: '100%',
+		// 				height: '100%',
+		// 			});
+		// 			$(this.DScriptEditor.getWrapperElement()).css({
+		// 				width: '100%',
+		// 				height: '100%',
+		// 			});
+		// 			this.action_table.css({
+		// 				width: '100%',
+		// 			});
+		// 			$('#dscript-editor-left').parent()
+		// 				.css({
+		// 					width: '50%',
+		// 					height: '50%',
+		// 					float: 'left',
+		// 					display: 'block',
+		// 				});
+		// 			$('#dscript-editor-right').parent()
+		// 				.css({
+		// 					width: '50%',
+		// 					height: '50%',
+		// 					float: 'right',
+		// 					display: 'block',
+		// 				});
+		// 			$('#dscript-action-table').parent()
+		// 				.css({
+		// 					width: '100%',
+		// 					height: '50%',
+		// 					display: 'block',
+		// 					clear: 'both',
+		// 					borderTop: 'solid 1px',
+		// 				});
+		// 		}
+		// 		else {
+		// 			$(this.DScriptEditor.getWrapperElement()).css({
+		// 				width: '100%',
 
-// 				height: '100%',
-// 			});
-// 			this.action_table.css({
-// 				width: '100%',
-// 			});
-// 			$('#dscript-editor-left').parent()
-// 				.css({
-// 					display: 'none',
-// 				});
-// 			$('#dscript-editor-right').parent()
-// 				.css({
-// 					width: '50%',
-// 					height: '100%',
-// 					float: 'right',
-// 					display: 'block',
-// 				});
-// 			$('#dscript-action-table').parent()
-// 				.css({
-// 					width: '50%',
-// 					display: 'block',
-// 					float: 'left',
-// 				});
-// 		}
-
-		this.highlighter = new ErrorHighlight(this.editor_left)
-		var self = this;
-		this.editor_left.on("change", function(e: JQueryEventObject) {
-			self.GenerateCode();
-		});
+		// 				height: '100%',
+		// 			});
+		// 			this.action_table.css({
+		// 				width: '100%',
+		// 			});
+		// 			$('#dscript-editor-left').parent()
+		// 				.css({
+		// 					display: 'none',
+		// 				});
+		// 			$('#dscript-editor-right').parent()
+		// 				.css({
+		// 					width: '50%',
+		// 					height: '100%',
+		// 					float: 'right',
+		// 					display: 'block',
+		// 				});
+		// 			$('#dscript-action-table').parent()
+		// 				.css({
+		// 					width: '50%',
+		// 					display: 'block',
+		// 					float: 'left',
+		// 				});
+		// 		}
 	}
 
-	Delegate(caseViewer: AssureIt.CaseViewer, case0: AssureIt.Case, serverApi: AssureIt.ServerAPI) : boolean {
-		this.caseViewer = caseViewer;
+	Delegate(caseViewer: AssureIt.CaseViewer, case0: AssureIt.Case, serverApi: AssureIt.ServerAPI): boolean {
+		this.CaseViewer = caseViewer;
 		return true;
 	}
 
-	updateLineComment(editor : any, widgets : any[], Generator: DScriptGenerator) : void{
-		editor.operation(function(){
-			for (var i = 0; i < widgets.length; ++i)
-			editor.removeLineWidget(widgets[i]);
-		widgets.length = 0;
-		for (var i=0; i < Generator.errorMessage.length; ++i) {
-			var error : DScriptError = Generator.errorMessage[i];
-			console.log(error);
-			//this.highlighter.Highlight(error.LineNumber, error.Message);
-			var msg = document.createElement("div");
-			var icon = msg.appendChild(document.createElement("span"));
-			msg.appendChild(document.createTextNode(error.Message));
-			$(msg).css("background", "none repeat scroll 0 0 #FFAAAA");
-			widgets.push(editor.addLineWidget(error.LineNumber, msg, {coverGutter: false, noHScroll: true}));
+	ShowEditor(ev) { // callback function on DScriptMenu click event
+		console.log("show editor");
+		var self = ev.data.editorPlugIn;
+		self.RootCaseModel = ev.data.caseModel;
+		var encoder: AssureIt.CaseEncoder = new AssureIt.CaseEncoder();
+		var encoded: string = encoder.ConvertToASN(self.RootCaseModel, false);
+		self.ASNEditor.setValue(encoded);
+		if(ev.data.caseModel.Case.IsEditable()) {
+			self.ASNEditor.setOption("readOnly", false);
+		} else {
+			self.ASNEditor.setOption("readOnly", true);
 		}
+
+		var wrapper = $("#dscript-editor-wrapper");
+		wrapper
+			.css("display", "block")
+			.addClass("animated fadeInDown")
+			.focus()
+			.one("blur", function(e: JQueryEventObject, node: JQuery) {
+				e.stopPropagation();
+				var topNodeModel = self.CaseViewer.ElementTop;
+				var topNodeView = self.CaseViewer.ViewMap[self.RootCaseModel.Label];
+				self.CaseViewer.DeleteViewsRecursive(topNodeView);
+				if (self.RootCaseModel.Parent == null /* ElementTop */) {
+					var caseView : AssureIt.NodeView = new AssureIt.NodeView(self.CaseViewer, topNodeModel);
+					self.CaseViewer.ViewMap[topNodeModel.Label] = caseView;
+				}
+				self.CaseViewer.Draw();
+				var centeringNodeView = self.CaseViewer.ViewMap[self.RootCaseModel.Label];
+				self.CaseViewer.Screen.SetCaseCenter(centeringNodeView.AbsX, centeringNodeView.AbsY, centeringNodeView.HTMLDoc);
+
+				wrapper.addClass("animated fadeOutUp");
+				window.setTimeout(function() {
+					wrapper.removeClass();
+					wrapper.css("display", "none");
+				}, 1300);
+				topNodeModel.EnableEditFlag();
+			})
+			.on("keydown", function(e: JQueryEventObject) {
+				if(e.keyCode == 27 /* ESC */){
+					e.stopPropagation();
+					wrapper.blur();
+					wrapper.unbind('keydown');
+				}
+			});
+		$('#CodeMirror').focus();
+		$('#background').click(function(){
+			$('#dscript-editor-wrapper').blur();
+		});
+		window.setTimeout(function() {
+			$('#dscript-editor-wrapper').removeClass();
+		}, 1300);
+		self.ASNEditor.refresh();
+		self.DScriptEditor.refresh();
+		self.GenerateCode();
+	}
+	UpdateLineComment(editor: any, widgets: any[], Generator: DScriptGenerator): void {
+		editor.operation(function() {
+			for (var i: number = 0; i < widgets.length; ++i) {
+				editor.removeLineWidget(widgets[i]);
+			}
+			widgets.length = 0;
+			for (var i: number = 0; i < Generator.errorMessage.length; ++i) {
+				var error: DScriptError = Generator.errorMessage[i];
+				console.log(error);
+				//this.highlighter.Highlight(error.LineNumber, error.Message);
+				var msg = document.createElement("div");
+				var icon = msg.appendChild(document.createElement("span"));
+				msg.appendChild(document.createTextNode(error.Message));
+				$(msg).css("background", "none repeat scroll 0 0 #FFAAAA");
+				widgets.push(editor.addLineWidget(error.LineNumber, msg, {coverGutter: false, noHScroll: true}));
+			}
 		});
 	}
 
-	updateActionTable(actionMap : any) : void {
-		var table : JQuery = $('#dscript-action-table');
-		var table_width = table.parent().width();
-		var header : JQuery = $("<tr><th>action</th><th>fault</th><th>reaction</th></tr>");
-		var tpl : string = "<tr><td>${action}</td><td>${fault}</td><td>${reaction}</td></tr>";
-		var style : any = {
-            maxWidth: table_width / 3,
-			minWidth: table_width / 3,
+	UpdateActionTable(actionMap): void {
+		var table: JQuery = $('#dscript-action-table');
+		var tableWidth: number = table.parent().width();
+		var header: JQuery = $("<tr><th>action</th><th>fault</th><th>reaction</th></tr>");
+		var tpl: string = "<tr><td>${action}</td><td>${fault}</td><td>${reaction}</td></tr>";
+		var style = {
+            maxWidth: tableWidth / 3,
+			minWidth: tableWidth / 3,
             overflow: 'hidden',
             textOverflow: 'ellipsis',
 			textAlign: 'center',
@@ -299,44 +283,44 @@ class DScriptEditorPlugIn extends AssureIt.ActionPlugIn {
 		header.children().css(style);
 		table.append(header);
 		for (var key in actionMap) {
-			var row_src : string = tpl
+			var rowSrc: string = tpl
 				.replace("${action}", actionMap[key]["action"])
 				.replace("${fault}", "*")
 				.replace("${reaction}", actionMap[key]["reaction"]);
-			var row : JQuery = $(row_src);
+			var row: JQuery = $(rowSrc);
 			row.children().css(style);
 			table.append(row);
 		}
 	}
 
-	GenerateCode() : void {
-		var decoder : AssureIt.CaseDecoder = new AssureIt.CaseDecoder();
-		var ASNData : string = this.editor_left.getValue();
-		var Case: AssureIt.Case = this.rootCaseModel.Case;
-		var orig_IdCounters = Case.ReserveIdCounters(this.rootCaseModel);
-		var orig_ElementMap = Case.ReserveElementMap(this.rootCaseModel);
-		var caseModel = decoder.ParseASN(Case, ASNData, this.rootCaseModel);
-		if(caseModel == null) {
-			this.highlighter.Highlight(decoder.GetASNError().line, decoder.GetASNError().toString());
+	GenerateCode(): void {
+		var decoder: AssureIt.CaseDecoder = new AssureIt.CaseDecoder();
+		var ASNData: string = this.ASNEditor.getValue();
+		var Case: AssureIt.Case = this.RootCaseModel.Case;
+		var orig_IdCounters = Case.ReserveIdCounters(this.RootCaseModel);
+		var orig_ElementMap = Case.ReserveElementMap(this.RootCaseModel);
+		var caseModel = decoder.ParseASN(Case, ASNData, this.RootCaseModel);
+		if (caseModel == null) {
+			this.Highlighter.Highlight(decoder.GetASNError().line, decoder.GetASNError().toString());
 			Case.IdCounters = orig_IdCounters;
 			Case.ElementMap = orig_ElementMap;
 			caseModel = Case.ElementTop;
 		} else {
-			var ParentModel = this.rootCaseModel.Parent;
+			var ParentModel = this.RootCaseModel.Parent;
 			if (ParentModel != null) {
 				caseModel.Parent = ParentModel;
 				for (var i in ParentModel.Children) {
-					if (ParentModel.Children[i].Label == this.rootCaseModel.Label) {
+					if (ParentModel.Children[i].Label == this.RootCaseModel.Label) {
 						ParentModel.Children[i] = caseModel;
 					}
 				}
 			} else {
-				this.caseViewer.ElementTop = caseModel;
+				this.CaseViewer.ElementTop = caseModel;
 				Case.ElementTop = caseModel;
 			}
 		}
-		this.rootCaseModel = caseModel;
-		this.highlighter.ClearHighlight();
+		this.RootCaseModel = caseModel;
+		this.Highlighter.ClearHighlight();
 		var genflag: boolean = false; //generate main function flag
 		var Generator: DScriptGenerator = new DScriptGenerator();
 		var script = Generator.codegen(orig_ElementMap, caseModel, ASNData, genflag);
@@ -345,12 +329,12 @@ class DScriptEditorPlugIn extends AssureIt.ActionPlugIn {
 		var actionMap = DScriptMap.GetBody();
  		__dscript__.script.main = script;
  		__dscript__.meta.actionmap = actionMap;
- 		this.updateActionTable(actionMap);
-		this.updateLineComment(this.editor_left, this.widgets, Generator);
-		this.editor_right.setValue(script);
+ 		this.UpdateActionTable(actionMap);
+		this.UpdateLineComment(this.ASNEditor, this.Widgets, Generator);
+		this.DScriptEditor.setValue(script);
 
-		this.editor_left.refresh();
-		this.editor_right.refresh();
+		this.ASNEditor.refresh();
+		this.DScriptEditor.refresh();
 	}
 }
 
@@ -372,14 +356,14 @@ class DScriptSideMenuPlugIn extends AssureIt.SideMenuPlugIn {
 	AddMenu(caseViewer: AssureIt.CaseViewer, Case0: AssureIt.Case, serverApi: AssureIt.ServerAPI): AssureIt.SideMenuModel {
 		var self = this;
 		return new AssureIt.SideMenuModel('#', 'Deploy', "deploy", "glyphicon-list-alt"/* TODO: change icon */, (ev:Event)=>{
-			self.editorPlugIn.rootCaseModel = Case0.ElementTop;
+			self.editorPlugIn.RootCaseModel = Case0.ElementTop;
 			self.editorPlugIn.GenerateCode();
 			__dscript__.script.lib = {
 				"GetDataFromRec.ds" : "\n\
 int GetDataFromRec(String location, String type) {\n\
-    command rec;\n\
-    String data = rec -m getLatestData -t $type -l $location\n\
-    return (int)data.replaceAll(\"\\n\", \"\");\n\
+command rec;\n\
+String data = rec -m getLatestData -t $type -l $location\n\
+return (int)data.replaceAll(\"\\n\", \"\");\n\
 }\n\
 ",
 			};

@@ -1,4 +1,5 @@
 declare class CodeMirror {
+	constructor(selector: any, option: any);
 	static fromTextArea(selector: any, option: any): any;
 };
 
