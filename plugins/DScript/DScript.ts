@@ -15,7 +15,7 @@ var __dscript__ = {
 		actionmap : {},
 	},
 };
-__dscript__.script.funcdef = { //FIX ME!! on the assumption that extract function data is already extract...
+__dscript__.script.funcdef = { //FIX ME!! on the assumption that function data is already extracted...
 	"PortMonitor()" : "\n\
 print(\"PortMonitor called...\");\n\
 DFault ret = null;\n\
@@ -39,8 +39,6 @@ DFault ret = null;\n\
 return ret;\n\
 ",
 };
-
-
 
 class DScriptPlugIn extends AssureIt.PlugInSet {
 	static Use3Pane : boolean = true;
