@@ -41,7 +41,7 @@ return ret;\n\
 };
 
 class DScriptPlugIn extends AssureIt.PlugInSet {
-	static Use3Pane : boolean = true;
+//	static Use3Pane : boolean = true;
 
 	constructor(public plugInManager: AssureIt.PlugInManager) {
 		super(plugInManager);
@@ -163,68 +163,94 @@ class DScriptEditorPlugIn extends AssureIt.ActionPlugIn {
 		});
 
 		/* FIXME Replace it with sophisticated style. */
-		if (DScriptPlugIn.Use3Pane) {
-			$(this.editor_left.getWrapperElement()).css({
-				width: '100%',
+		$(this.editor_left.getWrapperElement()).css({
+			width: '100%',
+			height: '100%',
+		});
+		$(this.editor_right.getWrapperElement()).css({
+			width: '100%',
+			height: '100%',
+		});
+		$('#dscript-editor-left').parent()
+			.css({
+				width: '50%',
 				height: '100%',
+				float: 'left',
+				display: 'block',
 			});
-			$(this.editor_right.getWrapperElement()).css({
-				width: '100%',
+		$('#dscript-editor-right').parent()
+			.css({
+				width: '50%',
 				height: '100%',
+				float: 'right',
+				display: 'block',
 			});
-			this.action_table.css({
-				width: '100%',
+		$('#dscript-action-table').parent()
+			.css({
+				display: 'none',
 			});
-			$('#dscript-editor-left').parent()
-				.css({
-					width: '50%',
-					height: '50%',
-					float: 'left',
-					display: 'block',
-				});
-			$('#dscript-editor-right').parent()
-				.css({
-					width: '50%',
-					height: '50%',
-					float: 'right',
-					display: 'block',
-				});
-			$('#dscript-action-table').parent()
-				.css({
-					width: '100%',
-					height: '50%',
-					display: 'block',
-					clear: 'both',
-					borderTop: 'solid 1px',
-				});
-		}
-		else {
-			$(this.editor_right.getWrapperElement()).css({
-				width: '100%',
+// 		if (DScriptPlugIn.Use3Pane) {
+// 			$(this.editor_left.getWrapperElement()).css({
+// 				width: '100%',
+// 				height: '100%',
+// 			});
+// 			$(this.editor_right.getWrapperElement()).css({
+// 				width: '100%',
+// 				height: '100%',
+// 			});
+// 			this.action_table.css({
+// 				width: '100%',
+// 			});
+// 			$('#dscript-editor-left').parent()
+// 				.css({
+// 					width: '50%',
+// 					height: '50%',
+// 					float: 'left',
+// 					display: 'block',
+// 				});
+// 			$('#dscript-editor-right').parent()
+// 				.css({
+// 					width: '50%',
+// 					height: '50%',
+// 					float: 'right',
+// 					display: 'block',
+// 				});
+// 			$('#dscript-action-table').parent()
+// 				.css({
+// 					width: '100%',
+// 					height: '50%',
+// 					display: 'block',
+// 					clear: 'both',
+// 					borderTop: 'solid 1px',
+// 				});
+// 		}
+// 		else {
+// 			$(this.editor_right.getWrapperElement()).css({
+// 				width: '100%',
 
-				height: '100%',
-			});
-			this.action_table.css({
-				width: '100%',
-			});
-			$('#dscript-editor-left').parent()
-				.css({
-					display: 'none',
-				});
-			$('#dscript-editor-right').parent()
-				.css({
-					width: '50%',
-					height: '100%',
-					float: 'right',
-					display: 'block',
-				});
-			$('#dscript-action-table').parent()
-				.css({
-					width: '50%',
-					display: 'block',
-					float: 'left',
-				});
-		}
+// 				height: '100%',
+// 			});
+// 			this.action_table.css({
+// 				width: '100%',
+// 			});
+// 			$('#dscript-editor-left').parent()
+// 				.css({
+// 					display: 'none',
+// 				});
+// 			$('#dscript-editor-right').parent()
+// 				.css({
+// 					width: '50%',
+// 					height: '100%',
+// 					float: 'right',
+// 					display: 'block',
+// 				});
+// 			$('#dscript-action-table').parent()
+// 				.css({
+// 					width: '50%',
+// 					display: 'block',
+// 					float: 'left',
+// 				});
+// 		}
 
 		this.highlighter = new ErrorHighlight(this.editor_left)
 		var self = this;

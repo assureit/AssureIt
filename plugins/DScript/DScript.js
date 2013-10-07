@@ -49,7 +49,6 @@ var DScriptPlugIn = (function (_super) {
         this.MenuBarContentsPlugIn = new DScriptMenuPlugIn(plugInManager, plugin);
         this.SideMenuPlugIn = new DScriptSideMenuPlugIn(plugInManager, plugin);
     }
-    DScriptPlugIn.Use3Pane = true;
     return DScriptPlugIn;
 })(AssureIt.PlugInSet);
 
@@ -153,60 +152,29 @@ var DScriptEditorPlugIn = (function (_super) {
             background: 'rgba(255, 255, 255, 0.85)'
         });
 
-        if (DScriptPlugIn.Use3Pane) {
-            $(this.editor_left.getWrapperElement()).css({
-                width: '100%',
-                height: '100%'
-            });
-            $(this.editor_right.getWrapperElement()).css({
-                width: '100%',
-                height: '100%'
-            });
-            this.action_table.css({
-                width: '100%'
-            });
-            $('#dscript-editor-left').parent().css({
-                width: '50%',
-                height: '50%',
-                float: 'left',
-                display: 'block'
-            });
-            $('#dscript-editor-right').parent().css({
-                width: '50%',
-                height: '50%',
-                float: 'right',
-                display: 'block'
-            });
-            $('#dscript-action-table').parent().css({
-                width: '100%',
-                height: '50%',
-                display: 'block',
-                clear: 'both',
-                borderTop: 'solid 1px'
-            });
-        } else {
-            $(this.editor_right.getWrapperElement()).css({
-                width: '100%',
-                height: '100%'
-            });
-            this.action_table.css({
-                width: '100%'
-            });
-            $('#dscript-editor-left').parent().css({
-                display: 'none'
-            });
-            $('#dscript-editor-right').parent().css({
-                width: '50%',
-                height: '100%',
-                float: 'right',
-                display: 'block'
-            });
-            $('#dscript-action-table').parent().css({
-                width: '50%',
-                display: 'block',
-                float: 'left'
-            });
-        }
+        $(this.editor_left.getWrapperElement()).css({
+            width: '100%',
+            height: '100%'
+        });
+        $(this.editor_right.getWrapperElement()).css({
+            width: '100%',
+            height: '100%'
+        });
+        $('#dscript-editor-left').parent().css({
+            width: '50%',
+            height: '100%',
+            float: 'left',
+            display: 'block'
+        });
+        $('#dscript-editor-right').parent().css({
+            width: '50%',
+            height: '100%',
+            float: 'right',
+            display: 'block'
+        });
+        $('#dscript-action-table').parent().css({
+            display: 'none'
+        });
 
         this.highlighter = new ErrorHighlight(this.editor_left);
         var self = this;
