@@ -22,7 +22,7 @@ var ExportMenuPlugIn = (function (_super) {
         this.editorPlugIn = editorPlugIn;
     }
     ExportMenuPlugIn.prototype.IsEnabled = function (caseViewer, caseModel) {
-        return false;
+        return true;
     };
 
     ExportMenuPlugIn.prototype.Delegate = function (caseViewer, caseModel, element, serverApi) {
