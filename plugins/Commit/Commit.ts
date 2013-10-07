@@ -1,7 +1,6 @@
 ///<reference path="../../src/CaseModel.ts" />
 ///<reference path="../../src/CaseEncoder.ts" />
 ///<reference path="../../src/PlugInManager.ts" />
-///<reference path="./CheckDiff.ts" />
 
 class CommitWindow {
 
@@ -39,6 +38,9 @@ class CommitWindow {
 		var ret: any = {};
 
 		ret.count = Object.keys(case0.ElementMap).length;
+
+		ret.lastModified = {};
+
 		return ret;
 	}
 

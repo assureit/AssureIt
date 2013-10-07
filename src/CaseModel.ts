@@ -196,7 +196,7 @@ module AssureIt {
 		isEditable : boolean = false;
 		isLatest   : boolean = true;
 
-		constructor(public CaseName: string, public CaseId: number, public CommitId: number, public pluginManager: PlugInManager) {
+		constructor(public CaseName: string, public summary: any, public CaseId: number, public CommitId: number, public pluginManager: PlugInManager) {
 			this.IdCounters = [{}, {}, {}, {}, {}];
 			this.ElementMap = {};
 			this.TranslationMap = {};

@@ -162,8 +162,9 @@ var AssureIt;
     AssureIt.NodeModel = NodeModel;
 
     var Case = (function () {
-        function Case(CaseName, CaseId, CommitId, pluginManager) {
+        function Case(CaseName, summary, CaseId, CommitId, pluginManager) {
             this.CaseName = CaseName;
+            this.summary = summary;
             this.CaseId = CaseId;
             this.CommitId = CommitId;
             this.pluginManager = pluginManager;

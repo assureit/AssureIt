@@ -34,6 +34,9 @@ var CommitWindow = (function () {
         var ret = {};
 
         ret.count = Object.keys(case0.ElementMap).length;
+
+        ret.lastModified = {};
+
         return ret;
     };
 
