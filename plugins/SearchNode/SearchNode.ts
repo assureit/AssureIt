@@ -51,8 +51,11 @@ class SearchNodeMenuPlugIn extends AssureIt.MenuBarContentsPlugIn {
 class SearchWordKeyPlugIn extends AssureIt.ShortcutKeyPlugIn {
 
 	caseViewer: AssureIt.CaseViewer;
+	currentNodeColor: {[index: string]: string}[] = [];
+	HitNodes: AssureIt.NodeModel[] = [];
 	SearchStarted: boolean;
 	HasStarted: boolean;
+	Keyword: string;
 
 	constructor(public plugInManager: AssureIt.PlugInManager) {
 		super(plugInManager);
@@ -60,7 +63,6 @@ class SearchWordKeyPlugIn extends AssureIt.ShortcutKeyPlugIn {
 
 	RegisterKeyEvents(Case0: AssureIt.Case, caseViewer: AssureIt.CaseViewer, serverApi: AssureIt.ServerAPI): boolean {
 		this.caseViewer = caseViewer;
-		this.SearchStarted = false;
 		this.HasStarted = false;
 		$("body").keydown((e)=>{
 			if (e.ctrlKey) {
@@ -74,11 +76,18 @@ class SearchWordKeyPlugIn extends AssureIt.ShortcutKeyPlugIn {
 						$('#searchbutton').click((ev: JQueryEventObject)=> {
 							ev.preventDefault();
 							if (!this.HasStarted) {
+								this.SearchStarted = false;
 								this.Search(Case0, caseViewer,serverApi, this.SearchStarted);
 								this.HasStarted = true;
 							} else {
-								var tempstring: string = $('#searchform input:first').val();
-								console.log(tempstring);
+								if ($('#searchform input:first').val() != this.Keyword) {
+									this.Color(this.HitNodes, this.currentNodeColor, caseViewer, true);
+									$('body').unbind("keydown",this.Search.controllSearch);
+									this.HitNodes = [];
+									this.currentNodeColor = [];
+									console.log($('#searchform input:first').val());
+									this.HasStarted = false;
+								}
 							}
 						});
 					}
@@ -89,24 +98,27 @@ class SearchWordKeyPlugIn extends AssureIt.ShortcutKeyPlugIn {
 	}
 
 	Search(Case0: AssureIt.Case, caseViewer: AssureIt.CaseViewer ,serverApi: AssureIt.ServerAPI, SearchStarted: boolean): void {
-		var Keyword: string = $('#searchform input:first').val();
+		this.Keyword = $('#searchform input:first').val();
 		var nodeIndex: number = 0;
 		var moveFlag: boolean = false;
 		var TopNodeModel: AssureIt.NodeModel = Case0.ElementTop;
-		var HitNodes: AssureIt.NodeModel[] = [];
 
-		if (Keyword == "") {
+		if (this.Keyword == "") {
 			return;
 		}
 
-		console.log(TopNodeModel.SearchNode(Keyword, HitNodes));
+		console.log(TopNodeModel.SearchNode(this.Keyword, this.HitNodes));
 
-		var currentNodeColor: {[index: string]: string}[] = [];
+		if (this.HitNodes.length == 0) {
+			return;
+		}
 
-		this.Color(HitNodes, currentNodeColor, caseViewer, SearchStarted);
-		var NodePosX      = caseViewer.ViewMap[HitNodes[nodeIndex].Label].AbsX;
-		var NodePosY      = caseViewer.ViewMap[HitNodes[nodeIndex].Label].AbsY;
-		var currentHTML   = caseViewer.ViewMap[HitNodes[nodeIndex].Label].HTMLDoc;
+		this.Color(this.HitNodes, this.currentNodeColor, caseViewer, false);
+		var NodeLabel     = this.HitNodes[nodeIndex].Label;
+		var CaseMap       = caseViewer.ViewMap[NodeLabel];
+		var NodePosX      = CaseMap.AbsX;
+		var NodePosY      = CaseMap.AbsY;
+		var currentHTML   = CaseMap.HTMLDoc;
 		var screenManager = caseViewer.Screen;
 		var destinationX  = screenManager.ConvertX(NodePosX, currentHTML);
 		var destinationY  = screenManager.ConvertY(NodePosY, currentHTML);
@@ -114,32 +126,38 @@ class SearchWordKeyPlugIn extends AssureIt.ShortcutKeyPlugIn {
 		console.log('X='+ destinationX + 'Y=' + destinationY);
 		console.log("start moving");
 		this.Move(destinationX, destinationY, 100, ()=>{});
-
-		SearchStarted = true;
+		CaseMap.SVGShape.SetColor("#ffff00", "#ff4500");
+		this.SearchStarted = true;
 
 		var controllSearch = (e: JQueryEventObject)=> {
 			if (e.keyCode == 81/*q*/) {
+				console.log('quitting');
 				$('body').unbind("keydown",controllSearch);
-				this.Color(HitNodes, currentNodeColor, caseViewer, SearchStarted);
+				this.Color(this.HitNodes, this.currentNodeColor, caseViewer, true);
 				$('#searchform').remove();
+				this.HitNodes = [];
+				this.currentNodeColor = [];
 				this.HasStarted = false;
+				this.SearchStarted = false;
 			}
 
 			if (e.keyCode == 13/*Enter*/) {
 				console.log("pushed enter button");
 				if (!moveFlag) {
-					if (HitNodes.length == 1) {
+					if (this.HitNodes.length == 1) {
 						return;
 					}
 
 					nodeIndex++;
-					if (nodeIndex == HitNodes.length) {
+					if (nodeIndex == this.HitNodes.length) {
 						nodeIndex = 0;
 					}
 
-					NodePosX     = caseViewer.ViewMap[HitNodes[nodeIndex].Label].AbsX;
-					NodePosY     = caseViewer.ViewMap[HitNodes[nodeIndex].Label].AbsY;
-					currentHTML  = caseViewer.ViewMap[HitNodes[nodeIndex].Label].HTMLDoc;
+					NodeLabel    = this.HitNodes[nodeIndex].Label;
+					CaseMap      = caseViewer.ViewMap[NodeLabel];
+					NodePosX     = CaseMap.AbsX;
+					NodePosY     = CaseMap.AbsY;
+					currentHTML  = CaseMap.HTMLDoc;
 					destinationX = screenManager.ConvertX(NodePosX, currentHTML);
 					destinationY = screenManager.ConvertY(NodePosY, currentHTML);
 
@@ -148,6 +166,13 @@ class SearchWordKeyPlugIn extends AssureIt.ShortcutKeyPlugIn {
 
 					this.Move(destinationX, destinationY, 100, ()=>{
 						moveFlag = false;
+
+						if (nodeIndex == 0) {
+							caseViewer.ViewMap[this.HitNodes[this.HitNodes.length-1].Label].SVGShape.SetColor("#ffff00", "#ffff00");
+						} else {
+							caseViewer.ViewMap[this.HitNodes[nodeIndex-1].Label].SVGShape.SetColor("#ffff00", "#ffff00");
+						}
+						CaseMap.SVGShape.SetColor("#ffff00", "#ff4500");
 					});
 					console.log("after calling Move");
 				}
@@ -169,14 +194,20 @@ class SearchWordKeyPlugIn extends AssureIt.ShortcutKeyPlugIn {
 	Color (HitNodes: AssureIt.NodeModel[], currentNodeColor: {[index: string]: string}[], caseViewer: AssureIt.CaseViewer, enterFlag: boolean): void {
 		if (enterFlag) {
 			for (var i = 0; i < HitNodes.length; i++) {
+				if ( i == 0) {
+					console.log('iicolor is ..' + this.currentNodeColor[i]['fill'] + 'and '+ this.currentNodeColor[i]['stroke']);
+				}
 				var thisNodeLabel: string = HitNodes[i].Label;
-				caseViewer.ViewMap[thisNodeLabel].SVGShape.SetColor(currentNodeColor[i]["fill"], currentNodeColor[i]["stroke"]);
+				caseViewer.ViewMap[thisNodeLabel].SVGShape.SetColor(this.currentNodeColor[i]["fill"], this.currentNodeColor[i]["stroke"]);
 			}
-		} else {
+		} else {//Store original color and set new color
 			for (var i = 0; i < HitNodes.length; i++) {
-				var thisNodeLabel: string = HitNodes[i].Label;
-				currentNodeColor[i] = caseViewer.ViewMap[thisNodeLabel].SVGShape.GetColor();
+				var thisNodeLabel: string = this.HitNodes[i].Label;
+				this.currentNodeColor[i] = caseViewer.ViewMap[thisNodeLabel].SVGShape.GetColor();
 				caseViewer.ViewMap[thisNodeLabel].SVGShape.SetColor("#ffff00", "#ffff00");
+				if ( i == 0) {
+					console.log('color is ..' + this.currentNodeColor[i]['fill'] + 'and '+ this.currentNodeColor[i]['stroke']);
+				}
 			}
 		}
 	}
