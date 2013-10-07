@@ -141,6 +141,18 @@ module AssureIt {
 			return HitNodes;
 		}
 
+		Equals(model: NodeModel) : boolean {
+			/* Checks if the contents are the same (except parent and children). */
+			if (model == null) return false;
+			if (this.Type != model.Type) return false;
+			if (this.Statement != model.Statement) return false;
+			if (Object.keys(this.Notes).length != Object.keys(model.Notes).length) return false;
+			for (var i in Object.keys(this.Notes)) {
+				if (this.Notes[i] != model.Notes[i]) return false;
+			}
+			return true;
+		}
+
 		/* plug-In */
 		private InvokePatternPlugInRecursive(model: NodeModel) : void {
 			var pluginMap : { [index: string]: PatternPlugIn} = this.Case.pluginManager.PatternPlugInMap;
