@@ -31,13 +31,14 @@ var CommitWindow = (function () {
     };
 
     CommitWindow.prototype.MakeSummary = function (case0) {
-        var ret = {};
+        var oldSummary = case0.summary;
+        var summary = {};
 
-        ret.count = Object.keys(case0.ElementMap).length;
+        summary.count = Object.keys(case0.ElementMap).length;
 
-        ret.lastModified = {};
+        summary.lastModified = {};
 
-        return ret;
+        return summary;
     };
 
     CommitWindow.prototype.SetEventHandlers = function (caseViewer, case0, serverApi) {

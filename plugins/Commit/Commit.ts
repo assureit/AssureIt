@@ -35,13 +35,15 @@ class CommitWindow {
 	}
 
 	MakeSummary(case0: AssureIt.Case): any {
-		var ret: any = {};
+		var oldSummary = case0.summary;
+		var summary: any = {};
 
-		ret.count = Object.keys(case0.ElementMap).length;
+		summary.count = Object.keys(case0.ElementMap).length;
 
-		ret.lastModified = {};
+		summary.lastModified = {};
+		/* TODO update summary.lastModified */
 
-		return ret;
+		return summary;
 	}
 
 	SetEventHandlers(caseViewer: AssureIt.CaseViewer, case0: AssureIt.Case, serverApi: AssureIt.ServerAPI): void {
