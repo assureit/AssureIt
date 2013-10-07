@@ -52,10 +52,10 @@ function getContextNode(nodeModel: AssureIt.NodeModel): AssureIt.NodeModel {
 
 function isMonitorNode(nodeModel: AssureIt.NodeModel): boolean {
 	if(nodeModel.Type != AssureIt.NodeType.Evidence) return false;
-	if(!("Monitor" in nodeModel.Notes)) return false
 
 	var contextNode = getContextNode(nodeModel.Parent);
 	if(contextNode == null) return false;
+	if(!("Monitor" in contextNode.Notes)) return false
 	if(!("Location" in contextNode.Notes)) return false;
 
 	return true;
@@ -148,26 +148,9 @@ class MonitorNode {
 	}
 
 	Show(caseViewer: AssureIt.CaseViewer, HTMLRenderFunction: Function, SVGRenderFunction: Function) {
-		var contextNode: AssureIt.NodeModel = getContextNode(this.EvidenceNode);
-
-		if(contextNode == null) {
-			contextNode = appendNode(caseViewer, this.EvidenceNode, AssureIt.NodeType.Context);
-		}
-
-		if(this.Status == true) { /* success */
-			contextNode.Notes["Status"] = "Success";
-			contextNode.Notes[this.Type] = this.LatestData.data;
-			contextNode.Notes["Timestamp"] = this.LatestData.timestamp;
-		}
-		else { /* fail */
-			contextNode.Notes["Status"] = "Fail";
-			contextNode.Notes[this.Type] = this.LatestData.data;
-			contextNode.Notes["Timestamp"] = this.LatestData.timestamp;
-			contextNode.Notes["Manager"] = this.LatestData.authid;
-
-		}
-
-		showNode(caseViewer, contextNode, HTMLRenderFunction, SVGRenderFunction);
+		var data: string =  "{ "+this.LatestData.type+" = "+this.LatestData.data+" }";
+		this.EvidenceNode.Notes["LatestData"] = data;
+		showNode(caseViewer, this.EvidenceNode, HTMLRenderFunction, SVGRenderFunction);
 	}
 
 }
@@ -225,7 +208,7 @@ class MonitorManager {
 
 	SetMonitor(evidenceNode: AssureIt.NodeModel) {
 		var location: string = getContextNode(evidenceNode.Parent).Notes["Location"];
-		var condition: string = evidenceNode.Notes["Monitor"];
+		var condition: string = getContextNode(evidenceNode.Parent).Notes["Monitor"];
 		var type: string = extractTypeFromCondition(condition);
 		var monitorNode = this.MonitorNodeMap[evidenceNode.Label];
 
@@ -280,16 +263,12 @@ class MonitorSVGRenderPlugIn extends AssureIt.SVGRenderPlugIn {
 
 	Delegate(caseViewer: AssureIt.CaseViewer, nodeView: AssureIt.NodeView) : boolean {
 		var nodeModel: AssureIt.NodeModel = nodeView.Source;
+		var monitorNode: MonitorNode = monitorManager.MonitorNodeMap[nodeModel.Label];
 
-		if(isMonitorNode(nodeModel)) {
-			var contextNode = getContextNode(nodeModel);
-
-			if(contextNode != null && contextNode.Notes["Status"] == "Fail") {
-				var fill: string = "#FF9999";   // FIXME: allow any color
-				var stroke: string = "none";
-
-				blushAllAncestor(caseViewer, nodeModel, fill, stroke);
-			}
+		if(monitorNode != null && monitorNode.Status) {
+			var fill: string = "#FF9999";   // FIXME: allow any color
+			var stroke: string = "none";
+			blushAllAncestor(caseViewer, nodeModel, fill, stroke);
 		}
 
 		return true;

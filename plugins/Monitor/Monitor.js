@@ -44,11 +44,11 @@ function getContextNode(nodeModel) {
 function isMonitorNode(nodeModel) {
     if (nodeModel.Type != AssureIt.NodeType.Evidence)
         return false;
-    if (!("Monitor" in nodeModel.Notes))
-        return false;
 
     var contextNode = getContextNode(nodeModel.Parent);
     if (contextNode == null)
+        return false;
+    if (!("Monitor" in contextNode.Notes))
         return false;
     if (!("Location" in contextNode.Notes))
         return false;
@@ -129,24 +129,9 @@ var MonitorNode = (function () {
     };
 
     MonitorNode.prototype.Show = function (caseViewer, HTMLRenderFunction, SVGRenderFunction) {
-        var contextNode = getContextNode(this.EvidenceNode);
-
-        if (contextNode == null) {
-            contextNode = appendNode(caseViewer, this.EvidenceNode, AssureIt.NodeType.Context);
-        }
-
-        if (this.Status == true) {
-            contextNode.Notes["Status"] = "Success";
-            contextNode.Notes[this.Type] = this.LatestData.data;
-            contextNode.Notes["Timestamp"] = this.LatestData.timestamp;
-        } else {
-            contextNode.Notes["Status"] = "Fail";
-            contextNode.Notes[this.Type] = this.LatestData.data;
-            contextNode.Notes["Timestamp"] = this.LatestData.timestamp;
-            contextNode.Notes["Manager"] = this.LatestData.authid;
-        }
-
-        showNode(caseViewer, contextNode, HTMLRenderFunction, SVGRenderFunction);
+        var data = "{ " + this.LatestData.type + " = " + this.LatestData.data + " }";
+        this.EvidenceNode.Notes["LatestData"] = data;
+        showNode(caseViewer, this.EvidenceNode, HTMLRenderFunction, SVGRenderFunction);
     };
     return MonitorNode;
 })();
@@ -195,7 +180,7 @@ var MonitorManager = (function () {
 
     MonitorManager.prototype.SetMonitor = function (evidenceNode) {
         var location = getContextNode(evidenceNode.Parent).Notes["Location"];
-        var condition = evidenceNode.Notes["Monitor"];
+        var condition = getContextNode(evidenceNode.Parent).Notes["Monitor"];
         var type = extractTypeFromCondition(condition);
         var monitorNode = this.MonitorNodeMap[evidenceNode.Label];
 
@@ -251,16 +236,12 @@ var MonitorSVGRenderPlugIn = (function (_super) {
 
     MonitorSVGRenderPlugIn.prototype.Delegate = function (caseViewer, nodeView) {
         var nodeModel = nodeView.Source;
+        var monitorNode = monitorManager.MonitorNodeMap[nodeModel.Label];
 
-        if (isMonitorNode(nodeModel)) {
-            var contextNode = getContextNode(nodeModel);
-
-            if (contextNode != null && contextNode.Notes["Status"] == "Fail") {
-                var fill = "#FF9999";
-                var stroke = "none";
-
-                blushAllAncestor(caseViewer, nodeModel, fill, stroke);
-            }
+        if (monitorNode != null && monitorNode.Status) {
+            var fill = "#FF9999";
+            var stroke = "none";
+            blushAllAncestor(caseViewer, nodeModel, fill, stroke);
         }
 
         return true;
