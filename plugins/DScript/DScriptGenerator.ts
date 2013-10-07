@@ -255,8 +255,12 @@ class DScriptGenerator {
 	GenerateAnnotationStrategy(child: AssureIt.NodeModel[]): string {
 		var program: string = "";
 		for(var i:number = 0; i < child.length; i++) {
+			if(child[i].Type == AssureIt.NodeType.Context) continue;
+
 			var goal: AssureIt.NodeModel = child[i];
 			var contextindex: number = this.GetContextIndex(goal);
+			if(contextindex == -1) continue;
+
 			var context: AssureIt.NodeModel = goal.Children[contextindex];
 			if(context.GetAnnotation("OnlyIf") != null) {
 				var reaction: string = context.Notes["Reaction"];

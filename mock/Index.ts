@@ -23,7 +23,7 @@
 
 $(function () {
 
-	var serverApi = new AssureIt.ServerAPI('', 'http://54.250.206.119/rec/api/2.0/'); //TODO config for Path
+	var serverApi = new AssureIt.ServerAPI('', 'http://54.250.206.119/rec/api/2.0/', 'http://localhost:8081'); //TODO config for Path
 	var pluginManager = new AssureIt.PlugInManager('');
 	pluginManager.SetPlugIn("menu", new MenuBarPlugIn(pluginManager));
 	pluginManager.SetPlugIn("scale", new ScalePlugIn(pluginManager));

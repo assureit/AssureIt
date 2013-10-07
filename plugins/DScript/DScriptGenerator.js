@@ -242,8 +242,14 @@ var DScriptGenerator = (function () {
     DScriptGenerator.prototype.GenerateAnnotationStrategy = function (child) {
         var program = "";
         for (var i = 0; i < child.length; i++) {
+            if (child[i].Type == AssureIt.NodeType.Context)
+                continue;
+
             var goal = child[i];
             var contextindex = this.GetContextIndex(goal);
+            if (contextindex == -1)
+                continue;
+
             var context = goal.Children[contextindex];
             if (context.GetAnnotation("OnlyIf") != null) {
                 var reaction = context.Notes["Reaction"];

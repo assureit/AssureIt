@@ -8,10 +8,11 @@ var AssureIt;
     };
 
     var ServerAPI = (function () {
-        function ServerAPI(basepath, recpath) {
+        function ServerAPI(basepath, recpath, agentpath) {
             this.uri = basepath + "/api/1.0/";
             this.basepath = basepath;
             this.recpath = recpath;
+            this.agentpath = agentpath;
             this.basepath = basepath + "/";
         }
         ServerAPI.prototype.RemoteCall = function (method, params) {
