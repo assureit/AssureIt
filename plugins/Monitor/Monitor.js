@@ -238,7 +238,7 @@ var MonitorSVGRenderPlugIn = (function (_super) {
         var nodeModel = nodeView.Source;
         var monitorNode = monitorManager.MonitorNodeMap[nodeModel.Label];
 
-        if (monitorNode != null && monitorNode.Status) {
+        if (monitorNode != null && !monitorNode.Status) {
             var fill = "#FF9999";
             var stroke = "none";
             blushAllAncestor(caseViewer, nodeModel, fill, stroke);

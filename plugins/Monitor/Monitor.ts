@@ -265,7 +265,7 @@ class MonitorSVGRenderPlugIn extends AssureIt.SVGRenderPlugIn {
 		var nodeModel: AssureIt.NodeModel = nodeView.Source;
 		var monitorNode: MonitorNode = monitorManager.MonitorNodeMap[nodeModel.Label];
 
-		if(monitorNode != null && monitorNode.Status) {
+		if(monitorNode != null && !monitorNode.Status) {
 			var fill: string = "#FF9999";   // FIXME: allow any color
 			var stroke: string = "none";
 			blushAllAncestor(caseViewer, nodeModel, fill, stroke);
