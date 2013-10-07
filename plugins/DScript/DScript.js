@@ -67,7 +67,6 @@ var DScriptMenuPlugIn = (function (_super) {
         $('#dscript').unbind('click');
         $('#dscript').bind('click', {
             editorPlugIn: this.editorPlugIn,
-            caseViewer: caseViewer,
             nodeModel: nodeModel
         }, this.editorPlugIn.ShowEditor);
         return true;
@@ -114,6 +113,7 @@ var DScriptEditorPlugIn = (function (_super) {
         });
     }
     DScriptEditorPlugIn.prototype.Delegate = function (caseViewer, case0, serverApi) {
+        this.RootNodeModel = case0.ElementTop;
         this.CaseViewer = caseViewer;
         return true;
     };
@@ -272,7 +272,6 @@ var DScriptSideMenuPlugIn = (function (_super) {
         var _this = this;
         var self = this;
         return new AssureIt.SideMenuModel('#', 'Deploy', "deploy", "glyphicon-list-alt", function (ev) {
-            self.editorPlugIn.RootNodeModel = Case0.ElementTop;
             self.editorPlugIn.GenerateCode();
             __dscript__.script.lib = {
                 "GetDataFromRec.ds": "\n\

@@ -64,7 +64,6 @@ class DScriptMenuPlugIn extends AssureIt.MenuBarContentsPlugIn {
 		$('#dscript').unbind('click');
 		$('#dscript').bind('click', {
 			editorPlugIn : this.editorPlugIn,
-			caseViewer : caseViewer,
 			nodeModel : nodeModel,
 		}, this.editorPlugIn.ShowEditor);
 		return true;
@@ -186,6 +185,7 @@ class DScriptEditorPlugIn extends AssureIt.ActionPlugIn {
 	}
 
 	Delegate(caseViewer: AssureIt.CaseViewer, case0: AssureIt.Case, serverApi: AssureIt.ServerAPI): boolean {
+		this.RootNodeModel = case0.ElementTop; // will be chenged in ShowEditor
 		this.CaseViewer = caseViewer;
 		return true;
 	}
@@ -354,7 +354,6 @@ class DScriptSideMenuPlugIn extends AssureIt.SideMenuPlugIn {
 	AddMenu(caseViewer: AssureIt.CaseViewer, Case0: AssureIt.Case, serverApi: AssureIt.ServerAPI): AssureIt.SideMenuModel {
 		var self = this;
 		return new AssureIt.SideMenuModel('#', 'Deploy', "deploy", "glyphicon-list-alt"/* TODO: change icon */, (ev:Event)=>{
-			self.editorPlugIn.RootNodeModel = Case0.ElementTop;
 			self.editorPlugIn.GenerateCode();
 			__dscript__.script.lib = {
 				"GetDataFromRec.ds" : "\n\
