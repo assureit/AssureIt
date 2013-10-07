@@ -1,6 +1,7 @@
 ///<reference path="../../src/CaseModel.ts" />
 ///<reference path="../../src/CaseEncoder.ts" />
 ///<reference path="../../src/PlugInManager.ts" />
+///<reference path="./CheckDiff.ts" />
 
 class CommitWindow {
 

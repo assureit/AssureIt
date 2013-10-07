@@ -22,6 +22,7 @@ plugins/TimeLine/TimeLine.ts
 plugins/Scale/Scale.ts
 plugins/Scale/ScaleUp.ts
 plugins/Commit/Commit.ts
+plugins/Commit/CheckDiff.ts
 src/CaseDecoder.ts
 src/CaseEncoder.ts
 src/CaseModel.ts
