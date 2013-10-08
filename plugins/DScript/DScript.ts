@@ -261,15 +261,19 @@ class DScriptEditorPlugIn extends AssureIt.ActionPlugIn {
 		this.Highlighter.ClearHighlight();
 		var genflag: boolean = false; //generate main function flag
 		var Generator: DScriptGenerator = new DScriptGenerator();
-		var script = Generator.codegen(orig_ElementMap, nodeModel, ASNData, genflag);
-
- 		var DScriptMap: DScriptActionMap = new DScriptActionMap(nodeModel);
-		var actionMap = DScriptMap.GetBody();
- 		__dscript__.script.main = script;
- 		__dscript__.meta.actionmap = actionMap;
- 		this.UpdateActionTable(actionMap);
-		this.UpdateLineComment(this.ASNEditor, this.Widgets, Generator);
-		this.DScriptEditor.setValue(script);
+		try {
+			var script = Generator.codegen(orig_ElementMap, nodeModel, ASNData, genflag);
+ 			var DScriptMap: DScriptActionMap = new DScriptActionMap(nodeModel);
+			var actionMap = DScriptMap.GetBody();
+ 			__dscript__.script.main = script;
+ 			__dscript__.meta.actionmap = actionMap;
+ 			this.UpdateActionTable(actionMap);
+			this.UpdateLineComment(this.ASNEditor, this.Widgets, Generator);
+			this.DScriptEditor.setValue(script);
+		}
+		catch(e) {
+			//TODO
+		}
 
 		this.ASNEditor.refresh();
 		this.DScriptEditor.refresh();
@@ -283,7 +287,7 @@ class DScriptSideMenuPlugIn extends AssureIt.SideMenuPlugIn {
 
 	constructor(plugInManager: AssureIt.PlugInManager, editorPlugIn: DScriptEditorPlugIn) {
 		super(plugInManager);
-		this.AssureItAgentAPI = new AssureIt.AssureItAgentAPI("http://localhost:8081");   // TODO: change agent path
+		this.AssureItAgentAPI = null;
 		this.editorPlugIn = editorPlugIn;
 	}
 
@@ -292,6 +296,7 @@ class DScriptSideMenuPlugIn extends AssureIt.SideMenuPlugIn {
 	}
 
 	AddMenu(caseViewer: AssureIt.CaseViewer, case0: AssureIt.Case, serverApi: AssureIt.ServerAPI): AssureIt.SideMenuModel {
+		this.AssureItAgentAPI = new AssureIt.AssureItAgentAPI(serverApi.agentpath);
 		var self = this;
 		return new AssureIt.SideMenuModel('#', 'Deploy', "deploy", "glyphicon-list-alt"/* TODO: change icon */, (ev:Event)=>{
 			self.editorPlugIn.GenerateCode();
@@ -304,8 +309,13 @@ return (int)data.replaceAll(\"\\n\", \"\");\n\
 }\n\
 ",
 			};
-			console.log(__dscript__);
-			this.AssureItAgentAPI.Deploy(__dscript__);
+
+			try {
+				this.AssureItAgentAPI.Deploy(__dscript__);
+			}
+			catch(e) {
+				alert("Assure-It Agent is not active.");
+			}
 		});
 	}
 }

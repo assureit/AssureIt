@@ -15,11 +15,13 @@ module AssureIt {
 		uri : string;
 		basepath : string;
 		recpath : string;
+		agentpath : string;
 
-		constructor(basepath: string, recpath: string) {
+		constructor(basepath: string, recpath: string, agentpath) {
 			this.uri = basepath + "/api/1.0/";
 			this.basepath = basepath;
 			this.recpath = recpath;
+			this.agentpath = agentpath;
 			this.basepath = basepath + "/";
 		}
 

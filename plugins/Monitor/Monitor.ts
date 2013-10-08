@@ -52,10 +52,10 @@ function getContextNode(nodeModel: AssureIt.NodeModel): AssureIt.NodeModel {
 
 function isMonitorNode(nodeModel: AssureIt.NodeModel): boolean {
 	if(nodeModel.Type != AssureIt.NodeType.Evidence) return false;
-	if(!("Monitor" in nodeModel.Notes)) return false
 
 	var contextNode = getContextNode(nodeModel.Parent);
 	if(contextNode == null) return false;
+	if(!("Monitor" in contextNode.Notes)) return false
 	if(!("Location" in contextNode.Notes)) return false;
 
 	return true;
@@ -101,6 +101,7 @@ class MonitorNode {
 	Type: string;
 	Condition: string;
 	LatestData: any;
+	PastData: any[];
 	Status: boolean;
 	EvidenceNode: AssureIt.NodeModel;
 
@@ -109,6 +110,7 @@ class MonitorNode {
 		this.Type = Type;
 		this.Condition = Condition;
 		this.LatestData = null;
+		this.PastData = [];
 		this.Status = true;
 		this.EvidenceNode = EvidenceNode;
 	}
@@ -125,6 +127,16 @@ class MonitorNode {
 		this.Condition = condition;
 	}
 
+	UpdatePastData(latestData: any) {
+		if(this.PastData.length < 10) {
+			this.PastData.unshift(latestData);
+		}
+		else {
+			this.PastData.pop();
+			this.PastData.unshift(latestData);
+		}
+	}
+
 	UpdateLatestData(RECAPI: AssureIt.RECAPI) {
 		if(this.Status == true) {
 			var latestData = RECAPI.getLatestData(this.Location, this.Type);
@@ -134,7 +146,10 @@ class MonitorNode {
 				console.log("latest data is null");
 			}
 			else {
-				this.LatestData = latestData;
+				if(JSON.stringify(this.LatestData) != JSON.stringify(latestData)) {
+					this.LatestData = latestData;
+					this.UpdatePastData(latestData);
+				}
 			}
 		}
 	}
@@ -148,26 +163,9 @@ class MonitorNode {
 	}
 
 	Show(caseViewer: AssureIt.CaseViewer, HTMLRenderFunction: Function, SVGRenderFunction: Function) {
-		var contextNode: AssureIt.NodeModel = getContextNode(this.EvidenceNode);
-
-		if(contextNode == null) {
-			contextNode = appendNode(caseViewer, this.EvidenceNode, AssureIt.NodeType.Context);
-		}
-
-		if(this.Status == true) { /* success */
-			contextNode.Notes["Status"] = "Success";
-			contextNode.Notes[this.Type] = this.LatestData.data;
-			contextNode.Notes["Timestamp"] = this.LatestData.timestamp;
-		}
-		else { /* fail */
-			contextNode.Notes["Status"] = "Fail";
-			contextNode.Notes[this.Type] = this.LatestData.data;
-			contextNode.Notes["Timestamp"] = this.LatestData.timestamp;
-			contextNode.Notes["Manager"] = this.LatestData.authid;
-
-		}
-
-		showNode(caseViewer, contextNode, HTMLRenderFunction, SVGRenderFunction);
+		var data: string =  "{ "+this.LatestData.type+" = "+this.LatestData.data+" }";
+		this.EvidenceNode.Notes["LatestData"] = data;
+		showNode(caseViewer, this.EvidenceNode, HTMLRenderFunction, SVGRenderFunction);
 	}
 
 }
@@ -208,7 +206,14 @@ class MonitorManager {
 					console.log("monitor:'"+key+"' is not registered");
 				}
 
-				monitorNode.UpdateLatestData(self.RECAPI);
+				try {
+					monitorNode.UpdateLatestData(self.RECAPI);
+				}
+				catch(e) {
+					self.RemoveAllMonitor();
+					return;
+				}
+
 				if(monitorNode.LatestData == null) continue;
 
 				monitorNode.UpdateStatus();
@@ -225,7 +230,7 @@ class MonitorManager {
 
 	SetMonitor(evidenceNode: AssureIt.NodeModel) {
 		var location: string = getContextNode(evidenceNode.Parent).Notes["Location"];
-		var condition: string = evidenceNode.Notes["Monitor"];
+		var condition: string = getContextNode(evidenceNode.Parent).Notes["Monitor"];
 		var type: string = extractTypeFromCondition(condition);
 		var monitorNode = this.MonitorNodeMap[evidenceNode.Label];
 
@@ -247,6 +252,12 @@ class MonitorManager {
 		delete this.MonitorNodeMap[label];
 		if(Object.keys(this.MonitorNodeMap).length == 0) {
 			this.StopMonitors();
+		}
+	}
+
+	RemoveAllMonitor() {
+		for(var label in this.MonitorNodeMap) {
+			this.RemoveMonitor(label);
 		}
 	}
 
@@ -280,16 +291,12 @@ class MonitorSVGRenderPlugIn extends AssureIt.SVGRenderPlugIn {
 
 	Delegate(caseViewer: AssureIt.CaseViewer, nodeView: AssureIt.NodeView) : boolean {
 		var nodeModel: AssureIt.NodeModel = nodeView.Source;
+		var monitorNode: MonitorNode = monitorManager.MonitorNodeMap[nodeModel.Label];
 
-		if(isMonitorNode(nodeModel)) {
-			var contextNode = getContextNode(nodeModel);
-
-			if(contextNode != null && contextNode.Notes["Status"] == "Fail") {
-				var fill: string = "#FF9999";   // FIXME: allow any color
-				var stroke: string = "none";
-
-				blushAllAncestor(caseViewer, nodeModel, fill, stroke);
-			}
+		if(monitorNode != null && !monitorNode.Status) {
+			var fill: string = "#FF9999";   // FIXME: allow any color
+			var stroke: string = "none";
+			blushAllAncestor(caseViewer, nodeModel, fill, stroke);
 		}
 
 		return true;
@@ -413,6 +420,7 @@ class MonitorMenuBarPlugIn extends AssureIt.MenuBarContentsPlugIn {
 		}
 		else {
 			element.append('<a href="#" ><img id="monitor-tgl" src="'+serverApi.basepath+'images/monitor.png" title="Remove monitor" alt="monitor-tgl" /></a>');
+			element.append('<a href="#" ><img id="monitor-logs" src="'+serverApi.basepath+'images/log.png" title="Show logs" alt="monitor-logs" /></a>');
 		}
 
 		$('#monitor-tgl').unbind('click');
@@ -423,6 +431,25 @@ class MonitorMenuBarPlugIn extends AssureIt.MenuBarContentsPlugIn {
 			else {
 				monitorManager.RemoveMonitor(caseModel.Label);
 			}
+		});
+
+		$('#monitor-logs').unbind('mousedown');
+		$('#monitor-logs').unbind('mouseup');
+		$('#monitor-logs').mousedown(function() {
+			var monitorNode: MonitorNode = monitorManager.MonitorNodeMap[caseModel.Label];
+			var p: string = "";
+			for(var i: number = 0; i < monitorNode.PastData.length; i++) {
+				p += '<p align="center">'
+					+ JSON.stringify(monitorNode.PastData[i])
+					+ '</p>';
+			}
+
+			var $logs = $('<div id="logs">'+p+'</div>').css("font-size", "xx-small");
+			$logs.offset({top: 30, left: 0});
+			$logs.appendTo(element);
+		});
+		$('#monitor-logs').mouseup(function() {
+			$('#logs').remove();
 		});
 
 		return true;
