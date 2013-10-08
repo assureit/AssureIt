@@ -92,7 +92,8 @@ var DScriptEditorPlugIn = (function (_super) {
             placeholder: "Generated DScript code goes here.",
             lineWrapping: true
         });
-        this.ActionTable = $("<table>");
+        this.NodeRelationTable = $("<table>");
+        this.ActionRelationTable = $("<table>");
 
         this.Highlighter = new ErrorHighlight(this.ASNEditor);
         var self = this;
@@ -111,8 +112,8 @@ var DScriptEditorPlugIn = (function (_super) {
             background: 'rgba(255, 255, 255, 0.85)'
         });
 
-        var paneManager = new DScriptPaneManager(wrapper, this.ActionTable.css('height', '0'), true);
-        paneManager.AddWidgetOnTop(this.ActionTable, $(this.ASNEditor.getWrapperElement()));
+        var paneManager = new DScriptPaneManager(wrapper, this.ActionRelationTable.css('height', '0'), true);
+        paneManager.AddWidgetOnTop(this.ActionRelationTable, $(this.ASNEditor.getWrapperElement()));
         paneManager.AddWidgetOnRight($(this.ASNEditor.getWrapperElement()), $(this.DScriptEditor.getWrapperElement()));
         this.PaneManager = paneManager;
     }
@@ -192,8 +193,8 @@ var DScriptEditorPlugIn = (function (_super) {
         });
     };
 
-    DScriptEditorPlugIn.prototype.UpdateActionTable = function (actionMap) {
-        var table = this.ActionTable;
+    DScriptEditorPlugIn.prototype.UpdateNodeRelationTable = function (nodeRelation) {
+        var table = this.NodeRelationTable;
         var tableWidth = table.parent().width();
         var header = $("<tr><th>action</th><th>fault</th><th>reaction</th></tr>");
         var tpl = "<tr><td>${action}</td><td>${fault}</td><td>${reaction}</td></tr>";
@@ -208,8 +209,34 @@ var DScriptEditorPlugIn = (function (_super) {
         table.children().remove();
         header.children().css(style);
         table.append(header);
-        for (var key in actionMap) {
-            var rowSrc = tpl.replace("${action}", actionMap[key]["action"]).replace("${fault}", "*").replace("${reaction}", actionMap[key]["reaction"]);
+        for (var key in nodeRelation) {
+            var rowSrc = tpl.replace("${action}", nodeRelation[key]["action"]).replace("${fault}", "*").replace("${reaction}", nodeRelation[key]["reaction"]);
+            var row = $(rowSrc);
+            row.children().css(style);
+            table.append(row);
+        }
+    };
+
+    DScriptEditorPlugIn.prototype.UpdateActionRelationTable = function (actionRelation) {
+        console.log(actionRelation);
+        var table = this.ActionRelationTable;
+        var tableWidth = table.parent().width();
+        var header = $("<tr><th>action</th><th>fault</th><th>reaction</th></tr>");
+        var tpl = "<tr><td>${action}</td><td>${fault}</td><td>${reaction}</td></tr>";
+        var style = {
+            maxWidth: tableWidth / 3,
+            minWidth: tableWidth / 3,
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            textAlign: 'center',
+            whiteSpace: 'nowrap'
+        };
+        table.children().remove();
+        header.children().css(style);
+        table.append(header);
+        for (var key in actionRelation) {
+            var tmp = actionRelation[key];
+            var rowSrc = tpl.replace("${action}", tmp["action"]["func"] + " in " + tmp["action"]["node"]).replace("${fault}", tmp["fault"]).replace("${reaction}", tmp["reaction"]["func"] + " in " + tmp["reaction"]["node"]);
             var row = $(rowSrc);
             row.children().css(style);
             table.append(row);
@@ -245,17 +272,23 @@ var DScriptEditorPlugIn = (function (_super) {
         this.RootNodeModel = nodeModel;
         this.Highlighter.ClearHighlight();
         var genflag = false;
-        var Generator = new DScriptGenerator();
+
         try  {
-            var script = Generator.codegen(orig_ElementMap, nodeModel, ASNData, genflag);
-            var DScriptMap = new DScriptActionMap(nodeModel);
-            var actionMap = DScriptMap.GetBody();
+            var generator = new DScriptGenerator();
+            var script = generator.codegen(orig_ElementMap, nodeModel, ASNData, genflag);
+
+            var dscriptActionMap = new DScriptActionMap(nodeModel);
+            var nodeRelation = dscriptActionMap.GetNodeRelation();
+            var actionRelation = dscriptActionMap.GetActionRelation();
             __dscript__.script.main = script;
-            __dscript__.meta.actionmap = actionMap;
-            this.UpdateActionTable(actionMap);
-            this.UpdateLineComment(this.ASNEditor, this.Widgets, Generator);
+            __dscript__.meta.actionmap = nodeRelation;
+            this.UpdateNodeRelationTable(nodeRelation);
+            this.UpdateActionRelationTable(actionRelation);
+            this.UpdateLineComment(this.ASNEditor, this.Widgets, generator);
             this.DScriptEditor.setValue(script);
         } catch (e) {
+            console.log("error occured in DScript Generation");
+            console.log(e);
         }
 
         this.ASNEditor.refresh();

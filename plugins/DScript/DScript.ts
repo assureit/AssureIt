@@ -74,7 +74,8 @@ class DScriptMenuPlugIn extends AssureIt.MenuBarContentsPlugIn {
 class DScriptEditorPlugIn extends AssureIt.ActionPlugIn {
 	ASNEditor; //CodeMirror Object
 	DScriptEditor; //CodeMirror Object
-	ActionTable: JQuery;
+	NodeRelationTable: JQuery;
+	ActionRelationTable: JQuery;
 	PaneManager: DScriptPaneManager;
 
 	Widgets: any[]; /*FIXME*/
@@ -98,7 +99,8 @@ class DScriptEditorPlugIn extends AssureIt.ActionPlugIn {
 			placeholder: "Generated DScript code goes here.",
 			lineWrapping: true,
 		});
-		this.ActionTable = $("<table>");
+		this.NodeRelationTable = $("<table>");
+		this.ActionRelationTable = $("<table>");
 
 		this.Highlighter = new ErrorHighlight(this.ASNEditor);
 		var self = this;
@@ -117,9 +119,12 @@ class DScriptEditorPlugIn extends AssureIt.ActionPlugIn {
 			background : 'rgba(255, 255, 255, 0.85)',
 		});
 
-		var paneManager = new DScriptPaneManager(wrapper, this.ActionTable.css('height', '0'), true);
-		paneManager.AddWidgetOnTop(this.ActionTable, $(this.ASNEditor.getWrapperElement()));
-		paneManager.AddWidgetOnRight($(this.ASNEditor.getWrapperElement()), $(this.DScriptEditor.getWrapperElement()));
+//		var paneManager = new DScriptPaneManager(wrapper, this.NodeRelationTable.css('height', '0'), true);
+// 		paneManager.AddWidgetOnTop(this.NodeRelationTable, $(this.ASNEditor.getWrapperElement()));
+// 		paneManager.AddWidgetOnRight($(this.ASNEditor.getWrapperElement()), $(this.DScriptEditor.getWrapperElement()));
+		var paneManager = new DScriptPaneManager(wrapper, this.ActionRelationTable.css('height', '0'), true);
+ 		paneManager.AddWidgetOnTop(this.ActionRelationTable, $(this.ASNEditor.getWrapperElement()));
+ 		paneManager.AddWidgetOnRight($(this.ASNEditor.getWrapperElement()), $(this.DScriptEditor.getWrapperElement()));
 		this.PaneManager = paneManager;
 	}
 
@@ -204,8 +209,8 @@ class DScriptEditorPlugIn extends AssureIt.ActionPlugIn {
 		});
 	}
 
-	UpdateActionTable(actionMap): void {
-		var table: JQuery = this.ActionTable;
+	UpdateNodeRelationTable(nodeRelation): void {
+		var table: JQuery = this.NodeRelationTable;
 		var tableWidth: number = table.parent().width();
 		var header: JQuery = $("<tr><th>action</th><th>fault</th><th>reaction</th></tr>");
 		var tpl: string = "<tr><td>${action}</td><td>${fault}</td><td>${reaction}</td></tr>";
@@ -220,11 +225,40 @@ class DScriptEditorPlugIn extends AssureIt.ActionPlugIn {
 		table.children().remove();
 		header.children().css(style);
 		table.append(header);
-		for (var key in actionMap) {
+		for (var key in nodeRelation) {
 			var rowSrc: string = tpl
-				.replace("${action}", actionMap[key]["action"])
+				.replace("${action}", nodeRelation[key]["action"])
 				.replace("${fault}", "*")
-				.replace("${reaction}", actionMap[key]["reaction"]);
+				.replace("${reaction}", nodeRelation[key]["reaction"]);
+			var row: JQuery = $(rowSrc);
+			row.children().css(style);
+			table.append(row);
+		}
+	}
+
+	UpdateActionRelationTable(actionRelation): void {
+		console.log(actionRelation);
+		var table: JQuery = this.ActionRelationTable;
+		var tableWidth: number = table.parent().width();
+		var header: JQuery = $("<tr><th>action</th><th>fault</th><th>reaction</th></tr>");
+		var tpl: string = "<tr><td>${action}</td><td>${fault}</td><td>${reaction}</td></tr>";
+		var style = {
+            maxWidth: tableWidth / 3,
+			minWidth: tableWidth / 3,
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+			textAlign: 'center',
+            whiteSpace: 'nowrap',
+		}
+		table.children().remove();
+		header.children().css(style);
+		table.append(header);
+		for (var key in actionRelation) {
+			var tmp = actionRelation[key];
+			var rowSrc: string = tpl
+				.replace("${action}", tmp["action"]["func"] + " in " + tmp["action"]["node"])
+				.replace("${fault}", tmp["fault"])
+				.replace("${reaction}", tmp["reaction"]["func"] + " in " + tmp["reaction"]["node"]);
 			var row: JQuery = $(rowSrc);
 			row.children().css(style);
 			table.append(row);
@@ -260,19 +294,25 @@ class DScriptEditorPlugIn extends AssureIt.ActionPlugIn {
 		this.RootNodeModel = nodeModel;
 		this.Highlighter.ClearHighlight();
 		var genflag: boolean = false; //generate main function flag
-		var Generator: DScriptGenerator = new DScriptGenerator();
+
 		try {
-			var script = Generator.codegen(orig_ElementMap, nodeModel, ASNData, genflag);
- 			var DScriptMap: DScriptActionMap = new DScriptActionMap(nodeModel);
-			var actionMap = DScriptMap.GetBody();
+			var generator: DScriptGenerator = new DScriptGenerator();
+			var script = generator.codegen(orig_ElementMap, nodeModel, ASNData, genflag);
+
+ 			var dscriptActionMap: DScriptActionMap = new DScriptActionMap(nodeModel);
+			var nodeRelation = dscriptActionMap.GetNodeRelation();
+			var actionRelation = dscriptActionMap.GetActionRelation();
  			__dscript__.script.main = script;
- 			__dscript__.meta.actionmap = actionMap;
- 			this.UpdateActionTable(actionMap);
-			this.UpdateLineComment(this.ASNEditor, this.Widgets, Generator);
+ 			__dscript__.meta.actionmap = nodeRelation;
+ 			this.UpdateNodeRelationTable(nodeRelation);
+ 			this.UpdateActionRelationTable(actionRelation);
+			this.UpdateLineComment(this.ASNEditor, this.Widgets, generator);
 			this.DScriptEditor.setValue(script);
 		}
 		catch(e) {
-			//TODO
+			//TODO:
+			console.log("error occured in DScript Generation");
+			console.log(e);
 		}
 
 		this.ASNEditor.refresh();
