@@ -101,7 +101,6 @@ var DScriptEditorPlugIn = (function (_super) {
         });
 
         var wrapper = $("#dscript-editor-wrapper");
-        wrapper.append(this.ASNEditor.getWrapperElement()).append(this.DScriptEditor.getWrapperElement()).append(this.ActionTable);
         wrapper.css({
             position: 'absolute',
             top: '5%',
@@ -111,6 +110,11 @@ var DScriptEditorPlugIn = (function (_super) {
             display: 'none',
             background: 'rgba(255, 255, 255, 0.85)'
         });
+
+        var paneManager = new DScriptPaneManager(wrapper, this.ActionTable.css('height', '0'), true);
+        paneManager.AddWidgetOnTop(this.ActionTable, $(this.ASNEditor.getWrapperElement()));
+        paneManager.AddWidgetOnRight($(this.ASNEditor.getWrapperElement()), $(this.DScriptEditor.getWrapperElement()));
+        this.PaneManager = paneManager;
     }
     DScriptEditorPlugIn.prototype.Delegate = function (caseViewer, case0, serverApi) {
         this.RootNodeModel = case0.ElementTop;
@@ -168,6 +172,7 @@ var DScriptEditorPlugIn = (function (_super) {
         self.DScriptEditor.refresh();
         self.GenerateCode();
     };
+
     DScriptEditorPlugIn.prototype.UpdateLineComment = function (editor, widgets, Generator) {
         editor.operation(function () {
             for (var i = 0; i < widgets.length; ++i) {
@@ -188,7 +193,7 @@ var DScriptEditorPlugIn = (function (_super) {
     };
 
     DScriptEditorPlugIn.prototype.UpdateActionTable = function (actionMap) {
-        var table = $('#dscript-action-table');
+        var table = this.ActionTable;
         var tableWidth = table.parent().width();
         var header = $("<tr><th>action</th><th>fault</th><th>reaction</th></tr>");
         var tpl = "<tr><td>${action}</td><td>${fault}</td><td>${reaction}</td></tr>";

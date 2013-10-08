@@ -4,6 +4,7 @@
 /// <reference path="../../src/EditorUtil.ts" />
 /// <reference path="./DScriptGenerator.ts" />
 /// <reference path="./DScriptActionMap.ts" />
+/// <reference path="./DScriptPaneManager.ts" />
 
 var __dscript__ = {
 	script : {
@@ -74,6 +75,7 @@ class DScriptEditorPlugIn extends AssureIt.ActionPlugIn {
 	ASNEditor; //CodeMirror Object
 	DScriptEditor; //CodeMirror Object
 	ActionTable: JQuery;
+	PaneManager: DScriptPaneManager;
 
 	Widgets: any[]; /*FIXME*/
 	Highlighter: ErrorHighlight;
@@ -105,83 +107,20 @@ class DScriptEditorPlugIn extends AssureIt.ActionPlugIn {
 		});
 
 		var wrapper = $("#dscript-editor-wrapper");
-		wrapper
-			.append(this.ASNEditor.getWrapperElement())
-			.append(this.DScriptEditor.getWrapperElement())
-			.append(this.ActionTable);
 		wrapper.css({
-			position: 'absolute',
-			top: '5%',
-			left: '5%',
-			height: '90%',
-			width: '90%',
-			display: 'none',
-			background: 'rgba(255, 255, 255, 0.85)',
+			position : 'absolute',
+			top : '5%',
+			left : '5%',
+			height : '90%',
+			width : '90%',
+			display : 'none',
+			background : 'rgba(255, 255, 255, 0.85)',
 		});
 
-		/* FIXME Replace it with sophisticated style. */
-		// 		if (DScriptPlugIn.Use3Pane) {
-		// 			$(this.ASNEditor.getWrapperElement()).css({
-		// 				width: '100%',
-		// 				height: '100%',
-		// 			});
-		// 			$(this.DScriptEditor.getWrapperElement()).css({
-		// 				width: '100%',
-		// 				height: '100%',
-		// 			});
-		// 			this.action_table.css({
-		// 				width: '100%',
-		// 			});
-		// 			$('#dscript-editor-left').parent()
-		// 				.css({
-		// 					width: '50%',
-		// 					height: '50%',
-		// 					float: 'left',
-		// 					display: 'block',
-		// 				});
-		// 			$('#dscript-editor-right').parent()
-		// 				.css({
-		// 					width: '50%',
-		// 					height: '50%',
-		// 					float: 'right',
-		// 					display: 'block',
-		// 				});
-		// 			$('#dscript-action-table').parent()
-		// 				.css({
-		// 					width: '100%',
-		// 					height: '50%',
-		// 					display: 'block',
-		// 					clear: 'both',
-		// 					borderTop: 'solid 1px',
-		// 				});
-		// 		}
-		// 		else {
-		// 			$(this.DScriptEditor.getWrapperElement()).css({
-		// 				width: '100%',
-
-		// 				height: '100%',
-		// 			});
-		// 			this.action_table.css({
-		// 				width: '100%',
-		// 			});
-		// 			$('#dscript-editor-left').parent()
-		// 				.css({
-		// 					display: 'none',
-		// 				});
-		// 			$('#dscript-editor-right').parent()
-		// 				.css({
-		// 					width: '50%',
-		// 					height: '100%',
-		// 					float: 'right',
-		// 					display: 'block',
-		// 				});
-		// 			$('#dscript-action-table').parent()
-		// 				.css({
-		// 					width: '50%',
-		// 					display: 'block',
-		// 					float: 'left',
-		// 				});
-		// 		}
+		var paneManager = new DScriptPaneManager(wrapper, this.ActionTable.css('height', '0'), true);
+		paneManager.AddWidgetOnTop(this.ActionTable, $(this.ASNEditor.getWrapperElement()));
+		paneManager.AddWidgetOnRight($(this.ASNEditor.getWrapperElement()), $(this.DScriptEditor.getWrapperElement()));
+		this.PaneManager = paneManager;
 	}
 
 	Delegate(caseViewer: AssureIt.CaseViewer, case0: AssureIt.Case, serverApi: AssureIt.ServerAPI): boolean {
@@ -245,6 +184,7 @@ class DScriptEditorPlugIn extends AssureIt.ActionPlugIn {
 		self.DScriptEditor.refresh();
 		self.GenerateCode();
 	}
+
 	UpdateLineComment(editor: any, widgets: any[], Generator: DScriptGenerator): void {
 		editor.operation(function() {
 			for (var i: number = 0; i < widgets.length; ++i) {
@@ -265,7 +205,7 @@ class DScriptEditorPlugIn extends AssureIt.ActionPlugIn {
 	}
 
 	UpdateActionTable(actionMap): void {
-		var table: JQuery = $('#dscript-action-table');
+		var table: JQuery = this.ActionTable;
 		var tableWidth: number = table.parent().width();
 		var header: JQuery = $("<tr><th>action</th><th>fault</th><th>reaction</th></tr>");
 		var tpl: string = "<tr><td>${action}</td><td>${fault}</td><td>${reaction}</td></tr>";
