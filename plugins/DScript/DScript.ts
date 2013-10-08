@@ -366,7 +366,7 @@ class DScriptSideMenuPlugIn extends AssureIt.SideMenuPlugIn {
 
 	constructor(plugInManager: AssureIt.PlugInManager, editorPlugIn: DScriptEditorPlugIn) {
 		super(plugInManager);
-		this.AssureItAgentAPI = new AssureIt.AssureItAgentAPI("http://localhost:8081");   // TODO: change agent path
+		this.AssureItAgentAPI = null;
 		this.editorPlugIn = editorPlugIn;
 	}
 
@@ -375,6 +375,8 @@ class DScriptSideMenuPlugIn extends AssureIt.SideMenuPlugIn {
 	}
 
 	AddMenu(caseViewer: AssureIt.CaseViewer, Case0: AssureIt.Case, serverApi: AssureIt.ServerAPI): AssureIt.SideMenuModel {
+		this.AssureItAgentAPI = new AssureIt.AssureItAgentAPI(serverApi.agentpath);
+
 		var self = this;
 		return new AssureIt.SideMenuModel('#', 'Deploy', "deploy", "glyphicon-list-alt"/* TODO: change icon */, (ev:Event)=>{
 			self.editorPlugIn.rootCaseModel = Case0.ElementTop;
@@ -388,8 +390,13 @@ int GetDataFromRec(String location, String type) {\n\
 }\n\
 ",
 			};
-			console.log(__dscript__);
-			this.AssureItAgentAPI.Deploy(__dscript__);
+
+			try {
+				this.AssureItAgentAPI.Deploy(__dscript__);
+			}
+			catch(e) {
+				alert("Assure-It Agent is not active.");
+			}
 		});
 	}
 }

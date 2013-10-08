@@ -282,7 +282,7 @@ var DScriptSideMenuPlugIn = (function (_super) {
     __extends(DScriptSideMenuPlugIn, _super);
     function DScriptSideMenuPlugIn(plugInManager, editorPlugIn) {
         _super.call(this, plugInManager);
-        this.AssureItAgentAPI = new AssureIt.AssureItAgentAPI("http://localhost:8081");
+        this.AssureItAgentAPI = null;
         this.editorPlugIn = editorPlugIn;
     }
     DScriptSideMenuPlugIn.prototype.IsEnabled = function (caseViewer, Case0, serverApi) {
@@ -291,6 +291,8 @@ var DScriptSideMenuPlugIn = (function (_super) {
 
     DScriptSideMenuPlugIn.prototype.AddMenu = function (caseViewer, Case0, serverApi) {
         var _this = this;
+        this.AssureItAgentAPI = new AssureIt.AssureItAgentAPI(serverApi.agentpath);
+
         var self = this;
         return new AssureIt.SideMenuModel('#', 'Deploy', "deploy", "glyphicon-list-alt", function (ev) {
             self.editorPlugIn.rootCaseModel = Case0.ElementTop;
@@ -304,8 +306,12 @@ int GetDataFromRec(String location, String type) {\n\
 }\n\
 "
             };
-            console.log(__dscript__);
-            _this.AssureItAgentAPI.Deploy(__dscript__);
+
+            try  {
+                _this.AssureItAgentAPI.Deploy(__dscript__);
+            } catch (e) {
+                alert("Assure-It Agent is not active.");
+            }
         });
     };
     return DScriptSideMenuPlugIn;
