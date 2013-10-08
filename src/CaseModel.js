@@ -162,9 +162,8 @@ var AssureIt;
     AssureIt.NodeModel = NodeModel;
 
     var Case = (function () {
-        function Case(CaseName, oldsummary, oldasn, CaseId, CommitId, pluginManager) {
+        function Case(CaseName, summaryString, oldasn, CaseId, CommitId, pluginManager) {
             this.CaseName = CaseName;
-            this.oldsummary = oldsummary;
             this.oldasn = oldasn;
             this.CaseId = CaseId;
             this.CommitId = CommitId;
@@ -175,6 +174,7 @@ var AssureIt;
             this.IdCounters = [{}, {}, {}, {}, {}];
             this.ElementMap = {};
             this.TranslationMap = {};
+            this.oldsummary = JSON.parse(summaryString);
         }
         Case.prototype.DeleteNodesRecursive = function (root) {
             var Children = root.Children;

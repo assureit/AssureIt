@@ -191,15 +191,17 @@ module AssureIt {
 		ElementTop : NodeModel;
 		ElementMap : { [index: string]: NodeModel};
 		TranslationMap : { [index: string]: string};
+		oldsummary: any;
 
 		private isModified : boolean = false;
 		isEditable : boolean = false;
 		isLatest   : boolean = true;
 
-		constructor(public CaseName: string, public oldsummary: any, public oldasn: string, public CaseId: number, public CommitId: number, public pluginManager: PlugInManager) {
+		constructor(public CaseName: string, summaryString: string, public oldasn: string, public CaseId: number, public CommitId: number, public pluginManager: PlugInManager) {
 			this.IdCounters = [{}, {}, {}, {}, {}];
 			this.ElementMap = {};
 			this.TranslationMap = {};
+			this.oldsummary = JSON.parse(summaryString);
 		}
 
 		DeleteNodesRecursive(root : NodeModel) : void {
