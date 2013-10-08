@@ -259,18 +259,21 @@ var DScriptEditorPlugIn = (function (_super) {
         this.highlighter.ClearHighlight();
         var genflag = false;
         var Generator = new DScriptGenerator();
-        var script = Generator.codegen(orig_ElementMap, caseModel, ASNData, genflag);
+        try  {
+            var script = Generator.codegen(orig_ElementMap, caseModel, ASNData, genflag);
 
-        var DScriptMap = new DScriptActionMap(caseModel);
-        var actionMap = DScriptMap.GetBody();
-        __dscript__.script.main = script;
-        __dscript__.meta.actionmap = actionMap;
-        this.updateActionTable(actionMap);
-        this.updateLineComment(this.editor_left, this.widgets, Generator);
-        this.editor_right.setValue(script);
+            var DScriptMap = new DScriptActionMap(caseModel);
+            var actionMap = DScriptMap.GetBody();
+            __dscript__.script.main = script;
+            __dscript__.meta.actionmap = actionMap;
+            this.updateActionTable(actionMap);
+            this.updateLineComment(this.editor_left, this.widgets, Generator);
+            this.editor_right.setValue(script);
 
-        this.editor_left.refresh();
-        this.editor_right.refresh();
+            this.editor_left.refresh();
+            this.editor_right.refresh();
+        } catch (e) {
+        }
     };
     return DScriptEditorPlugIn;
 })(AssureIt.ActionPlugIn);
