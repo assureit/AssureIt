@@ -53,8 +53,8 @@ class SearchWordKeyPlugIn extends AssureIt.ShortcutKeyPlugIn {
 	caseViewer: AssureIt.CaseViewer;
 	currentNodeColor: {[index: string]: string}[] = [];
 	HitNodes: AssureIt.NodeModel[] = [];
-	SearchStarted: boolean;
 	HasStarted: boolean;
+	FirstMove: boolean = false;
 	Keyword: string;
 
 	constructor(public plugInManager: AssureIt.PlugInManager) {
@@ -68,25 +68,30 @@ class SearchWordKeyPlugIn extends AssureIt.ShortcutKeyPlugIn {
 			if (e.ctrlKey) {
 				if (e.keyCode == 70/*f*/) {
 					e.preventDefault();
-					if ($('#searchform').length != 1) {
+					if ($('.navbar-search').length != 1) {
 						console.log("here");
 						this.CreateSearchWindow();
-						$('#searchform').show(2000);
-						$('#searchform input:first').focus();
+						$('.navbar-search').show(2000);
+						$('.navbar-search input:first').focus();
 						$('#searchbutton').click((ev: JQueryEventObject)=> {
 							ev.preventDefault();
 							if (!this.HasStarted) {
-								this.SearchStarted = false;
-								this.Search(Case0, caseViewer,serverApi, this.SearchStarted);
+								this.Search(Case0, caseViewer,serverApi);
 								this.HasStarted = true;
 							} else {
-								if ($('#searchform input:first').val() != this.Keyword) {
+								if ($('.navbar-search input:first').val() != this.Keyword) {
+									this.FirstMove = true;
 									this.Color(this.HitNodes, this.currentNodeColor, caseViewer, true);
 									$('body').unbind("keydown",this.Search.controllSearch);
 									this.HitNodes = [];
 									this.currentNodeColor = [];
-									console.log($('#searchform input:first').val());
-									this.HasStarted = false;
+									console.log('before firstmove search');
+									this.Search(Case0, caseViewer, serverApi);
+									if (this.HitNodes.length == 0) {
+										this.HasStarted = false;
+									}
+
+									console.log($('.navbar-search input:first').val());
 								}
 							}
 						});
@@ -97,8 +102,8 @@ class SearchWordKeyPlugIn extends AssureIt.ShortcutKeyPlugIn {
 		return true;
 	}
 
-	Search(Case0: AssureIt.Case, caseViewer: AssureIt.CaseViewer ,serverApi: AssureIt.ServerAPI, SearchStarted: boolean): void {
-		this.Keyword = $('#searchform input:first').val();
+	Search(Case0: AssureIt.Case, caseViewer: AssureIt.CaseViewer ,serverApi: AssureIt.ServerAPI): void {
+		this.Keyword = $('.navbar-search input:first').val();
 		var nodeIndex: number = 0;
 		var moveFlag: boolean = false;
 		var TopNodeModel: AssureIt.NodeModel = Case0.ElementTop;
@@ -106,6 +111,8 @@ class SearchWordKeyPlugIn extends AssureIt.ShortcutKeyPlugIn {
 		if (this.Keyword == "") {
 			return;
 		}
+
+		console.log('here is code');
 
 		console.log(TopNodeModel.SearchNode(this.Keyword, this.HitNodes));
 
@@ -125,56 +132,103 @@ class SearchWordKeyPlugIn extends AssureIt.ShortcutKeyPlugIn {
 
 		console.log('X='+ destinationX + 'Y=' + destinationY);
 		console.log("start moving");
-		this.Move(destinationX, destinationY, 100, ()=>{});
+		this.Move(destinationX, destinationY, 100, ()=>{
+			this.FirstMove = false;
+		});
 		CaseMap.SVGShape.SetColor("#ffff00", "#ff4500");
-		this.SearchStarted = true;
 
 		var controllSearch = (e: JQueryEventObject)=> {
 			if (e.keyCode == 81/*q*/) {
 				console.log('quitting');
 				$('body').unbind("keydown",controllSearch);
 				this.Color(this.HitNodes, this.currentNodeColor, caseViewer, true);
-				$('#searchform').remove();
+				$('.navbar-search').remove();
 				this.HitNodes = [];
 				this.currentNodeColor = [];
 				this.HasStarted = false;
-				this.SearchStarted = false;
 			}
 
-			if (e.keyCode == 13/*Enter*/) {
-				console.log("pushed enter button");
-				if (!moveFlag) {
-					if (this.HitNodes.length == 1) {
-						return;
-					}
-
-					nodeIndex++;
-					if (nodeIndex == this.HitNodes.length) {
-						nodeIndex = 0;
-					}
-
-					NodeLabel    = this.HitNodes[nodeIndex].Label;
-					CaseMap      = caseViewer.ViewMap[NodeLabel];
-					NodePosX     = CaseMap.AbsX;
-					NodePosY     = CaseMap.AbsY;
-					currentHTML  = CaseMap.HTMLDoc;
-					destinationX = screenManager.ConvertX(NodePosX, currentHTML);
-					destinationY = screenManager.ConvertY(NodePosY, currentHTML);
-
-					console.log('X='+ destinationX + 'Y=' + destinationY);
-					moveFlag = true;
-
-					this.Move(destinationX, destinationY, 100, ()=>{
-						moveFlag = false;
-
-						if (nodeIndex == 0) {
-							caseViewer.ViewMap[this.HitNodes[this.HitNodes.length-1].Label].SVGShape.SetColor("#ffff00", "#ffff00");
-						} else {
-							caseViewer.ViewMap[this.HitNodes[nodeIndex-1].Label].SVGShape.SetColor("#ffff00", "#ffff00");
+			if (!e.shiftKey) {
+				if (e.keyCode == 13/*Enter*/) {
+					console.log("pushed enter button");
+					if (!moveFlag) {
+						if (this.HitNodes.length == 1) {
+							return;
 						}
-						CaseMap.SVGShape.SetColor("#ffff00", "#ff4500");
-					});
-					console.log("after calling Move");
+
+						nodeIndex++;
+						if (nodeIndex == this.HitNodes.length) {
+							nodeIndex = 0;
+						}
+
+						NodeLabel    = this.HitNodes[nodeIndex].Label;
+						CaseMap      = caseViewer.ViewMap[NodeLabel];
+						NodePosX     = CaseMap.AbsX;
+						NodePosY     = CaseMap.AbsY;
+						currentHTML  = CaseMap.HTMLDoc;
+						destinationX = screenManager.ConvertX(NodePosX, currentHTML);
+						destinationY = screenManager.ConvertY(NodePosY, currentHTML);
+
+						console.log('X='+ destinationX + 'Y=' + destinationY);
+						moveFlag = true;
+
+						this.Move(destinationX, destinationY, 100, ()=>{
+							moveFlag = false;
+
+							if (nodeIndex == 0) {
+								caseViewer.ViewMap[this.HitNodes[this.HitNodes.length-1].Label].SVGShape.SetColor("#ffff00", "#ffff00");
+							} else {
+								caseViewer.ViewMap[this.HitNodes[nodeIndex-1].Label].SVGShape.SetColor("#ffff00", "#ffff00");
+							}
+
+							if (!this.FirstMove) {
+								console.log('here for one');
+								CaseMap.SVGShape.SetColor("#ffff00", "#ff4500");
+							}
+						});
+						console.log("after calling Move");
+					}
+				}
+			} else {
+				if (e.keyCode == 13/*Enter*/) {
+					console.log("pushed enter button");
+					if (!moveFlag) {
+						if (this.HitNodes.length == 1) {
+							return;
+						}
+
+						nodeIndex--;
+						if (nodeIndex == -1) {
+							nodeIndex = this.HitNodes.length - 1 ;
+						}
+
+						NodeLabel    = this.HitNodes[nodeIndex].Label;
+						CaseMap      = caseViewer.ViewMap[NodeLabel];
+						NodePosX     = CaseMap.AbsX;
+						NodePosY     = CaseMap.AbsY;
+						currentHTML  = CaseMap.HTMLDoc;
+						destinationX = screenManager.ConvertX(NodePosX, currentHTML);
+						destinationY = screenManager.ConvertY(NodePosY, currentHTML);
+
+						console.log('X='+ destinationX + 'Y=' + destinationY);
+						moveFlag = true;
+
+						this.Move(destinationX, destinationY, 100, ()=>{
+							moveFlag = false;
+
+							if (nodeIndex == this.HitNodes.length - 1) {
+								caseViewer.ViewMap[this.HitNodes[0].Label].SVGShape.SetColor("#ffff00", "#ffff00");
+							} else {
+								caseViewer.ViewMap[this.HitNodes[nodeIndex+1].Label].SVGShape.SetColor("#ffff00", "#ffff00");
+							}
+
+							if (!this.FirstMove) {
+								console.log('here for one');
+								CaseMap.SVGShape.SetColor("#ffff00", "#ff4500");
+							}
+						});
+						console.log("after calling Move");
+					}
 				}
 			}
 		};
@@ -182,12 +236,15 @@ class SearchWordKeyPlugIn extends AssureIt.ShortcutKeyPlugIn {
 	}
 
 	CreateSearchWindow(): void {
-		$('<form name="searchform" id="searchform" action="#"><input type="text" name="keyword" class="keyword"/><input type="submit" value="search" name="searchbutton" id="searchbutton"/></form>').appendTo($('body'));
+		$('<form name="searchform" class="navbar-search"><input type="text" name="search-query" class="search-query" placeholder="Search"/><input type="submit" value="search" name="searchbutton" id="searchbutton"/> </form>').appendTo($('body'));
 
-		$('#searchform').css({width: '200px', background: '"url(./img/input.gif)" "left" "top" "no-repeat"',display: 'block', height: '24px', position: 'float', top: 0, left: 0});
 
-		$('.keyword').css({width: '156px', position: 'absolute', top: '3px', left: '12px', border: "'1px' 'solid' '#FFF'"});
 
+
+		$('.navbar-search').css({width: '200px', background: '"url(./img/input.gif)" "left" "top" "no-repeat"',display: 'block', height: '24px', position: 'float', top: 0, left: 0});
+//
+		$('.search-query').css({width: '156px', position: 'absolute', top: '3px', left: '12px', border: "'1px' 'solid' '#FFF'"});
+//
 		$('#searchbutton').css({position: 'absolute', top: '3px', left: '174px'});
 	}
 
@@ -195,7 +252,7 @@ class SearchWordKeyPlugIn extends AssureIt.ShortcutKeyPlugIn {
 		if (enterFlag) {
 			for (var i = 0; i < HitNodes.length; i++) {
 				if ( i == 0) {
-					console.log('iicolor is ..' + this.currentNodeColor[i]['fill'] + 'and '+ this.currentNodeColor[i]['stroke']);
+					console.log('iicolor is ..' + this.currentNodeColor[i]['fill'] + 'and  '+ this.currentNodeColor[i]['stroke']);
 				}
 				var thisNodeLabel: string = HitNodes[i].Label;
 				caseViewer.ViewMap[thisNodeLabel].SVGShape.SetColor(this.currentNodeColor[i]["fill"], this.currentNodeColor[i]["stroke"]);
