@@ -101,6 +101,7 @@ class MonitorNode {
 	Type: string;
 	Condition: string;
 	LatestData: any;
+	PastData: any[];
 	Status: boolean;
 	EvidenceNode: AssureIt.NodeModel;
 
@@ -109,6 +110,7 @@ class MonitorNode {
 		this.Type = Type;
 		this.Condition = Condition;
 		this.LatestData = null;
+		this.PastData = [];
 		this.Status = true;
 		this.EvidenceNode = EvidenceNode;
 	}
@@ -125,6 +127,16 @@ class MonitorNode {
 		this.Condition = condition;
 	}
 
+	UpdatePastData(latestData: any) {
+		if(this.PastData.length < 10) {
+			this.PastData.unshift(latestData);
+		}
+		else {
+			this.PastData.pop();
+			this.PastData.unshift(latestData);
+		}
+	}
+
 	UpdateLatestData(RECAPI: AssureIt.RECAPI) {
 		if(this.Status == true) {
 			var latestData = RECAPI.getLatestData(this.Location, this.Type);
@@ -134,7 +146,10 @@ class MonitorNode {
 				console.log("latest data is null");
 			}
 			else {
-				this.LatestData = latestData;
+				if(JSON.stringify(this.LatestData) != JSON.stringify(latestData)) {
+					this.LatestData = latestData;
+					this.UpdatePastData(latestData);
+				}
 			}
 		}
 	}
@@ -392,6 +407,7 @@ class MonitorMenuBarPlugIn extends AssureIt.MenuBarContentsPlugIn {
 		}
 		else {
 			element.append('<a href="#" ><img id="monitor-tgl" src="'+serverApi.basepath+'images/monitor.png" title="Remove monitor" alt="monitor-tgl" /></a>');
+			element.append('<a href="#" ><img id="monitor-logs" src="'+serverApi.basepath+'images/log.png" title="Show logs" alt="monitor-logs" /></a>');
 		}
 
 		$('#monitor-tgl').unbind('click');
@@ -402,6 +418,25 @@ class MonitorMenuBarPlugIn extends AssureIt.MenuBarContentsPlugIn {
 			else {
 				monitorManager.RemoveMonitor(caseModel.Label);
 			}
+		});
+
+		$('#monitor-logs').unbind('mousedown');
+		$('#monitor-logs').unbind('mouseup');
+		$('#monitor-logs').mousedown(function() {
+			var monitorNode: MonitorNode = monitorManager.MonitorNodeMap[caseModel.Label];
+			var p: string = "";
+			for(var i: number = 0; i < monitorNode.PastData.length; i++) {
+				p += '<p align="center">'
+					+ JSON.stringify(monitorNode.PastData[i])
+					+ '</p>';
+			}
+
+			var $logs = $('<div id="logs">'+p+'</div>').css("font-size", "xx-small");
+			$logs.offset({top: 30, left: 0});
+			$logs.appendTo(element);
+		});
+		$('#monitor-logs').mouseup(function() {
+			$('#logs').remove();
 		});
 
 		return true;

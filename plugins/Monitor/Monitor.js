@@ -93,6 +93,7 @@ var MonitorNode = (function () {
         this.Type = Type;
         this.Condition = Condition;
         this.LatestData = null;
+        this.PastData = [];
         this.Status = true;
         this.EvidenceNode = EvidenceNode;
     }
@@ -108,6 +109,15 @@ var MonitorNode = (function () {
         this.Condition = condition;
     };
 
+    MonitorNode.prototype.UpdatePastData = function (latestData) {
+        if (this.PastData.length < 10) {
+            this.PastData.unshift(latestData);
+        } else {
+            this.PastData.pop();
+            this.PastData.unshift(latestData);
+        }
+    };
+
     MonitorNode.prototype.UpdateLatestData = function (RECAPI) {
         if (this.Status == true) {
             var latestData = RECAPI.getLatestData(this.Location, this.Type);
@@ -115,7 +125,10 @@ var MonitorNode = (function () {
             if (latestData == null) {
                 console.log("latest data is null");
             } else {
-                this.LatestData = latestData;
+                if (JSON.stringify(this.LatestData) != JSON.stringify(latestData)) {
+                    this.LatestData = latestData;
+                    this.UpdatePastData(latestData);
+                }
             }
         }
     };
@@ -342,6 +355,7 @@ var MonitorMenuBarPlugIn = (function (_super) {
             element.append('<a href="#" ><img id="monitor-tgl" src="' + serverApi.basepath + 'images/monitor.png" title="Set monitor" alt="monitor-tgl" /></a>');
         } else {
             element.append('<a href="#" ><img id="monitor-tgl" src="' + serverApi.basepath + 'images/monitor.png" title="Remove monitor" alt="monitor-tgl" /></a>');
+            element.append('<a href="#" ><img id="monitor-logs" src="' + serverApi.basepath + 'images/log.png" title="Show logs" alt="monitor-logs" /></a>');
         }
 
         $('#monitor-tgl').unbind('click');
@@ -351,6 +365,23 @@ var MonitorMenuBarPlugIn = (function (_super) {
             } else {
                 monitorManager.RemoveMonitor(caseModel.Label);
             }
+        });
+
+        $('#monitor-logs').unbind('mousedown');
+        $('#monitor-logs').unbind('mouseup');
+        $('#monitor-logs').mousedown(function () {
+            var monitorNode = monitorManager.MonitorNodeMap[caseModel.Label];
+            var p = "";
+            for (var i = 0; i < monitorNode.PastData.length; i++) {
+                p += '<p align="center">' + JSON.stringify(monitorNode.PastData[i]) + '</p>';
+            }
+
+            var $logs = $('<div id="logs">' + p + '</div>').css("font-size", "xx-small");
+            $logs.offset({ top: 30, left: 0 });
+            $logs.appendTo(element);
+        });
+        $('#monitor-logs').mouseup(function () {
+            $('#logs').remove();
         });
 
         return true;
