@@ -175,7 +175,13 @@ var MonitorManager = (function () {
                     console.log("monitor:'" + key + "' is not registered");
                 }
 
-                monitorNode.UpdateLatestData(self.RECAPI);
+                try  {
+                    monitorNode.UpdateLatestData(self.RECAPI);
+                } catch (e) {
+                    self.RemoveAllMonitor();
+                    return;
+                }
+
                 if (monitorNode.LatestData == null)
                     continue;
 
@@ -214,6 +220,12 @@ var MonitorManager = (function () {
         delete this.MonitorNodeMap[label];
         if (Object.keys(this.MonitorNodeMap).length == 0) {
             this.StopMonitors();
+        }
+    };
+
+    MonitorManager.prototype.RemoveAllMonitor = function () {
+        for (var label in this.MonitorNodeMap) {
+            this.RemoveMonitor(label);
         }
     };
 

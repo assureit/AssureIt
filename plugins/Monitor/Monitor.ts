@@ -206,7 +206,14 @@ class MonitorManager {
 					console.log("monitor:'"+key+"' is not registered");
 				}
 
-				monitorNode.UpdateLatestData(self.RECAPI);
+				try {
+					monitorNode.UpdateLatestData(self.RECAPI);
+				}
+				catch(e) {
+					self.RemoveAllMonitor();
+					return;
+				}
+
 				if(monitorNode.LatestData == null) continue;
 
 				monitorNode.UpdateStatus();
@@ -245,6 +252,12 @@ class MonitorManager {
 		delete this.MonitorNodeMap[label];
 		if(Object.keys(this.MonitorNodeMap).length == 0) {
 			this.StopMonitors();
+		}
+	}
+
+	RemoveAllMonitor() {
+		for(var label in this.MonitorNodeMap) {
+			this.RemoveMonitor(label);
 		}
 	}
 
