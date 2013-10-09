@@ -7,7 +7,7 @@ var __extends = this.__extends || function (d, b) {
 var monitorManager = null;
 
 function extractTypeFromCondition(condition) {
-    var text = condition.replace(/\{/g, " ").replace(/\}/g, " ").replace(/\(/g, " ").replace(/\)/g, " ").replace(/<=/g, " ").replace(/>=/g, " ").replace(/</g, " ").replace(/>/g, " ");
+    var text = condition.replace(/\{/g, " ").replace(/\}/g, " ").replace(/\(/g, " ").replace(/\)/g, " ").replace(/==/g, " ").replace(/<=/g, " ").replace(/>=/g, " ").replace(/</g, " ").replace(/>/g, " ");
 
     var words = text.split(" ");
     var types = [];

@@ -13,6 +13,7 @@ function extractTypeFromCondition(condition: string): string {
 						.replace(/\}/g, " ")
 						.replace(/\(/g, " ")
 						.replace(/\)/g, " ")
+						.replace(/==/g, " ")
 						.replace(/<=/g, " ")
 						.replace(/>=/g, " ")
 						.replace(/</g, " ")
