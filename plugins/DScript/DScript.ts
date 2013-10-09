@@ -119,10 +119,10 @@ class DScriptEditorPlugIn extends AssureIt.ActionPlugIn {
 			background : 'rgba(255, 255, 255, 0.85)',
 		});
 
-//		var paneManager = new DScriptPaneManager(wrapper, this.ActionRelationTable.css('height', '0'), true);
-//  		paneManager.AddWidgetOnTop(this.ActionRelationTable, $(this.ASNEditor.getWrapperElement()));
-//  		paneManager.AddWidgetOnRight($(this.ASNEditor.getWrapperElement()), $(this.DScriptEditor.getWrapperElement()));
 		var paneManager = new DScriptPaneManager(wrapper, $(this.ASNEditor.getWrapperElement()));
+		paneManager.AddToOptionsList($(this.DScriptEditor.getWrapperElement()), "DScript Viewer");
+		paneManager.AddToOptionsList(this.NodeRelationTable, "Node Relation Table");
+		paneManager.AddToOptionsList(this.ActionRelationTable, "Action Relation Table");
 		this.PaneManager = paneManager;
 	}
 

@@ -3,10 +3,15 @@ var DScriptPaneManager = (function () {
         if (typeof keepStyle === "undefined") { keepStyle = false; }
         this.ParentWidget = parentWidget;
         this.Widgets = [widget0.get(0)];
+        this.Options = {};
 
         var frame = this.CreateFrame();
         ;
-        parentWidget.append(frame.append(widget0.addClass("managed-widget")));
+        if (widget0 != null) {
+            parentWidget.append(frame.append(widget0.addClass("managed-widget")));
+        } else {
+            parentWidget.append(this.CreateDefaultWidget());
+        }
         DScriptPaneManager.ExpandWidget(frame);
         if (!keepStyle)
             DScriptPaneManager.ExpandWidget(widget0);
@@ -21,6 +26,35 @@ var DScriptPaneManager = (function () {
         });
     };
 
+    DScriptPaneManager.prototype.AddToOptionsList = function (widget, name, overrideFlag) {
+        if (typeof overrideFlag === "undefined") { overrideFlag = false; }
+        if (name in this.Options && !overrideFlag) {
+            console.log("DScriptPaneManaer:Warning!! Cannot append the Option " + name);
+        } else {
+            DScriptPaneManager.ExpandWidget(widget);
+            this.Options[name] = widget;
+        }
+    };
+
+    DScriptPaneManager.prototype.CreateDefaultWidget = function () {
+        var defaultWidget = $("<div/>");
+        var self = this;
+        for (var key in self.Options) {
+            var newButton = $("<div/>");
+            newButton.text(key);
+            newButton.click(function () {
+                var frame = defaultWidget.parent();
+                var widget = self.Options[$(this).text()];
+                widget.addClass("managed-widget");
+                self.Widgets.push(widget.get(0));
+                frame.append(widget);
+                defaultWidget.remove();
+            });
+            defaultWidget.append(newButton);
+        }
+        return defaultWidget;
+    };
+
     DScriptPaneManager.prototype.CreateFrame = function () {
         var self = this;
         var newFrame = $("<div/>");
@@ -32,7 +66,7 @@ var DScriptPaneManager = (function () {
             console.log("click up");
             var widget = newFrame.children(".managed-widget");
             if (widget.length == 1 && self.Widgets.indexOf(widget.get(0)) != -1) {
-                self.AddWidgetOnBottom(widget, $("<div/>"));
+                self.AddWidgetOnBottom(widget, self.CreateDefaultWidget());
             }
         });
         var buttonDown = $("<div/>");
@@ -41,7 +75,7 @@ var DScriptPaneManager = (function () {
             console.log("click down");
             var widget = newFrame.children(".managed-widget");
             if (widget.length == 1 && self.Widgets.indexOf(widget.get(0)) != -1) {
-                self.AddWidgetOnTop(widget, $("<div/>"));
+                self.AddWidgetOnTop(widget, self.CreateDefaultWidget());
             }
         });
         var buttonLeft = $("<div/>");
@@ -50,7 +84,7 @@ var DScriptPaneManager = (function () {
             console.log("click left");
             var widget = newFrame.children(".managed-widget");
             if (widget.length == 1 && self.Widgets.indexOf(widget.get(0)) != -1) {
-                self.AddWidgetOnRight(widget, $("<div/>"));
+                self.AddWidgetOnRight(widget, self.CreateDefaultWidget());
             }
         });
         var buttonRight = $("<div/>");
@@ -59,7 +93,7 @@ var DScriptPaneManager = (function () {
             console.log("click right");
             var widget = newFrame.children(".managed-widget");
             if (widget.length == 1 && self.Widgets.indexOf(widget.get(0)) != -1) {
-                self.AddWidgetOnLeft(widget, $("<div/>"));
+                self.AddWidgetOnLeft(widget, self.CreateDefaultWidget());
             }
         });
 

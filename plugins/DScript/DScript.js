@@ -113,6 +113,9 @@ var DScriptEditorPlugIn = (function (_super) {
         });
 
         var paneManager = new DScriptPaneManager(wrapper, $(this.ASNEditor.getWrapperElement()));
+        paneManager.AddToOptionsList($(this.DScriptEditor.getWrapperElement()), "DScript Viewer");
+        paneManager.AddToOptionsList(this.NodeRelationTable, "Node Relation Table");
+        paneManager.AddToOptionsList(this.ActionRelationTable, "Action Relation Table");
         this.PaneManager = paneManager;
     }
     DScriptEditorPlugIn.prototype.Delegate = function (caseViewer, case0, serverApi) {
