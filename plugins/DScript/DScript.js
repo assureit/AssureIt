@@ -112,9 +112,7 @@ var DScriptEditorPlugIn = (function (_super) {
             background: 'rgba(255, 255, 255, 0.85)'
         });
 
-        var paneManager = new DScriptPaneManager(wrapper, this.ActionRelationTable.css('height', '0'), true);
-        paneManager.AddWidgetOnTop(this.ActionRelationTable, $(this.ASNEditor.getWrapperElement()));
-        paneManager.AddWidgetOnRight($(this.ASNEditor.getWrapperElement()), $(this.DScriptEditor.getWrapperElement()));
+        var paneManager = new DScriptPaneManager(wrapper, $(this.ASNEditor.getWrapperElement()));
         this.PaneManager = paneManager;
     }
     DScriptEditorPlugIn.prototype.Delegate = function (caseViewer, case0, serverApi) {
@@ -174,14 +172,14 @@ var DScriptEditorPlugIn = (function (_super) {
         self.GenerateCode();
     };
 
-    DScriptEditorPlugIn.prototype.UpdateLineComment = function (editor, widgets, Generator) {
+    DScriptEditorPlugIn.prototype.UpdateLineComment = function (editor, widgets, generator) {
         editor.operation(function () {
             for (var i = 0; i < widgets.length; ++i) {
                 editor.removeLineWidget(widgets[i]);
             }
             widgets.length = 0;
-            for (var i = 0; i < Generator.errorMessage.length; ++i) {
-                var error = Generator.errorMessage[i];
+            for (var i = 0; i < generator.errorMessage.length; ++i) {
+                var error = generator.errorMessage[i];
                 console.log(error);
 
                 var msg = document.createElement("div");
@@ -218,7 +216,6 @@ var DScriptEditorPlugIn = (function (_super) {
     };
 
     DScriptEditorPlugIn.prototype.UpdateActionRelationTable = function (actionRelation) {
-        console.log(actionRelation);
         var table = this.ActionRelationTable;
         var tableWidth = table.parent().width();
         var header = $("<tr><th>action</th><th>fault</th><th>reaction</th></tr>");
@@ -328,6 +325,7 @@ return (int)data.replaceAll(\"\\n\", \"\");\n\
                 _this.AssureItAgentAPI.Deploy(__dscript__);
             } catch (e) {
                 alert("Assure-It Agent is not active.");
+                console.log(e);
             }
         });
     };

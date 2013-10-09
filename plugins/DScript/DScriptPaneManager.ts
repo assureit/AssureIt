@@ -1,11 +1,14 @@
 class DScriptPaneManager {
-	Base: JQuery;
+	ParentWidget: JQuery;
 	Widgets: HTMLElement[];
- 	constructor(base: JQuery, widget0: JQuery, keepStyle: boolean = false) {
-		var frame: JQuery = $("<div/>");
-		base.append(frame.append(widget0));
-		this.Base = base;
+	BasePath: string;
+	
+ 	constructor(parentWidget: JQuery, widget0: JQuery, keepStyle: boolean = false) {
+		this.ParentWidget = parentWidget;
 		this.Widgets = [widget0.get(0)];
+
+		var frame: JQuery = this.CreateFrame();;
+		parentWidget.append(frame.append(widget0.addClass("managed-widget")));
 		DScriptPaneManager.ExpandWidget(frame);
 		if (!keepStyle) DScriptPaneManager.ExpandWidget(widget0);
  	}
@@ -20,14 +23,64 @@ class DScriptPaneManager {
 		});
 	}
 
+	private CreateFrame(): JQuery {
+		var self = this;
+		var newFrame: JQuery = $("<div/>");
+		newFrame.addClass("managed-frame");
+
+		var buttonUp: JQuery = $("<div/>");
+		buttonUp.addClass("simple-arrow-up");
+		buttonUp.click(function() {
+			console.log("click up");
+			var widget = newFrame.children(".managed-widget");
+			if (widget.length == 1 && self.Widgets.indexOf(widget.get(0)) != -1) {
+				self.AddWidgetOnBottom(widget, $("<div/>"));
+			}
+		});
+		var buttonDown: JQuery = $("<div/>");
+		buttonDown.addClass("simple-arrow-down");
+		buttonDown.click(function() {
+			console.log("click down");
+			var widget = newFrame.children(".managed-widget");
+			if (widget.length == 1 && self.Widgets.indexOf(widget.get(0)) != -1) {
+				self.AddWidgetOnTop(widget, $("<div/>"));
+			}
+		});
+		var buttonLeft: JQuery = $("<div/>");
+		buttonLeft.addClass("simple-arrow-left");
+		buttonLeft.click(function() {
+			console.log("click left");
+			var widget = newFrame.children(".managed-widget");
+			if (widget.length == 1 && self.Widgets.indexOf(widget.get(0)) != -1) {
+				self.AddWidgetOnRight(widget, $("<div/>"));
+			}
+		});
+		var buttonRight: JQuery = $("<div/>");
+		buttonRight.addClass("simple-arrow-right");
+		buttonRight.click(function() {
+			console.log("click right");
+			var widget = newFrame.children(".managed-widget");
+			if (widget.length == 1 && self.Widgets.indexOf(widget.get(0)) != -1) {
+				self.AddWidgetOnLeft(widget, $("<div/>"));
+			}
+		});
+
+		newFrame.append(buttonUp);
+		newFrame.append(buttonDown);
+		newFrame.append(buttonLeft);
+		newFrame.append(buttonRight);
+		return newFrame;
+	}
+
 	private AddWidgetCommon(locatedWidget: JQuery, newWidget: JQuery, keepStyle: boolean = false) {
 		var ret: boolean = false;
 		var index: number = this.Widgets.indexOf(locatedWidget.get(0));
 		if (index != -1) {
 			ret = true;
 			this.Widgets.push(newWidget.get(0));
-			var childFrame1: JQuery = $("<div/>");
-			var childFrame2: JQuery = $("<div/>");
+			newWidget.addClass("managed-widget");
+			var childFrame1: JQuery = this.CreateFrame();
+			var childFrame2: JQuery = this.CreateFrame();
 			var parentFrame: JQuery = locatedWidget.parent();
 			childFrame1.append(locatedWidget);
 			childFrame2.append(newWidget);

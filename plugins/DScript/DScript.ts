@@ -119,12 +119,10 @@ class DScriptEditorPlugIn extends AssureIt.ActionPlugIn {
 			background : 'rgba(255, 255, 255, 0.85)',
 		});
 
-//		var paneManager = new DScriptPaneManager(wrapper, this.NodeRelationTable.css('height', '0'), true);
-// 		paneManager.AddWidgetOnTop(this.NodeRelationTable, $(this.ASNEditor.getWrapperElement()));
-// 		paneManager.AddWidgetOnRight($(this.ASNEditor.getWrapperElement()), $(this.DScriptEditor.getWrapperElement()));
-		var paneManager = new DScriptPaneManager(wrapper, this.ActionRelationTable.css('height', '0'), true);
- 		paneManager.AddWidgetOnTop(this.ActionRelationTable, $(this.ASNEditor.getWrapperElement()));
- 		paneManager.AddWidgetOnRight($(this.ASNEditor.getWrapperElement()), $(this.DScriptEditor.getWrapperElement()));
+//		var paneManager = new DScriptPaneManager(wrapper, this.ActionRelationTable.css('height', '0'), true);
+//  		paneManager.AddWidgetOnTop(this.ActionRelationTable, $(this.ASNEditor.getWrapperElement()));
+//  		paneManager.AddWidgetOnRight($(this.ASNEditor.getWrapperElement()), $(this.DScriptEditor.getWrapperElement()));
+		var paneManager = new DScriptPaneManager(wrapper, $(this.ASNEditor.getWrapperElement()));
 		this.PaneManager = paneManager;
 	}
 
@@ -190,14 +188,14 @@ class DScriptEditorPlugIn extends AssureIt.ActionPlugIn {
 		self.GenerateCode();
 	}
 
-	UpdateLineComment(editor: any, widgets: any[], Generator: DScriptGenerator): void {
+	UpdateLineComment(editor: any, widgets: any[], generator: DScriptGenerator): void {
 		editor.operation(function() {
 			for (var i: number = 0; i < widgets.length; ++i) {
 				editor.removeLineWidget(widgets[i]);
 			}
 			widgets.length = 0;
-			for (var i: number = 0; i < Generator.errorMessage.length; ++i) {
-				var error: DScriptError = Generator.errorMessage[i];
+			for (var i: number = 0; i < generator.errorMessage.length; ++i) {
+				var error: DScriptError = generator.errorMessage[i];
 				console.log(error);
 				//this.highlighter.Highlight(error.LineNumber, error.Message);
 				var msg = document.createElement("div");
@@ -237,7 +235,6 @@ class DScriptEditorPlugIn extends AssureIt.ActionPlugIn {
 	}
 
 	UpdateActionRelationTable(actionRelation): void {
-		console.log(actionRelation);
 		var table: JQuery = this.ActionRelationTable;
 		var tableWidth: number = table.parent().width();
 		var header: JQuery = $("<tr><th>action</th><th>fault</th><th>reaction</th></tr>");
@@ -355,6 +352,7 @@ return (int)data.replaceAll(\"\\n\", \"\");\n\
 			}
 			catch(e) {
 				alert("Assure-It Agent is not active.");
+				console.log(e);
 			}
 		});
 	}
