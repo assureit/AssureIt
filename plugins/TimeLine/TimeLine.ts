@@ -79,8 +79,8 @@ class TimeLineKeyPlugIn extends AssureIt.ShortcutKeyPlugIn {
 			return
 		}
 		var commits: AssureIt.CommitCollection = serverApi.GetCommitList(Case.CaseId);
-		var max = commits.Size() - 2;
-		if(historyId >= 0 && historyId < max/* FIXME Latest*/) {
+		var max = commits.Size() - 1;
+		if(historyId >= 0 && historyId <= max/* FIXME Latest*/) {
 			historyId++;
 			var loc = serverApi.basepath + "case/" + Case.CaseId;
 			location.href = loc + '/history/' + (historyId);
