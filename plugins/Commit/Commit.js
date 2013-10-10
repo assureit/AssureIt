@@ -50,8 +50,6 @@ var CommitWindow = (function () {
             } else if (node.Equals(oldnode)) {
                 if (lastModified[i] != null) {
                     res[i] = lastModified[i];
-                } else {
-                    res[i] = { userName: $.cookie('userName'), role: 'admin' };
                 }
             } else {
                 modified.push(i);
