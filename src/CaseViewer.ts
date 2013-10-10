@@ -333,6 +333,7 @@ module AssureIt {
 		HTMLDoc: HTMLDoc;
 		SVGShape: SVGShape;
 		ParentShape: NodeView;
+		TemporaryColor: { [index: string]: string };
 
 		IsArrowWhite: boolean = false;
 
@@ -348,6 +349,7 @@ module AssureIt {
 			this.HTMLDoc.Render(CaseViewer, NodeModel);
 			this.SVGShape = SVGShapeFactory.Create(NodeModel.Type);
 			this.SVGShape.Render(CaseViewer, NodeModel, this.HTMLDoc);
+			this.TemporaryColor = null;
 		}
 
 		Resize(): void {
@@ -421,6 +423,14 @@ module AssureIt {
 
 		SetArrowPosition(p1: Point, p2: Point, dir: Direction) {
 			this.SVGShape.SetArrowPosition(p1, p2, dir);
+		}
+
+		SetTemporaryColor(fill: string, stroke: string): void {
+			this.TemporaryColor = { "fill": fill, "stroke": stroke };
+		}
+
+		GetTemporaryColor(): { [index: string]: string } {
+			return this.TemporaryColor;
 		}
 	}
 

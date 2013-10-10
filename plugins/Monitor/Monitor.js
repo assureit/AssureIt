@@ -78,13 +78,9 @@ function blushAllAncestor(caseViewer, nodeModel, fill, stroke) {
     if (nodeModel == null)
         return;
 
-    caseViewer.ViewMap[nodeModel.Label].SVGShape.SetColor(fill, stroke);
+    caseViewer.ViewMap[nodeModel.Label].SetTemporaryColor(fill, stroke);
 
-    var contextNode = getContextNode(nodeModel);
-
-    if (contextNode != null) {
-        caseViewer.ViewMap[contextNode.Label].SVGShape.SetColor(fill, stroke);
-    }
+    blushAllAncestor(caseViewer, nodeModel.Parent, fill, stroke);
 }
 
 var MonitorNode = (function () {

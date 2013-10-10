@@ -351,6 +351,7 @@ var AssureIt;
             this.HTMLDoc.Render(CaseViewer, NodeModel);
             this.SVGShape = SVGShapeFactory.Create(NodeModel.Type);
             this.SVGShape.Render(CaseViewer, NodeModel, this.HTMLDoc);
+            this.TemporaryColor = null;
         }
         NodeView.prototype.Resize = function () {
             this.HTMLDoc.Resize(this.CaseViewer, this.Source);
@@ -423,6 +424,14 @@ var AssureIt;
 
         NodeView.prototype.SetArrowPosition = function (p1, p2, dir) {
             this.SVGShape.SetArrowPosition(p1, p2, dir);
+        };
+
+        NodeView.prototype.SetTemporaryColor = function (fill, stroke) {
+            this.TemporaryColor = { "fill": fill, "stroke": stroke };
+        };
+
+        NodeView.prototype.GetTemporaryColor = function () {
+            return this.TemporaryColor;
         };
         return NodeView;
     })();

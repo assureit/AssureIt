@@ -83,16 +83,9 @@ function showNode(caseViewer: AssureIt.CaseViewer, nodeModel: AssureIt.NodeModel
 function blushAllAncestor(caseViewer: AssureIt.CaseViewer, nodeModel: AssureIt.NodeModel, fill: string, stroke: string) {
 	if(nodeModel == null) return;
 
-	caseViewer.ViewMap[nodeModel.Label].SVGShape.SetColor(fill, stroke);
+	caseViewer.ViewMap[nodeModel.Label].SetTemporaryColor(fill, stroke);
 
-	var contextNode = getContextNode(nodeModel);
-
-	if(contextNode != null) {
-		caseViewer.ViewMap[contextNode.Label].SVGShape.SetColor(fill, stroke);
-	}
-
-	/* TODO: blush all ancestor node */
-	//blushAllAncestor(caseViewer, nodeModel.Parent, fill, stroke);
+	blushAllAncestor(caseViewer, nodeModel.Parent, fill, stroke);
 }
 
 
