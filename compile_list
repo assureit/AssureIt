@@ -8,10 +8,12 @@ plugins/SearchNode/SearchNode.ts
 plugins/SimplePattern/SimplePattern.ts
 plugins/DScript/DScript.ts
 plugins/DScript/DScriptGenerator.ts
+plugins/DScript/DScriptActionMap.ts
 plugins/FullScreenEditor/FullScreenEditor.ts
 plugins/MenuBar/MenuBar.ts
 plugins/Monitor/Monitor.ts
 plugins/Note/Note.ts
+plugins/LastModified/LastModified.ts
 plugins/DragFile/DragFile.ts
 plugins/BeforeUnload/BeforeUnload.ts
 plugins/DefaultStatementRender/DefaultStatementRender.ts
@@ -32,6 +34,7 @@ src/PlugInManager.ts
 src/SelectComponent.ts
 src/ServerApi.ts
 src/RecApi.ts
+src/AssureItAgentApi.ts
 src/CommitModel.ts
 src/Pattern.ts
 src/SideMenuModel.ts

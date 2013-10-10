@@ -27,7 +27,7 @@ var BeforeUnloadActionPlugIn = (function (_super) {
         $(window).unbind("beforeunload");
         $(window).bind("beforeunload", function (e) {
             if (case0.IsModified() && case0.IsLatest()) {
-                return "未コミットの変更があります";
+                return "You have uncommited change.";
             }
         });
         return true;

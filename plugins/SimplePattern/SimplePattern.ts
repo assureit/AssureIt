@@ -32,14 +32,14 @@ class HorizontalPattern extends Pattern {
 	}
 
 	Success(model: AssureIt.NodeModel): void {
-		var strategy: AssureIt.NodeModel = new AssureIt.NodeModel(model.Case, this.parentModel, this.Strategy, null, "Split into following procedures described on the context");
+		var strategy: AssureIt.NodeModel = new AssureIt.NodeModel(model.Case, this.parentModel, this.Strategy, null, "Split into following procedures described on the context", {});
 		for (var i in this.ListItem) {
-			var Child: AssureIt.NodeModel = new AssureIt.NodeModel(model.Case, strategy, this.Goal, null, this.ListItem[i]);
+			var Child: AssureIt.NodeModel = new AssureIt.NodeModel(model.Case, strategy, this.Goal, null, this.ListItem[i], {});
 			if (i != 0) {
 				var statement: string = "In case procedure " + this.ListItem[i-1] + " successfully ended";
-				var Context: AssureIt.NodeModel = new AssureIt.NodeModel(model.Case, Child, this.Context, null, statement);
+				var Context: AssureIt.NodeModel = new AssureIt.NodeModel(model.Case, Child, this.Context, null, statement, {});
 			}
-			var Evidence: AssureIt.NodeModel = new AssureIt.NodeModel(model.Case, Child, this.Evidence, null, "Collected evidence for procedure "+ this.ListItem[i]);
+			var Evidence: AssureIt.NodeModel = new AssureIt.NodeModel(model.Case, Child, this.Evidence, null, "Collected evidence for procedure "+ this.ListItem[i], {});
 		}
 	}
 }
@@ -63,9 +63,9 @@ class ListPattern extends Pattern {
 	}
 
 	Success(model: AssureIt.NodeModel): void {
-		var strategy: AssureIt.NodeModel = new AssureIt.NodeModel(model.Case, this.parentModel, this.Strategy, null, "Split into following goals described on the context");
+		var strategy: AssureIt.NodeModel = new AssureIt.NodeModel(model.Case, this.parentModel, this.Strategy, null, "Split into following goals described on the context", {});
 		for (var i in this.ListItem) {
-			var Child: AssureIt.NodeModel = new AssureIt.NodeModel(model.Case, strategy, this.Goal, null, this.ListItem[i]);
+			var Child: AssureIt.NodeModel = new AssureIt.NodeModel(model.Case, strategy, this.Goal, null, this.ListItem[i], {});
 		}
 	}
 }

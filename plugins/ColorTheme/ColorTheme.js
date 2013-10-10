@@ -47,7 +47,7 @@ var ColorThemeSVGRenderPlugIn = (function (_super) {
             "Strategy": "none",
             "Context": "none",
             "Evidence": "none",
-            "Diff": "#59EB59"
+            "Diff": "#FF0000"
         };
     }
     ColorThemeSVGRenderPlugIn.prototype.IsEnable = function (caseViewer, element) {

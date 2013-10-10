@@ -4,6 +4,41 @@ var __extends = this.__extends || function (d, b) {
     __.prototype = b.prototype;
     d.prototype = new __();
 };
+var __dscript__ = {
+    script: {
+        main: "",
+        lib: {},
+        funcdef: {}
+    },
+    meta: {
+        actionmap: {}
+    }
+};
+__dscript__.script.funcdef = {
+    "PortMonitor()": "\n\
+print(\"PortMonitor called...\");\n\
+DFault ret = null;\n\
+if (Monitor) {\n\
+\tret = null;\n\
+}\n\
+else {\n\
+\tret = fault(\"Computer is accessed by someone\");\n\
+}\n\
+return ret;\n\
+",
+    "BlockIP()": "\n\
+print(\"BlockIP called...\");\n\
+DFault ret = null;\n\
+//    command iptables;\n\
+//try {\n\
+//    iptables -A INPUT -p tcp -s $ip --dport $port -j DROP\n\
+//}\n\
+//catch (Exception e) {\n\
+//}\n\
+return ret;\n\
+"
+};
+
 var DScriptPlugIn = (function (_super) {
     __extends(DScriptPlugIn, _super);
     function DScriptPlugIn(plugInManager) {
@@ -12,6 +47,7 @@ var DScriptPlugIn = (function (_super) {
         var plugin = new DScriptEditorPlugIn(plugInManager);
         this.ActionPlugIn = plugin;
         this.MenuBarContentsPlugIn = new DScriptMenuPlugIn(plugInManager, plugin);
+        this.SideMenuPlugIn = new DScriptSideMenuPlugIn(plugInManager, plugin);
     }
     return DScriptPlugIn;
 })(AssureIt.PlugInSet);
@@ -78,6 +114,7 @@ var DScriptMenuPlugIn = (function (_super) {
             }, 1300);
             _this.editorPlugIn.editor_left.refresh();
             _this.editorPlugIn.editor_right.refresh();
+            _this.editorPlugIn.GenerateCode();
         });
         return true;
     };
@@ -102,6 +139,8 @@ var DScriptEditorPlugIn = (function (_super) {
             placeholder: "Generated DScript code goes here.",
             lineWrapping: true
         });
+        this.action_table = $('<table id="dscript-action-table"></table>');
+        $("#dscript-editor-wrapper").append($("<div>").append(this.action_table));
 
         $('#dscript-editor-wrapper').css({
             position: 'absolute',
@@ -121,7 +160,6 @@ var DScriptEditorPlugIn = (function (_super) {
             width: '100%',
             height: '100%'
         });
-
         $('#dscript-editor-left').parent().css({
             width: '50%',
             height: '100%',
@@ -133,6 +171,9 @@ var DScriptEditorPlugIn = (function (_super) {
             height: '100%',
             float: 'right',
             display: 'block'
+        });
+        $('#dscript-action-table').parent().css({
+            display: 'none'
         });
 
         this.highlighter = new ErrorHighlight(this.editor_left);
@@ -164,6 +205,30 @@ var DScriptEditorPlugIn = (function (_super) {
         });
     };
 
+    DScriptEditorPlugIn.prototype.updateActionTable = function (actionMap) {
+        var table = $('#dscript-action-table');
+        var table_width = table.parent().width();
+        var header = $("<tr><th>action</th><th>fault</th><th>reaction</th></tr>");
+        var tpl = "<tr><td>${action}</td><td>${fault}</td><td>${reaction}</td></tr>";
+        var style = {
+            maxWidth: table_width / 3,
+            minWidth: table_width / 3,
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            textAlign: 'center',
+            whiteSpace: 'nowrap'
+        };
+        table.children().remove();
+        header.children().css(style);
+        table.append(header);
+        for (var key in actionMap) {
+            var row_src = tpl.replace("${action}", actionMap[key]["action"]).replace("${fault}", "*").replace("${reaction}", actionMap[key]["reaction"]);
+            var row = $(row_src);
+            row.children().css(style);
+            table.append(row);
+        }
+    };
+
     DScriptEditorPlugIn.prototype.GenerateCode = function () {
         var decoder = new AssureIt.CaseDecoder();
         var ASNData = this.editor_left.getValue();
@@ -175,6 +240,7 @@ var DScriptEditorPlugIn = (function (_super) {
             this.highlighter.Highlight(decoder.GetASNError().line, decoder.GetASNError().toString());
             Case.IdCounters = orig_IdCounters;
             Case.ElementMap = orig_ElementMap;
+            caseModel = Case.ElementTop;
         } else {
             var ParentModel = this.rootCaseModel.Parent;
             if (ParentModel != null) {
@@ -188,15 +254,65 @@ var DScriptEditorPlugIn = (function (_super) {
                 this.caseViewer.ElementTop = caseModel;
                 Case.ElementTop = caseModel;
             }
-            this.rootCaseModel = caseModel;
-            this.highlighter.ClearHighlight();
-            var Generator = new DScriptGenerator();
-            var script = Generator.codegen(caseModel, ASNData);
+        }
+        this.rootCaseModel = caseModel;
+        this.highlighter.ClearHighlight();
+        var genflag = false;
+        var Generator = new DScriptGenerator();
+        try  {
+            var script = Generator.codegen(orig_ElementMap, caseModel, ASNData, genflag);
+
+            var DScriptMap = new DScriptActionMap(caseModel);
+            var actionMap = DScriptMap.GetBody();
+            __dscript__.script.main = script;
+            __dscript__.meta.actionmap = actionMap;
+            this.updateActionTable(actionMap);
             this.updateLineComment(this.editor_left, this.widgets, Generator);
             this.editor_right.setValue(script);
+
+            this.editor_left.refresh();
+            this.editor_right.refresh();
+        } catch (e) {
         }
-        this.editor_left.refresh();
-        this.editor_right.refresh();
     };
     return DScriptEditorPlugIn;
 })(AssureIt.ActionPlugIn);
+
+var DScriptSideMenuPlugIn = (function (_super) {
+    __extends(DScriptSideMenuPlugIn, _super);
+    function DScriptSideMenuPlugIn(plugInManager, editorPlugIn) {
+        _super.call(this, plugInManager);
+        this.AssureItAgentAPI = null;
+        this.editorPlugIn = editorPlugIn;
+    }
+    DScriptSideMenuPlugIn.prototype.IsEnabled = function (caseViewer, Case0, serverApi) {
+        return Case0.IsEditable();
+    };
+
+    DScriptSideMenuPlugIn.prototype.AddMenu = function (caseViewer, Case0, serverApi) {
+        var _this = this;
+        this.AssureItAgentAPI = new AssureIt.AssureItAgentAPI(serverApi.agentpath);
+
+        var self = this;
+        return new AssureIt.SideMenuModel('#', 'Deploy', "deploy", "glyphicon-list-alt", function (ev) {
+            self.editorPlugIn.rootCaseModel = Case0.ElementTop;
+            self.editorPlugIn.GenerateCode();
+            __dscript__.script.lib = {
+                "GetDataFromRec.ds": "\n\
+int GetDataFromRec(String location, String type) {\n\
+    command rec;\n\
+    String data = rec -m getLatestData -t $type -l $location\n\
+    return (int)data.replaceAll(\"\\n\", \"\");\n\
+}\n\
+"
+            };
+
+            try  {
+                _this.AssureItAgentAPI.Deploy(__dscript__);
+            } catch (e) {
+                alert("Assure-It Agent is not active.");
+            }
+        });
+    };
+    return DScriptSideMenuPlugIn;
+})(AssureIt.SideMenuPlugIn);

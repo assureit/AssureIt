@@ -10,33 +10,35 @@ class ExportPlugIn extends AssureIt.PlugInSet {
 		super(plugInManager);
 		var plugin: ExportActionPlugIn = new ExportActionPlugIn(plugInManager);
 		this.ActionPlugIn = plugin;
-		this.MenuBarContentsPlugIn = new ExportMenuPlugIn(plugInManager, plugin);
+		this.SideMenuPlugIn = new ExportMenuPlugIn(plugInManager, plugin);
 	}
 
 }
 
-class ExportMenuPlugIn extends AssureIt.MenuBarContentsPlugIn {
+class ExportMenuPlugIn extends AssureIt.SideMenuPlugIn {
 	editorPlugIn: ExportActionPlugIn;
 	constructor(plugInManager: AssureIt.PlugInManager, editorPlugIn: ExportActionPlugIn) {
 		super(plugInManager);
 		this.editorPlugIn = editorPlugIn;
 	}
 
-	IsEnabled(caseViewer: AssureIt.CaseViewer, caseModel: AssureIt.NodeModel): boolean {
+	IsEnabled(caseViewer: AssureIt.CaseViewer, Case0: AssureIt.Case, serverApi: AssureIt.ServerAPI): boolean {
 		return true;
 	}
 
-	Delegate(caseViewer: AssureIt.CaseViewer, caseModel: AssureIt.NodeModel, element: JQuery, serverApi: AssureIt.ServerAPI): boolean {
-		element.append('<a href="#" ><img id="export-xml" src="' + serverApi.basepath + 'images/icon.png" title="Export XML" alt="XML" /></a>');
-		element.append('<a href="#" ><img id="export-pdf" src="' + serverApi.basepath + 'images/icon.png" title="Export PDF" alt="XML" /></a>');
-		element.append('<a href="#" ><img id="export-png" src="' + serverApi.basepath + 'images/icon.png" title="Export PNG" alt="XML" /></a>');
-		$('#export-pdf').unbind('click');
-		$('#export-xml').unbind('click');
-		$('#export-png').unbind('click');
-		$('#export-pdf').click(this.editorPlugIn.ExportPdf);
-		$('#export-xml').click(this.editorPlugIn.ExportXml);
-		$('#export-png').click(this.editorPlugIn.ExportPng);
-		return true;
+	AddMenu(caseViewer: AssureIt.CaseViewer, Case0: AssureIt.Case, serverApi: AssureIt.ServerAPI): AssureIt.SideMenuModel {
+		//element.append('<a href="#" ><img id="export-xml" src="' + serverApi.basepath + 'images/icon.png" title="Export XML" alt="XML" /></a>');
+		//element.append('<a href="#" ><img id="export-pdf" src="' + serverApi.basepath + 'images/icon.png" title="Export PDF" alt="XML" /></a>');
+		//element.append('<a href="#" ><img id="export-png" src="' + serverApi.basepath + 'images/icon.png" title="Export PNG" alt="XML" /></a>');
+		//$('#export-pdf').unbind('click');
+		//$('#export-xml').unbind('click');
+		//$('#export-png').unbind('click');
+		//$('#export-pdf').click(this.editorPlugIn.ExportPdf);
+		//$('#export-xml').click(this.editorPlugIn.ExportXml);
+		//$('#export-png').click(this.editorPlugIn.ExportPng);
+		return new AssureIt.SideMenuModel('#', "Export to XML", "export-xml", "glyphicon-export", (ev:Event)=> {
+			this.editorPlugIn.ExportXml(ev);
+		});
 	}
 }
 
@@ -147,17 +149,28 @@ class ExportActionPlugIn extends AssureIt.ActionPlugIn {
 			$target.append($(connector).clone(false));
 
 			var $svgtext = $(document.createElementNS(SVG_NS, "text"))
-				.attr({x : div.offsetLeft, y : div.offsetTop + 10});
+				.attr({"font-size": "18px", x : div.offsetLeft+10, y : div.offsetTop + 30});
 
 			$(document.createElementNS(SVG_NS, "tspan"))
-				.text(node.Label).attr("font-weight", "bold").appendTo($svgtext);
+				.text(node.Label).attr({"font-weight": "bold", "font-family": 'Arial'}).appendTo($svgtext);
+			$(document.createElementNS(SVG_NS, "tspan"))
+				.text("").attr({dy: "10px", "font-weight": "bold", "font-family": 'Arial'}).appendTo($svgtext);
 
-			this.foreachLine(node.Statement, 1+~~(div.offsetWidth * 2 / 13), (linetext) => {
+			this.foreachLine(node.Statement, 1+~~(div.offsetWidth * 2 / 15), (linetext) => {
 				$(document.createElementNS(SVG_NS, "tspan"))
 					.text(linetext)
-					.attr({x : div.offsetLeft, dy : 15, "font-size" : "13px"})
+					.attr({x : div.offsetLeft+10, dy : 15, "font-size" : "13px", "font-family": 'Helvetica Neue'})
 					.appendTo($svgtext);
 			});
+
+			if (node.Notes && node.Notes['TranslatedTextEn']) {
+				this.foreachLine(node.Notes['TranslatedTextEn'], 1+~~(div.offsetWidth * 2 / 15), (linetext) => {
+					$(document.createElementNS(SVG_NS, "tspan"))
+						.text(linetext)
+						.attr({x : div.offsetLeft+10, dy : 15, "fill": "green", "font-size" : "13px", "font-family": 'Helvetica Neue'})
+						.appendTo($svgtext);
+				});
+			}
 
 			$target.append($svgtext);
 		});

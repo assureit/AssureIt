@@ -8,15 +8,12 @@ var AssureIt;
     };
 
     var ServerAPI = (function () {
-        function ServerAPI(basepath, isLocal) {
-            if (isLocal == null) {
-                isLocal = false;
-            }
+        function ServerAPI(basepath, recpath, agentpath) {
             this.uri = basepath + "/api/1.0/";
             this.basepath = basepath;
-            if (!isLocal) {
-                this.basepath = basepath + "/";
-            }
+            this.recpath = recpath;
+            this.agentpath = agentpath;
+            this.basepath = basepath + "/";
         }
         ServerAPI.prototype.RemoteCall = function (method, params) {
             var cmd = {
@@ -75,11 +72,12 @@ var AssureIt;
             return this.RemoteCall("getTagList", {});
         };
 
-        ServerAPI.prototype.Commit = function (tree, msg, commitId) {
+        ServerAPI.prototype.Commit = function (tree, msg, commitId, summary) {
             return this.RemoteCall("commit", {
                 contents: tree,
                 commitMessage: msg,
-                'commitId': commitId
+                'commitId': commitId,
+                summary: JSON.stringify(summary)
             }).commitId;
         };
 

@@ -20,7 +20,7 @@
 
 $(function () {
 
-	var serverApi = new AssureIt.ServerAPI('',true); //TODO config for Path
+	var serverApi = new AssureIt.ServerAPI('', 'http://54.250.206.119/rec/api/2.0', 'http://localhost:8081'); //TODO config for Path
 	var pluginManager = new AssureIt.PlugInManager('');
 	pluginManager.SetPlugIn("menu", new MenuBarPlugIn(pluginManager));
 	pluginManager.SetPlugIn("scale", new ScalePlugIn(pluginManager));
@@ -343,7 +343,7 @@ $(function () {
 		]
 	};
 
-	var Case0: AssureIt.Case = new AssureIt.Case(JsonData.DCaseName, 1, 0, pluginManager);
+	var Case0: AssureIt.Case = new AssureIt.Case(JsonData.DCaseName, {}, "", 1, 0, pluginManager);
 	var caseDecoder: AssureIt.CaseDecoder = new AssureIt.CaseDecoder();
 	var root: AssureIt.NodeModel = caseDecoder.ParseJson(Case0, JsonData);
 

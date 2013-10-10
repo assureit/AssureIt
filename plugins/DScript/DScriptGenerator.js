@@ -29,10 +29,10 @@ function tsort(g) {
     var n = g.length;
     var color = [];
     var order = [];
-    for (var i = 0; i < n; i = i + 1) {
+    for (var i = 0; i < n; i++) {
         color.push(0);
     }
-    for (i = 0; i < n; i = i + 1) {
+    for (i = 0; i < n; i++) {
         if (!color[i] && !visit(g, i, order, color)) {
             return null;
         }
@@ -80,6 +80,35 @@ var DScriptGenerator = (function () {
         });
     };
 
+    DScriptGenerator.prototype.GetContextIndex = function (Node) {
+        for (var i = 0; i < Node.Children.length; i++) {
+            if (Node.Children[i].Type == AssureIt.NodeType.Context) {
+                return i;
+            }
+        }
+        return -1;
+    };
+
+    DScriptGenerator.prototype.GetParentContextEnvironment = function (ParentNode) {
+        while (ParentNode != null) {
+            var contextindex = this.GetContextIndex(ParentNode);
+            if (contextindex != -1) {
+                return ParentNode.Children[contextindex];
+            }
+            ParentNode = ParentNode.Parent;
+        }
+        return null;
+    };
+
+    DScriptGenerator.prototype.GetContextEnvironment = function (Node) {
+        if (Node.Parent == null) {
+            return;
+        }
+        var ParentNode = Node.Parent;
+        var ParentContextNode = this.GetParentContextEnvironment(ParentNode);
+        return ParentContextNode.Notes;
+    };
+
     DScriptGenerator.prototype.PushEnvironment = function (ContextList) {
         var env = {};
         for (var i = 0; i < ContextList.length; ++i) {
@@ -87,16 +116,11 @@ var DScriptGenerator = (function () {
             if (Node.Type != AssureIt.NodeType.Context) {
                 continue;
             }
-            var DeclList = Node.Statement.split("\n").filter(function (Text) {
-                var regex = /^[A-Za-z][A-Z-a-z0-9]*=/;
-                return regex.test(Text);
-            });
-            for (var j = 0; j < DeclList.length; ++j) {
-                var Decl = DeclList[j].split("=");
-                if (Decl.length != 2) {
-                    this.errorMessage.push(new DScriptError(Node.Label, Node.LineNumber, "DeclSyntaxError"));
-                }
-                env[Decl[0]] = Decl[1];
+            var DeclKeys = Object.keys(Node.Notes);
+            for (var j = 0; j < DeclKeys.length; j++) {
+                var DeclKey = DeclKeys[j];
+                var DeclValue = Node.Notes[DeclKey];
+                env[DeclKey] = DeclValue;
             }
         }
         this.Env.push(env);
@@ -118,56 +142,23 @@ var DScriptGenerator = (function () {
 
     DScriptGenerator.prototype.GetMonitor = function (Node) {
         if (Node.Type == AssureIt.NodeType.Evidence) {
-            var Monitors = Node.Statement.split("\n").filter(function (Text) {
-                return Text.indexOf("Monitor=") == 0;
-            });
-            for (var i = 0; i < Monitors.length; ++i) {
-                var List = Monitors[i].split("Monitor=");
-                if (List.length != 2 || List[1].length == 0) {
-                    this.errorMessage.push(new DScriptError(Node.Label, Node.LineNumber, "Monitor has no rule"));
-                } else {
-                    return List[1];
-                }
-            }
+            return Node.Notes["Monitor"];
         }
         return "";
-    };
-
-    DScriptGenerator.prototype.GetMonitorName = function (Text) {
-        var res = Text.match(/^\(+([A-Za-z0-9]+).([A-Za-z0-9]+)/);
-        if (res.length == 3) {
-            return res.splice(1);
-        }
-        return [];
     };
 
     DScriptGenerator.prototype.GetAction = function (Node) {
         if (Node.Type == AssureIt.NodeType.Evidence) {
-            var Actions = Node.Statement.split("\n").filter(function (Text) {
-                return Text.indexOf("Action=") == 0;
-            });
-            for (var i = 0; i < Actions.length; ++i) {
-                var List = Actions[i].split("Action=");
-                if (List.length != 2 || List[1].length == 0) {
-                    this.errorMessage.push(new DScriptError(Node.Label, Node.LineNumber, "Action has no rule"));
-                } else {
-                    return List[1];
-                }
-            }
+            return Node.Notes["Action"];
         }
         return "";
-    };
-
-    DScriptGenerator.prototype.getMethodName = function (Node) {
-        return Node.Label;
     };
 
     DScriptGenerator.prototype.Generate = function (Node, Flow) {
         switch (Node.Type) {
             case AssureIt.NodeType.Goal:
                 return this.GenerateGoal(Node, Flow);
-            case AssureIt.NodeType.Context:
-                return this.GenerateContext(Node, Flow);
+
             case AssureIt.NodeType.Strategy:
                 return this.GenerateStrategy(Node, Flow);
             case AssureIt.NodeType.Evidence:
@@ -177,10 +168,10 @@ var DScriptGenerator = (function () {
     };
 
     DScriptGenerator.prototype.GenerateFunctionHeader = function (Node) {
-        return "boolean " + Node.Label + "()";
+        return "DFault " + Node.Label + "(RuntimeContext ctx)";
     };
     DScriptGenerator.prototype.GenerateFunctionCall = function (Node) {
-        return Node.Label + "()";
+        return Node.Label + "(ctx)";
     };
 
     DScriptGenerator.prototype.GenerateHeader = function (Node) {
@@ -190,16 +181,9 @@ var DScriptGenerator = (function () {
         if (statement.length > 0) {
             var description = statement.split(this.linefeed);
             for (var i = 0; i < description.length; ++i) {
-                if (description[i].indexOf("Monitor=") == 0) {
-                    continue;
-                }
-                if (description[i].indexOf("Action=") == 0) {
-                    continue;
-                }
                 program += this.indent + "// " + description[i] + this.linefeed;
             }
         }
-
         return program;
     };
 
@@ -220,7 +204,7 @@ var DScriptGenerator = (function () {
                 program += this.GenerateFunctionCall(node);
             }
         } else {
-            program += "true";
+            program += "null";
         }
         program += ";" + this.linefeed;
         return this.GenerateFooter(Node, program);
@@ -234,6 +218,9 @@ var DScriptGenerator = (function () {
         if (child.length > 0) {
             for (var i = 0; i < child.length; ++i) {
                 var node = child[i];
+                if (node.Type == AssureIt.NodeType.Context) {
+                    continue;
+                }
                 if (i != 0) {
                     program += " && ";
                 }
@@ -248,128 +235,179 @@ var DScriptGenerator = (function () {
 
     DScriptGenerator.prototype.GenerateContext = function (Node, Flow) {
         var program = this.GenerateHeader(Node);
-        var child = Flow[Node.Label];
+        program += this.indent + "return null;" + this.linefeed;
+        return this.GenerateFooter(Node, program);
+    };
 
-        var Statements = Node.Statement.split("\n");
-        var after = Node.GetAnnotation("after");
-        if (after != null) {
-            if (after.Body == null || after.Body.length == 0) {
-                this.errorMessage.push(new DScriptError(Node.Label, Node.LineNumber, "@after needs parameter"));
-            } else {
-                program += this.indent + "defined(" + after.Body + ");" + this.linefeed;
+    DScriptGenerator.prototype.GenerateAnnotationStrategy = function (child) {
+        var program = "";
+        for (var i = 0; i < child.length; i++) {
+            if (child[i].Type == AssureIt.NodeType.Context)
+                continue;
+
+            var goal = child[i];
+            var contextindex = this.GetContextIndex(goal);
+            if (contextindex == -1)
+                continue;
+
+            var context = goal.Children[contextindex];
+            if (context != null && context.GetAnnotation("OnlyIf") != null) {
+                var reaction = context.Notes["Reaction"];
+                var goallabel = child[0].Label;
+                var parentgoallabel = context.Parent.Label;
+                program += this.indent + "DFault ret = " + goallabel + "(ctx);" + this.linefeed;
+
+                program += this.indent + "return ret;" + this.linefeed;
+                return program;
             }
         }
-        program += this.indent + "return true;" + this.linefeed;
-        return this.GenerateFooter(Node, program);
+        return "";
+    };
+
+    DScriptGenerator.prototype.GenerateDefaultStrategy = function (child) {
+        var program = "";
+        program += this.indent + "return ";
+        if (child.length > 0) {
+            for (var i = 0; i < child.length; ++i) {
+                var node = child[i];
+                if (i != 0) {
+                    program += " && ";
+                }
+                program += this.GenerateFunctionCall(node);
+            }
+        } else {
+            program += "false";
+        }
+        program += ";" + this.linefeed;
+        return program;
     };
 
     DScriptGenerator.prototype.GenerateStrategy = function (Node, Flow) {
         var program = this.GenerateHeader(Node);
-        var child = Flow[Node.Label];
-        var ContextList = this.GetContextList(child);
-        var FaultList = [];
-        var FaultAction = "";
-        if (ContextList.length > 0) {
-            for (var i = 0; i < ContextList.length; ++i) {
-                var Statements = ContextList[i].Statement.split("\n");
-                for (var j = 0; j < Statements.length; ++j) {
-                    if (Statements[j].indexOf("fault=") == 0) {
-                        if (j + 1 < Statements.length && Statements[j + 1].indexOf("fault=") == 0) {
-                            FaultList = Statements[j].substring("fault=".length).split(",");
-                            FaultAction = Statements[j + 1].substring("fault=".length);
-                            FaultList = FaultList.map(function (e) {
-                                return e.trim();
-                            });
-                        }
-                    }
-                }
+        var child = Flow[Node.Label].reverse();
+        var code = this.GenerateAnnotationStrategy(child);
+
+        if (code.length == 0) {
+            program += this.GenerateDefaultStrategy(child);
+        }
+        return this.GenerateFooter(Node, program + code);
+    };
+
+    DScriptGenerator.prototype.GenerateGetDataFromRecFunction = function (Node, DeclValue) {
+        var program = "";
+        var monitor = DeclValue.replace("{", "").replace("}", "").split(" ");
+        var monitorlen = monitor.length;
+        for (var i = monitorlen; i >= 0; i--) {
+            if (monitor[i] == "") {
+                monitor.splice(i, 1);
             }
         }
-
-        if (FaultList.length > 0) {
-            var self = this;
-            program += this.indent + "enum " + Node.Label + "_FaultType {" + this.linefeed;
-            program += FaultList.map(function (e) {
-                return self.indent + self.indent + e;
-            }).join("," + this.linefeed) + this.linefeed;
-
-            program += this.indent + "};" + this.linefeed;
-            program += this.indent + "switch(" + FaultAction + ") {" + this.linefeed;
-            var matched = 0;
-            program += this.GetGoalList(Node.Children).map(function (e) {
-                var ret = "";
-
-                for (var i = 0; i < FaultList.length; ++i) {
-                    if (e.Statement.indexOf(FaultList[i]) >= 0) {
-                        matched += 1;
-                        ret += self.indent + "case " + FaultList[i] + ":" + self.linefeed;
-                        ret += self.indent + self.indent + "return ";
-                        ret += self.GenerateFunctionCall(e) + ";";
-                    }
-                }
-                return ret;
-            }).join(this.linefeed) + this.linefeed;
-            if (matched != FaultList.length) {
-                this.errorMessage.push(new DScriptError(Node.Label, Node.LineNumber, Node.Label + " node does not cover some case."));
-            }
-            program += this.indent + "}" + this.linefeed;
-            program += this.indent + "return false;" + this.linefeed;
+        if (monitor.length != 3) {
+            this.errorMessage.push(new DScriptError(Node.Label, Node.LineNumber, "Monitor evaluation formula error"));
         } else {
-            program += this.indent + "return ";
-            if (child.length > 0) {
-                for (var i = 0; i < child.length; ++i) {
-                    var node = child[i];
-                    if (i != 0) {
-                        program += " && ";
-                    }
-                    program += this.GenerateFunctionCall(node);
-                }
-            } else {
-                program += "false";
-            }
-            program += ";" + this.linefeed;
+            var LHS = monitor[0];
+            var operand = monitor[1];
+            var RHS = monitor[2];
+
+            program += this.indent + "\tboolean Monitor = GetDataFromRec(Location, Type) " + operand + " " + RHS + ";" + this.linefeed;
         }
-        return this.GenerateFooter(Node, program);
+        return program;
+    };
+
+    DScriptGenerator.prototype.ExtractMonitorTypeFromCondition = function (condition) {
+        var text = condition.replace(/\{/g, " ").replace(/\}/g, " ").replace(/\(/g, " ").replace(/\)/g, " ").replace(/<=/g, " ").replace(/>=/g, " ").replace(/</g, " ").replace(/>/g, " ");
+
+        var words = text.split(" ");
+        var types = [];
+
+        function isBoolean(word) {
+            if (word == "true" || word == "false") {
+                return true;
+            }
+            return false;
+        }
+
+        for (var i = 0; i < words.length; i++) {
+            if (words[i] != "" && !isBoolean(words[i]) && !$.isNumeric(words[i])) {
+                types.push(words[i]);
+            }
+        }
+
+        if (types.length != 1) {
+        }
+
+        return types[0];
+    };
+
+    DScriptGenerator.prototype.GenerateLetDecl = function (Node, ContextEnv) {
+        var program = "";
+        var DeclKeys = Object.keys(ContextEnv);
+        for (var j = 0; j < DeclKeys.length; j++) {
+            var DeclKey = DeclKeys[j];
+            var DeclValue = ContextEnv[DeclKey];
+            if (DeclKey == "Monitor") {
+                program += this.indent + "let Type = \"" + this.ExtractMonitorTypeFromCondition(DeclValue) + "\";" + this.linefeed;
+            } else if (DeclKey == "Reaction") {
+            } else if (DeclKey == "Location") {
+                program += this.indent + "let " + DeclKey + " = \"" + DeclValue + "\";" + this.linefeed;
+            } else {
+                program += this.indent + "let " + DeclKey + " = " + DeclValue + ";" + this.linefeed;
+            }
+        }
+
+        return program;
+    };
+
+    DScriptGenerator.prototype.GenerateFunction = function (Node, Function) {
+        var program = "";
+        var contextenv = this.GetContextEnvironment(Node);
+        program += this.GenerateLetDecl(Node, contextenv);
+        program += this.indent + "DFault " + Function + " {" + this.linefeed;
+
+        if ("Monitor" in contextenv) {
+            program += this.GenerateGetDataFromRecFunction(Node, contextenv["Monitor"]);
+        }
+
+        program += __dscript__.script.funcdef[Function].replace(/\n/g, "\n" + this.indent + "\t") + "}\n";
+        program += this.indent + "DFault ret = null;" + this.linefeed;
+        program += this.indent + "if(Location == LOCATION) {" + this.linefeed;
+        program += this.indent + this.indent + "ret = dlog " + Function + ";" + this.linefeed;
+
+        program += this.indent + "}" + this.linefeed;
+        program += this.indent + "return ret;" + this.linefeed;
+        return program;
     };
 
     DScriptGenerator.prototype.GenerateEvidence = function (Node, Flow) {
         var program = this.GenerateHeader(Node);
         var child = Flow[Node.Label];
-
-        var Statements = Node.Statement.split("\n");
         var Monitor = this.GetMonitor(Node);
-        if (Monitor.length > 0) {
-            var env = this.GetEnvironment("Location");
-            if (env == null || env.length == 0) {
-                this.errorMessage.push(new DScriptError(Node.Label, Node.LineNumber, "Location is not defined"));
-            } else {
-                var locations = env.split(",");
-                program += this.indent + "boolean ret = false;" + this.linefeed;
-                for (var j = 0; j < locations.length; ++j) {
-                    var Code = Monitor.replace(/([A-Za-z]+)/, locations[j] + ".$1");
-                    program += this.indent + "ret = (" + Code + ");" + this.linefeed;
-                }
-            }
-        }
-
         var Action = this.GetAction(Node);
-        if (Action.length > 0) {
-            program += this.indent + "if(!" + Action + ") {" + this.linefeed;
-            program += this.indent + this.indent + "return false;" + this.linefeed;
-            program += this.indent + "}" + this.linefeed;
-        }
-
         var ContextList = this.GetContextList(child);
+
+        console.log(program);
+        if (Monitor != null) {
+            program += this.GenerateFunction(Node, Monitor);
+        }
+        console.log(program);
+        if (Action != null) {
+            program += this.GenerateFunction(Node, Action);
+        }
+        console.log(program);
+
         if (child.length != ContextList.length) {
             this.errorMessage.push(new DScriptError(Node.Label, Node.LineNumber, "EvidenceSyntaxError"));
         }
 
-        if (child.length == 0) {
-            program += this.indent + "return true";
-        } else {
-            program += this.indent + "return false/*FIXME support Rebuttal*/";
+        if (Monitor == null && Action == null) {
+            if (child.length == 0) {
+                program += this.indent + "return null";
+            } else {
+                program += this.indent + "return false/*FIXME support Rebuttal*/";
+            }
+            program += ";" + this.linefeed;
         }
-        program += ";" + this.linefeed;
+
         return this.GenerateFooter(Node, program);
     };
 
@@ -387,6 +425,27 @@ var DScriptGenerator = (function () {
         }
         this.PopEnvironment();
         return flow + program.reverse().join(this.linefeed);
+    };
+
+    DScriptGenerator.prototype.GenerateRuntimeContext = function () {
+        return "class RuntimeContext {" + this.linefeed + "}" + this.linefeed + this.linefeed;
+    };
+
+    DScriptGenerator.prototype.GenerateMainFunction = function (rootNode, flow, GenFlag) {
+        var program = "";
+        program += this.GenerateRuntimeContext();
+        program += this.GenerateCode(rootNode, flow) + this.linefeed;
+        if (GenFlag) {
+            program += "@Export int main() {" + this.linefeed;
+            program += this.indent + "RuntimeContext ctx = new RuntimeContext();" + this.linefeed;
+            program += this.indent + "while(true) {" + this.linefeed;
+            program += this.indent + this.indent + this.GenerateFunctionCall(rootNode) + ";" + this.linefeed;
+            program += this.indent + this.indent + "sleep 30" + this.linefeed;
+            program += this.indent + "}" + this.linefeed;
+            program += this.indent + "return 0;" + this.linefeed;
+            program += "}" + this.linefeed;
+        }
+        return program;
     };
 
     DScriptGenerator.prototype.CollectNodeInfo = function (rootNode) {
@@ -426,19 +485,6 @@ var DScriptGenerator = (function () {
                 var Child = map[Node.Label][j];
                 Edges.push(new Edge(i, NodeIdxMap[Child.Label]));
             }
-            var after = Node.GetAnnotation("after");
-            if (after != null) {
-                if (after.Body == null || after.Body.length == 0) {
-                    this.errorMessage.push(new DScriptError(Node.Label, Node.LineNumber, Node.Label + "'s @after annotation needs parameter"));
-                } else {
-                    var res = after.Body.match(/^\(+([A-Za-z0-9]+)/);
-                    if (res != null && res.length == 2) {
-                        var src = NodeIdxMap[res[1]];
-                        var e = graph[src];
-                        e.push(new Edge(src, i));
-                    }
-                }
-            }
         }
 
         var order = tsort(graph);
@@ -464,17 +510,37 @@ var DScriptGenerator = (function () {
                 map[Node.Label] = childList;
             }
         }
+
         return map;
     };
 
-    DScriptGenerator.prototype.codegen_ = function (rootNode, ASNData) {
+    DScriptGenerator.prototype.GenerateDShellDecl = function () {
+        return "require dshell;" + this.linefeed + this.linefeed;
+    };
+
+    DScriptGenerator.prototype.GenerateImportStatement = function (ViewMap, flow) {
+        var program = "";
+        var keys = Object.keys(flow);
+        for (var i = 0; i < keys.length; i++) {
+            var label = keys[i];
+            var element = ViewMap[label];
+            var action = this.GetAction(element);
+            if (label.charAt(0) == "E" && action.length > 0) {
+                program += "import " + action.replace("()", "") + ".ds" + this.linefeed;
+            }
+        }
+        program += "import config.ds" + this.linefeed;
+        program += this.linefeed;
+        return program;
+    };
+
+    DScriptGenerator.prototype.codegen_ = function (ViewMap, rootNode, ASNData, GenFlag) {
         var res = "";
         if (rootNode == null) {
             return res;
         }
         var flow = this.CollectNodeInfo(rootNode);
         var dataList = ASNData.split("\n");
-
         var queue = [];
         queue.push(rootNode);
         while (queue.length != 0) {
@@ -484,23 +550,18 @@ var DScriptGenerator = (function () {
                     Node.LineNumber = i;
                 }
             }
-
             for (var k = 0; k < Node.Children.length; ++k) {
                 var childNode = Node.Children[k];
                 queue.push(childNode);
             }
         }
 
-        res += this.GenerateCode(rootNode, flow) + this.linefeed;
-        res += "@Export int main() {" + this.linefeed;
-        res += this.indent + "if(" + this.GenerateFunctionCall(rootNode) + ") { return 0; }" + this.linefeed;
-        res += this.indent + "return 1;" + this.linefeed;
-        res += "}" + this.linefeed;
+        res += this.GenerateMainFunction(rootNode, flow, GenFlag);
         return res;
     };
 
-    DScriptGenerator.prototype.codegen = function (Node, ASNData) {
-        return this.codegen_(Node, ASNData);
+    DScriptGenerator.prototype.codegen = function (ViewMap, Node, ASNData, GenFlag) {
+        return this.codegen_(ViewMap, Node, ASNData, GenFlag);
     };
     return DScriptGenerator;
 })();

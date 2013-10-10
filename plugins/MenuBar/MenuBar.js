@@ -59,7 +59,7 @@ var MenuBar = (function () {
 
     MenuBar.prototype.AddNode = function (nodeType) {
         var thisNodeView = this.caseViewer.ViewMap[this.node.children("h4").text()];
-        var newNodeModel = new AssureIt.NodeModel(this.case0, thisNodeView.Source, nodeType, null, null);
+        var newNodeModel = new AssureIt.NodeModel(this.case0, thisNodeView.Source, nodeType, null, null, {});
         this.case0.SaveIdCounterMax(this.case0.ElementTop);
         this.caseViewer.ViewMap[newNodeModel.Label] = new AssureIt.NodeView(this.caseViewer, newNodeModel);
         this.caseViewer.ViewMap[newNodeModel.Label].ParentShape = this.caseViewer.ViewMap[newNodeModel.Parent.Label];
@@ -164,7 +164,7 @@ var MenuBarActionPlugIn = (function (_super) {
         var self = this;
 
         $('.node').unbind('mouseenter').unbind('mouseleave');
-        $('.node').hover(function () {
+        var appendMenu = function () {
             var node = $(this);
             if (caseViewer.Screen.GetScale() < 1)
                 return;
@@ -206,11 +206,14 @@ var MenuBarActionPlugIn = (function (_super) {
                 onReady: refresh
             });
             menuBar.menu.click(refresh);
-        }, function () {
+        };
+        var removeMenu = function () {
             self.timeoutId = setTimeout(function () {
                 $('#menu').remove();
             }, 10);
-        });
+        };
+        $('.node').hover(appendMenu, removeMenu);
+        $('.node').bind({ 'touchstart': removeMenu, 'touchend': appendMenu });
         return true;
     };
 

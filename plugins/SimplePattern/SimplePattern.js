@@ -38,14 +38,14 @@ var HorizontalPattern = (function (_super) {
     };
 
     HorizontalPattern.prototype.Success = function (model) {
-        var strategy = new AssureIt.NodeModel(model.Case, this.parentModel, this.Strategy, null, "Split into following procedures described on the context");
+        var strategy = new AssureIt.NodeModel(model.Case, this.parentModel, this.Strategy, null, "Split into following procedures described on the context", {});
         for (var i in this.ListItem) {
-            var Child = new AssureIt.NodeModel(model.Case, strategy, this.Goal, null, this.ListItem[i]);
+            var Child = new AssureIt.NodeModel(model.Case, strategy, this.Goal, null, this.ListItem[i], {});
             if (i != 0) {
                 var statement = "In case procedure " + this.ListItem[i - 1] + " successfully ended";
-                var Context = new AssureIt.NodeModel(model.Case, Child, this.Context, null, statement);
+                var Context = new AssureIt.NodeModel(model.Case, Child, this.Context, null, statement, {});
             }
-            var Evidence = new AssureIt.NodeModel(model.Case, Child, this.Evidence, null, "Collected evidence for procedure " + this.ListItem[i]);
+            var Evidence = new AssureIt.NodeModel(model.Case, Child, this.Evidence, null, "Collected evidence for procedure " + this.ListItem[i], {});
         }
     };
     return HorizontalPattern;
@@ -73,9 +73,9 @@ var ListPattern = (function (_super) {
     };
 
     ListPattern.prototype.Success = function (model) {
-        var strategy = new AssureIt.NodeModel(model.Case, this.parentModel, this.Strategy, null, "Split into following goals described on the context");
+        var strategy = new AssureIt.NodeModel(model.Case, this.parentModel, this.Strategy, null, "Split into following goals described on the context", {});
         for (var i in this.ListItem) {
-            var Child = new AssureIt.NodeModel(model.Case, strategy, this.Goal, null, this.ListItem[i]);
+            var Child = new AssureIt.NodeModel(model.Case, strategy, this.Goal, null, this.ListItem[i], {});
         }
     };
     return ListPattern;

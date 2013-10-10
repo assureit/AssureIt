@@ -37,9 +37,9 @@ module AssureIt {
 		uri : string;
 		basepath : string;
 
-		constructor(basepath: string) {
-			this.uri = basepath + "/api/2.0/";
-			this.basepath = basepath;
+		constructor(path: string) {
+			this.uri = path
+			this.basepath = path;
 		}
 
 		getRawData(recid: string): any {

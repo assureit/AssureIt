@@ -14,16 +14,15 @@ module AssureIt {
 	export class ServerAPI {
 		uri : string;
 		basepath : string;
+		recpath : string;
+		agentpath : string;
 
-		constructor(basepath: string, isLocal?: boolean) {
-			if(isLocal == null) {
-				isLocal = false;
-			}
+		constructor(basepath: string, recpath: string, agentpath) {
 			this.uri = basepath + "/api/1.0/";
 			this.basepath = basepath;
-			if(!isLocal) {
-				this.basepath = basepath + "/";
-			}
+			this.recpath = recpath;
+			this.agentpath = agentpath;
+			this.basepath = basepath + "/";
 		}
 
 		RemoteCall(method : string, params : any) {
@@ -83,12 +82,12 @@ module AssureIt {
 			return this.RemoteCall("getTagList", {});
 		}
 
-		Commit(tree, msg, commitId) {
+		Commit(tree, msg, commitId, summary) {
 			return this.RemoteCall("commit", {
 				contents: tree,
 				commitMessage: msg,
 				'commitId': commitId,
-		//		userId: userId
+				summary: JSON.stringify(summary)
 			}).commitId;
 		}
 

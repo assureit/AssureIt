@@ -44,7 +44,7 @@ class ColorThemeSVGRenderPlugIn extends AssureIt.SVGRenderPlugIn {
 			"Strategy": "none",
 			"Context":  "none",
 			"Evidence": "none",
-			"Diff": "#59EB59"
+			"Diff": "#FF0000"
 		};
 	}
 

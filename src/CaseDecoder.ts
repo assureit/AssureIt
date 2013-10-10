@@ -40,11 +40,11 @@ module AssureIt {
 			var NoteData : { [index: string]: string } = NodeModelData["Notes"];
 			var AnnotationData : any[] = NodeModelData["Annotations"];
 
-			var ChildNodeModel : NodeModel = new NodeModel(this.Case, Parent, Type, childLabel, Statement);
-
-			if(NoteData != null) {
-				ChildNodeModel.Notes = NoteData;
+			if(NoteData == null) {
+				NoteData = {};
 			}
+
+			var ChildNodeModel : NodeModel = new NodeModel(this.Case, Parent, Type, childLabel, Statement, NoteData);
 
 			if(AnnotationData != null) {
 				for(var i : number = 0; i < AnnotationData.length; i++) {
@@ -148,7 +148,7 @@ module AssureIt {
 					IsRootNode = false;
 				}
 
-				var node : NodeModel = new NodeModel(self.Case, null, self.Text2NodeTypeMap[NodeType], Label, Statement);
+				var node : NodeModel = new NodeModel(self.Case, null, self.Text2NodeTypeMap[NodeType], Label, Statement, {});
 				self.nodes[Id] = node;
 
 				return null;
@@ -185,8 +185,7 @@ module AssureIt {
 			var Label : string = obj["Label"];
 			var Statement : string = obj["Statement"];
 	 		var Notes = (obj["Notes"]) ? obj["Notes"] : {};
-			var Model : NodeModel = new NodeModel(Case, Parent,	Type, Label, Statement);
-			Model.Notes = Notes;
+			var Model : NodeModel = new NodeModel(Case, Parent,	Type, Label, Statement, Notes);
 
 			var Children = obj["Children"];
 	 		if (Children.length != 0) {
@@ -251,9 +250,9 @@ module AssureIt {
 
 		ParseASN(Case : Case,  ASNData: string, orig : NodeModel) : NodeModel {
 			this.ASNParser = new ASNParser(Case);
-			console.log(ASNData);
+//			console.log(ASNData);
 			var root : NodeModel = this.ASNParser.Parse(ASNData, orig);
-			console.log(root);
+//			console.log(root);
 			return root;
 		}
 		GetASNError() {

@@ -24,7 +24,7 @@
 
 $(function () {
 
-	var serverApi = new AssureIt.ServerAPI('',true); //TODO config for Path
+	var serverApi = new AssureIt.ServerAPI('', 'http://54.250.206.119/rec/api/2.0/', 'http://localhost:8081'); //TODO config for Path
 	var pluginManager = new AssureIt.PlugInManager('');
 	pluginManager.SetPlugIn("menu", new MenuBarPlugIn(pluginManager));
 	pluginManager.SetPlugIn("scale", new ScalePlugIn(pluginManager));
@@ -55,7 +55,7 @@ $(function () {
 		"NodeList": "*G1\n*C1 @Def\n*S1\n**G2\nFuga\n**S2\nHoge\n**C3 @Def\nHoge\n***G4\nHoge\nFuga\n***E1\nFuga\n***G5\nHoge\n***C2 @Def\nFuga\n***E2\nFuga\n***C4 @Def\nHoge\n***E3\nFuga\n***G6\nFuga\n***E4\n**G3\n**S3\n***G7\n***C5\n***E5\n***E6\n***G8\n***C6\n***E7\n***G9",
 	}
 
-	var Case0: AssureIt.Case = new AssureIt.Case(JsonData.DCaseName, 1, 0, pluginManager);
+	var Case0: AssureIt.Case = new AssureIt.Case(JsonData.DCaseName, {}, JsonData.NodeList, 1, 0, pluginManager);
 	Case0.SetEditable(true);
 	var caseDecoder: AssureIt.CaseDecoder = new AssureIt.CaseDecoder();
 	var root: AssureIt.NodeModel = caseDecoder.ParseASN(Case0, JsonData.NodeList, null);

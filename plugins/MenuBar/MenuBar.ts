@@ -69,7 +69,7 @@ class MenuBar {
 
 	AddNode(nodeType: AssureIt.NodeType): void {
 		var thisNodeView: AssureIt.NodeView = this.caseViewer.ViewMap[this.node.children("h4").text()];
-		var newNodeModel: AssureIt.NodeModel = new AssureIt.NodeModel(this.case0, thisNodeView.Source, nodeType, null, null);
+		var newNodeModel: AssureIt.NodeModel = new AssureIt.NodeModel(this.case0, thisNodeView.Source, nodeType, null, null, {});
 		this.case0.SaveIdCounterMax(this.case0.ElementTop);
 		this.caseViewer.ViewMap[newNodeModel.Label] = new AssureIt.NodeView(this.caseViewer, newNodeModel);
 		this.caseViewer.ViewMap[newNodeModel.Label].ParentShape = this.caseViewer.ViewMap[newNodeModel.Parent.Label];
@@ -177,7 +177,7 @@ class MenuBarActionPlugIn extends AssureIt.ActionPlugIn {
 		var self = this;
 
 		$('.node').unbind('mouseenter').unbind('mouseleave'); // FIXME: this line may cause other plugin's event handler.
-		$('.node').hover(function () {
+		var appendMenu = function () {
 			var node = $(this);
 			if (caseViewer.Screen.GetScale() < 1) return; /* Menu bar is enable only if the scale is normal */
 			var refresh = () => {
@@ -217,11 +217,14 @@ class MenuBarActionPlugIn extends AssureIt.ActionPlugIn {
 				onReady: refresh,
 			});
 			menuBar.menu.click(refresh);
-		}, function () { /* FIXME: don't use setTimeout() */
+		}
+		var removeMenu = function () { /* FIXME: don't use setTimeout() */
 			self.timeoutId = setTimeout(function() {
 				$('#menu').remove();
 			}, 10);
-		});
+		};
+		$('.node').hover(appendMenu, removeMenu);
+		$('.node').bind({'touchstart': removeMenu, 'touchend': appendMenu});
 		return true;
 	}
 

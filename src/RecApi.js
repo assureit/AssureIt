@@ -28,9 +28,9 @@ var AssureIt;
     }
 
     var RECAPI = (function () {
-        function RECAPI(basepath) {
-            this.uri = basepath + "/api/2.0/";
-            this.basepath = basepath;
+        function RECAPI(path) {
+            this.uri = path;
+            this.basepath = path;
         }
         RECAPI.prototype.getRawData = function (recid) {
             var params = { recid: recid };

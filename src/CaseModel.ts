@@ -1,3 +1,5 @@
+///<reference path="./Pattern.ts" />
+
 module AssureIt {
 
 	export class CaseAnnotation {
@@ -29,7 +31,7 @@ module AssureIt {
 		HasDiff: boolean = false;
 
 
-		constructor(Case : Case, Parent : NodeModel, Type : NodeType, Label : string, Statement : string) {
+		constructor(Case: Case, Parent: NodeModel, Type: NodeType, Label: string, Statement: string,Notes: {[index: string]: string}) {
 			this.Case = Case;
 			this.Type = Type;
 			this.Label = Case.NewLabel(Type, Label);
@@ -40,7 +42,12 @@ module AssureIt {
 			}
 			this.Children = [];
 			this.Annotations = [];
-			this.Notes = {};
+			this.Notes = (Notes == null)  ? {}: Notes;
+			if (this.Notes['TranslatedTextEn']) {
+				this.Case.SetTranslation(this.Statement, this.Notes['TranslatedTextEn']);
+			} else if (this.Case.GetTranslation(this.Statement)) {
+				this.Notes['TranslatedTextEn'] = this.Case.GetTranslation(this.Statement);
+			}
 
 			Case.ElementMap[this.Label] = this; // TODO: ensure consistensy of labels
 			this.LineNumber = 1; /*FIXME*/
@@ -134,6 +141,18 @@ module AssureIt {
 			return HitNodes;
 		}
 
+		Equals(model: NodeModel) : boolean {
+			/* Checks if the contents are the same (except parent and children). */
+			if (model == null) return false;
+			if (this.Type != model.Type) return false;
+			if (this.Statement != model.Statement) return false;
+			if (Object.keys(this.Notes).length != Object.keys(model.Notes).length) return false;
+			for (var i in Object.keys(this.Notes)) {
+				if (this.Notes[i] != model.Notes[i]) return false;
+			}
+			return true;
+		}
+
 		/* plug-In */
 		private InvokePatternPlugInRecursive(model: NodeModel) : void {
 			var pluginMap : { [index: string]: PatternPlugIn} = this.Case.pluginManager.PatternPlugInMap;
@@ -171,14 +190,18 @@ module AssureIt {
 		IdCounters : any[];
 		ElementTop : NodeModel;
 		ElementMap : { [index: string]: NodeModel};
+		TranslationMap : { [index: string]: string};
+		oldsummary: any;
 
 		private isModified : boolean = false;
 		isEditable : boolean = false;
 		isLatest   : boolean = true;
 
-		constructor(public CaseName: string, public CaseId: number, public CommitId: number, public pluginManager: PlugInManager) {
+		constructor(public CaseName: string, summaryString: string, public oldasn: string, public CaseId: number, public CommitId: number, public pluginManager: PlugInManager) {
 			this.IdCounters = [{}, {}, {}, {}, {}];
 			this.ElementMap = {};
+			this.TranslationMap = {};
+			this.oldsummary = JSON.parse(summaryString);
 		}
 
 		DeleteNodesRecursive(root : NodeModel) : void {
@@ -343,6 +366,18 @@ module AssureIt {
 					this.ElementMap[keys[i]].HasDiff = true;
 				}
 			}
+		}
+
+		GetTranslation(key: string): string {
+			if (this.TranslationMap[key]) {
+				return this.TranslationMap[key];
+			} else {
+				return '';
+			}
+		}
+
+		SetTranslation(key: string, value: string): void {
+			this.TranslationMap[key] = value;
 		}
 	}
 
