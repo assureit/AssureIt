@@ -150,15 +150,16 @@ var MonitorNode = (function () {
 })();
 
 var MonitorManager = (function () {
-    function MonitorManager(caseViewer, recpath) {
-        console.log("recpath");
-        console.log(recpath);
-        this.RECAPI = new AssureIt.RECAPI(recpath);
+    function MonitorManager() {
         this.MonitorNodeMap = {};
+    }
+    MonitorManager.prototype.Init = function (caseViewer, recpath) {
+        this.RECAPI = new AssureIt.RECAPI(recpath);
         this.CaseViewer = caseViewer;
         this.HTMLRenderFunction = this.CaseViewer.GetPlugInHTMLRender("note");
         this.SVGRenderFunction = this.CaseViewer.GetPlugInSVGRender("monitor");
-    }
+    };
+
     MonitorManager.prototype.StartMonitors = function (interval) {
         var self = this;
 
@@ -246,6 +247,8 @@ var MonitorPlugIn = (function (_super) {
         this.SVGRenderPlugIn = new MonitorSVGRenderPlugIn(plugInManager);
         this.MenuBarContentsPlugIn = new MonitorMenuBarPlugIn(plugInManager);
         this.SideMenuPlugIn = new MonitorSideMenuPlugIn(plugInManager);
+        monitorManager = new MonitorManager();
+        this.PlugInEnv = { "MonitorManager": monitorManager };
     }
     return MonitorPlugIn;
 })(AssureIt.PlugInSet);
@@ -353,10 +356,6 @@ var MonitorMenuBarPlugIn = (function (_super) {
     };
 
     MonitorMenuBarPlugIn.prototype.Delegate = function (caseViewer, caseModel, element, serverApi) {
-        if (monitorManager == null) {
-            monitorManager = new MonitorManager(caseViewer, serverApi.recpath);
-        }
-
         if (!isMonitorNode(caseModel)) {
             return true;
         }
@@ -411,9 +410,7 @@ var MonitorSideMenuPlugIn = (function (_super) {
     };
 
     MonitorSideMenuPlugIn.prototype.AddMenu = function (caseViewer, Case0, serverApi) {
-        if (monitorManager == null) {
-            monitorManager = new MonitorManager(caseViewer, serverApi.recpath);
-        }
+        monitorManager.Init(caseViewer, serverApi.recpath);
 
         return new AssureIt.SideMenuModel('#', 'Monitors', "monitors", "glyphicon-list-alt", function (ev) {
             var monitorTableWindow = new MonitorTableWindow();

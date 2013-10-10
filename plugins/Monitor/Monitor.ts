@@ -181,11 +181,12 @@ class MonitorManager {
 	HTMLRenderFunction: Function;
 	SVGRenderFunction: Function;
 
-	constructor(caseViewer: AssureIt.CaseViewer, recpath: string) {
-		console.log("recpath");
-		console.log(recpath);
-		this.RECAPI = new AssureIt.RECAPI(recpath);
+	constructor() {
 		this.MonitorNodeMap = {};
+	}
+
+	Init(caseViewer: AssureIt.CaseViewer, recpath: string) {
+		this.RECAPI = new AssureIt.RECAPI(recpath);
 		this.CaseViewer = caseViewer;
 		this.HTMLRenderFunction = this.CaseViewer.GetPlugInHTMLRender("note");
 		this.SVGRenderFunction = this.CaseViewer.GetPlugInSVGRender("monitor");
@@ -279,6 +280,8 @@ class MonitorPlugIn extends AssureIt.PlugInSet {
 		this.SVGRenderPlugIn = new MonitorSVGRenderPlugIn(plugInManager);
 		this.MenuBarContentsPlugIn = new MonitorMenuBarPlugIn(plugInManager);
 		this.SideMenuPlugIn = new MonitorSideMenuPlugIn(plugInManager);
+		monitorManager = new MonitorManager();
+		this.PlugInEnv = { "MonitorManager": monitorManager };
 	}
 
 }
@@ -406,10 +409,6 @@ class MonitorMenuBarPlugIn extends AssureIt.MenuBarContentsPlugIn {
 	}
 
 	Delegate(caseViewer: AssureIt.CaseViewer, caseModel: AssureIt.NodeModel, element: JQuery, serverApi: AssureIt.ServerAPI): boolean {
-		if(monitorManager == null) {
-			monitorManager = new MonitorManager(caseViewer, serverApi.recpath);
-		}
-
 		if(!isMonitorNode(caseModel)) {
 			return true;
 		}
@@ -470,9 +469,7 @@ class MonitorSideMenuPlugIn extends AssureIt.SideMenuPlugIn {
 	}
 
 	AddMenu(caseViewer: AssureIt.CaseViewer, Case0: AssureIt.Case, serverApi: AssureIt.ServerAPI): AssureIt.SideMenuModel {
-		if(monitorManager == null) {
-			monitorManager = new MonitorManager(caseViewer, serverApi.recpath);
-		}
+		monitorManager.Init(caseViewer, serverApi.recpath);
 
 		return new AssureIt.SideMenuModel('#', 'Monitors', "monitors", "glyphicon-list-alt", (ev:Event)=>{
 			var monitorTableWindow = new MonitorTableWindow();

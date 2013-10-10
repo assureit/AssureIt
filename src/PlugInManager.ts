@@ -20,6 +20,8 @@ module AssureIt {
 		MenuBarContentsPlugIn: MenuBarContentsPlugIn;
 		SideMenuPlugIn: SideMenuPlugIn;
 
+		PlugInEnv: any;
+
 		constructor(public plugInManager: PlugInManager) {
 			this.ActionPlugIn = null;
 			this.CheckerPlugIn = null;
@@ -33,6 +35,8 @@ module AssureIt {
 			this.MenuBarContentsPlugIn = null;
 			this.ShortcutKeyPlugIn = null;
 			this.SideMenuPlugIn = null;
+
+			this.PlugInEnv = null;
 		}
 	}
 
@@ -205,10 +209,13 @@ module AssureIt {
 
 		MenuBarContentsPlugInMap  : { [index: string]: MenuBarContentsPlugIn };
 		ShortcutKeyPlugInMap      : { [index: string]: ShortcutKeyPlugIn };
-		SideMenuPlugInMap : { [index: string]: SideMenuPlugIn };
+		SideMenuPlugInMap         : { [index: string]: SideMenuPlugIn };
+
+		PlugInEnvMap              : { [index: string]: any };
 
 		UILayer: AbstractPlugIn[];
 		UsingLayoutEngine: string;
+
 
 		constructor(public basepath: string) {
 			this.ActionPlugInMap = {};
@@ -223,6 +230,8 @@ module AssureIt {
 			this.MenuBarContentsPlugInMap = {};
 			this.ShortcutKeyPlugInMap = {};
 			this.SideMenuPlugInMap = {};
+
+			this.PlugInEnvMap = {};
 
 			this.UILayer = [];
 		}
@@ -251,6 +260,9 @@ module AssureIt {
 			}
 			if(plugIn.SideMenuPlugIn) {
 				this.SetSideMenuPlugIn(key, plugIn.SideMenuPlugIn);
+			}
+			if(plugIn.PlugInEnv) {
+				this.SetPlugInEnv(key, plugIn.PlugInEnv);
 			}
 		}
 
@@ -302,6 +314,14 @@ module AssureIt {
 
 		private SetSideMenuPlugIn(key: string, SideMenuPlugIn: SideMenuPlugIn): void {
 			this.SideMenuPlugInMap[key] = SideMenuPlugIn;
+		}
+
+		private SetPlugInEnv(key: string, PlugInEnv: any): void {
+			this.PlugInEnvMap[key] = PlugInEnv;
+		}
+
+		GetPlugInEnv(key: string): any {
+			return this.PlugInEnvMap[key];
 		}
 
 		UseUILayer(plugin :AbstractPlugIn): void {

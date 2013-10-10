@@ -311,7 +311,9 @@ int GetDataFromRec(String location, String type) {\n\
                 _this.AssureItAgentAPI.Deploy(__dscript__);
             } catch (e) {
                 alert("Assure-It Agent is not active.");
+                return;
             }
+            caseViewer.pluginManager.GetPlugInEnv("monitor").MonitorManager.RemoveAllMonitor();
         });
     };
     return DScriptSideMenuPlugIn;

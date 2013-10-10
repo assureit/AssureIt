@@ -396,7 +396,9 @@ int GetDataFromRec(String location, String type) {\n\
 			}
 			catch(e) {
 				alert("Assure-It Agent is not active.");
+				return;
 			}
+			caseViewer.pluginManager.GetPlugInEnv("monitor").MonitorManager.RemoveAllMonitor();
 		});
 	}
 }
