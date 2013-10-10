@@ -175,25 +175,6 @@ var DScriptEditorPlugIn = (function (_super) {
         self.GenerateCode();
     };
 
-    DScriptEditorPlugIn.prototype.UpdateLineComment = function (editor, widgets, generator) {
-        editor.operation(function () {
-            for (var i = 0; i < widgets.length; ++i) {
-                editor.removeLineWidget(widgets[i]);
-            }
-            widgets.length = 0;
-            for (var i = 0; i < generator.errorMessage.length; ++i) {
-                var error = generator.errorMessage[i];
-                console.log(error);
-
-                var msg = document.createElement("div");
-                var icon = msg.appendChild(document.createElement("span"));
-                msg.appendChild(document.createTextNode(error.Message));
-                $(msg).css("background", "none repeat scroll 0 0 #FFAAAA");
-                widgets.push(editor.addLineWidget(error.LineNumber, msg, { coverGutter: false, noHScroll: true }));
-            }
-        });
-    };
-
     DScriptEditorPlugIn.prototype.UpdateNodeRelationTable = function (nodeRelation) {
         var table = this.NodeRelationTable;
         var tableWidth = table.parent().width();
@@ -275,7 +256,7 @@ var DScriptEditorPlugIn = (function (_super) {
 
         try  {
             var generator = new DScriptGenerator();
-            var script = generator.codegen(orig_ElementMap, nodeModel, ASNData, genflag);
+            var script = generator.CodeGen(orig_ElementMap, nodeModel);
 
             var dscriptActionMap = new DScriptActionMap(nodeModel);
             var nodeRelation = dscriptActionMap.GetNodeRelation();
@@ -284,7 +265,7 @@ var DScriptEditorPlugIn = (function (_super) {
             __dscript__.meta.actionmap = nodeRelation;
             this.UpdateNodeRelationTable(nodeRelation);
             this.UpdateActionRelationTable(actionRelation);
-            this.UpdateLineComment(this.ASNEditor, this.Widgets, generator);
+
             this.DScriptEditor.setValue(script);
         } catch (e) {
             console.log("error occured in DScript Generation");

@@ -188,24 +188,24 @@ class DScriptEditorPlugIn extends AssureIt.ActionPlugIn {
 		self.GenerateCode();
 	}
 
-	UpdateLineComment(editor: any, widgets: any[], generator: DScriptGenerator): void {
-		editor.operation(function() {
-			for (var i: number = 0; i < widgets.length; ++i) {
-				editor.removeLineWidget(widgets[i]);
-			}
-			widgets.length = 0;
-			for (var i: number = 0; i < generator.errorMessage.length; ++i) {
-				var error: DScriptError = generator.errorMessage[i];
-				console.log(error);
-				//this.highlighter.Highlight(error.LineNumber, error.Message);
-				var msg = document.createElement("div");
-				var icon = msg.appendChild(document.createElement("span"));
-				msg.appendChild(document.createTextNode(error.Message));
-				$(msg).css("background", "none repeat scroll 0 0 #FFAAAA");
-				widgets.push(editor.addLineWidget(error.LineNumber, msg, {coverGutter: false, noHScroll: true}));
-			}
-		});
-	}
+// 	UpdateLineComment(editor: any, widgets: any[], generator: DScriptGenerator): void {
+// 		editor.operation(function() {
+// 			for (var i: number = 0; i < widgets.length; ++i) {
+// 				editor.removeLineWidget(widgets[i]);
+// 			}
+// 			widgets.length = 0;
+// 			for (var i: number = 0; i < generator.errorMessage.length; ++i) {
+// 				var error: DScriptError = generator.errorMessage[i];
+// 				console.log(error);
+// 				//this.highlighter.Highlight(error.LineNumber, error.Message);
+// 				var msg = document.createElement("div");
+// 				var icon = msg.appendChild(document.createElement("span"));
+// 				msg.appendChild(document.createTextNode(error.Message));
+// 				$(msg).css("background", "none repeat scroll 0 0 #FFAAAA");
+// 				widgets.push(editor.addLineWidget(error.LineNumber, msg, {coverGutter: false, noHScroll: true}));
+// 			}
+// 		});
+// 	}
 
 	UpdateNodeRelationTable(nodeRelation): void {
 		var table: JQuery = this.NodeRelationTable;
@@ -294,7 +294,7 @@ class DScriptEditorPlugIn extends AssureIt.ActionPlugIn {
 
 		try {
 			var generator: DScriptGenerator = new DScriptGenerator();
-			var script = generator.codegen(orig_ElementMap, nodeModel, ASNData, genflag);
+			var script = generator.CodeGen(orig_ElementMap, nodeModel);
 
  			var dscriptActionMap: DScriptActionMap = new DScriptActionMap(nodeModel);
 			var nodeRelation = dscriptActionMap.GetNodeRelation();
@@ -303,7 +303,7 @@ class DScriptEditorPlugIn extends AssureIt.ActionPlugIn {
  			__dscript__.meta.actionmap = nodeRelation;
  			this.UpdateNodeRelationTable(nodeRelation);
  			this.UpdateActionRelationTable(actionRelation);
-			this.UpdateLineComment(this.ASNEditor, this.Widgets, generator);
+//			this.UpdateLineComment(this.ASNEditor, this.Widgets, generator);
 			this.DScriptEditor.setValue(script);
 		}
 		catch(e) {
