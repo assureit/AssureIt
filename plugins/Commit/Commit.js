@@ -30,11 +30,58 @@ var CommitWindow = (function () {
         modal.appendTo($('layer2'));
     };
 
-    CommitWindow.prototype.MakeSummary = function (case0) {
-        var ret = {};
+    CommitWindow.prototype.UpdateLastModified = function (summary, case0, lastModified) {
+        if (lastModified == null)
+            lastModified = {};
+        var userName = $.cookie('userName');
+        var oldcase = new AssureIt.Case('oldCase', case0.oldsummary, case0.oldasn, case0.CaseId, case0.CommitId, null);
+        var caseDecoder = new AssureIt.CaseDecoder();
+        var root = caseDecoder.ParseASN(oldcase, case0.oldasn, null);
+        oldcase.SetElementTop(root);
+        var res = {};
 
-        ret.count = Object.keys(case0.ElementMap).length;
-        return ret;
+        var added = [], deleted = [], modified = [];
+        for (var i in case0.ElementMap) {
+            var node = case0.ElementMap[i];
+            var oldnode = oldcase.ElementMap[i];
+            if (oldnode == null) {
+                added.push(i);
+                res[i] = { userName: $.cookie('userName'), role: 'admin' };
+            } else if (node.Equals(oldnode)) {
+                if (lastModified[i] != null) {
+                    res[i] = lastModified[i];
+                } else {
+                    res[i] = { userName: $.cookie('userName'), role: 'admin' };
+                }
+            } else {
+                modified.push(i);
+                res[i] = { userName: $.cookie('userName'), role: 'admin' };
+            }
+        }
+
+        for (var i in oldcase.ElementMap) {
+            if (case0.ElementMap[i] == null) {
+                deleted.push(i);
+            }
+        }
+        summary.lastModified = res;
+        summary.added = added;
+        summary.modified = modified;
+        summary.deleted = deleted;
+    };
+
+    CommitWindow.prototype.MakeSummary = function (case0) {
+        var oldsummary = case0.oldsummary;
+        if (oldsummary == null) {
+            oldsummary = {};
+        }
+        var summary = {};
+
+        summary.count = Object.keys(case0.ElementMap).length;
+
+        this.UpdateLastModified(summary, case0, oldsummary.lastModified);
+
+        return summary;
     };
 
     CommitWindow.prototype.SetEventHandlers = function (caseViewer, case0, serverApi) {
