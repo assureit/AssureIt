@@ -364,6 +364,8 @@ module AssureIt {
 			for(var i: number =0; i< keys.length; i++) {
 				if(!(keys[i] in that.ElementMap)) {
 					this.ElementMap[keys[i]].HasDiff = true;
+				} else if (!this.ElementMap[keys[i]].Equals(that.ElementMap[keys[i]])){
+					this.ElementMap[keys[i]].HasDiff = true;
 				}
 			}
 		}
