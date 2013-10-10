@@ -1,8 +1,3 @@
-/// <reference path="../../src/CaseModel.ts" />
-/// <reference path="../../src/CaseEncoder.ts" />
-/// <reference path="../../src/ServerApi.ts" />
-/// <reference path="../../src/PlugInManager.ts" />
-/// <reference path="../Editor/Editor.ts" />
 var __extends = this.__extends || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
     function __() { this.constructor = d; }
@@ -14,8 +9,6 @@ var SearchNodePlugIn = (function (_super) {
     function SearchNodePlugIn(plugInManager) {
         _super.call(this, plugInManager);
 
-        //var plugin: SearchNodeActionPlugIn = new SearchNodeActionPlugIn(plugInManager);
-        //this.ActionPlugIn = plugin;
         this.MenuBarContentsPlugIn = new SearchNodeMenuPlugIn(plugInManager);
         this.ShortcutKeyPlugIn = new SearchWordKeyPlugIn(plugInManager);
     }
@@ -43,9 +36,6 @@ var SearchNodeMenuPlugIn = (function (_super) {
             _this.Center();
         });
 
-        //element.append('<a href="#" ><img id="SearchNode-xml" src="' + serverApi.basepath + 'images/icon.png" title="SearchNode XML" alt="XML" /></a>');
-        //$('#SearchNode-xml').unbind('click');
-        //$('#SearchNode-xml').click(this.editorPlugIn.SearchNodeXml);
         return true;
     };
 
@@ -72,20 +62,25 @@ var SearchWordKeyPlugIn = (function (_super) {
         this.HasStarted = false;
         $("body").keydown(function (e) {
             if (e.ctrlKey) {
+                if (e.keyCode == 81) {
+                    e.preventDefault();
+                    $('nav').remove();
+                }
                 if (e.keyCode == 70) {
                     e.preventDefault();
-                    if ($('.navbar-search').length != 1) {
+                    console.log("form length" + $('nav').length);
+                    if ($('nav').length == 0) {
                         console.log("here");
                         _this.CreateSearchWindow();
-                        $('.navbar-search').show(2000);
-                        $('.navbar-search input:first').focus();
-                        $('#searchbutton').click(function (ev) {
+                        $('nav').show(3000);
+                        $('.navbar-form input:first').focus();
+                        $('.btn').click(function (ev) {
                             ev.preventDefault();
                             if (!_this.HasStarted) {
                                 _this.Search(Case0, caseViewer, serverApi);
                                 _this.HasStarted = true;
                             } else {
-                                if ($('.navbar-search input:first').val() != _this.Keyword) {
+                                if ($('.navbar-form input:first').val() != _this.Keyword) {
                                     _this.FirstMove = true;
                                     _this.Color(_this.HitNodes, _this.currentNodeColor, caseViewer, true);
                                     $('body').unbind("keydown", _this.Search.controllSearch);
@@ -97,7 +92,7 @@ var SearchWordKeyPlugIn = (function (_super) {
                                         _this.HasStarted = false;
                                     }
 
-                                    console.log($('.navbar-search input:first').val());
+                                    console.log($('.navbar-form input:first').val());
                                 }
                             }
                         });
@@ -110,7 +105,7 @@ var SearchWordKeyPlugIn = (function (_super) {
 
     SearchWordKeyPlugIn.prototype.Search = function (Case0, caseViewer, serverApi) {
         var _this = this;
-        this.Keyword = $('.navbar-search input:first').val();
+        this.Keyword = $('.navbar-form input:first').val();
         var nodeIndex = 0;
         var moveFlag = false;
         var TopNodeModel = Case0.ElementTop;
@@ -145,16 +140,17 @@ var SearchWordKeyPlugIn = (function (_super) {
         CaseMap.SVGShape.SetColor("#ffff00", "#ff4500");
 
         var controllSearch = function (e) {
-            if (e.keyCode == 81) {
-                console.log('quitting');
-                $('body').unbind("keydown", controllSearch);
-                _this.Color(_this.HitNodes, _this.currentNodeColor, caseViewer, true);
-                $('.navbar-search').remove();
-                _this.HitNodes = [];
-                _this.currentNodeColor = [];
-                _this.HasStarted = false;
+            if (e.ctrlKey) {
+                if (e.keyCode == 81) {
+                    console.log('quitting');
+                    $('body').unbind("keydown", controllSearch);
+                    _this.Color(_this.HitNodes, _this.currentNodeColor, caseViewer, true);
+                    $('nav').remove();
+                    _this.HitNodes = [];
+                    _this.currentNodeColor = [];
+                    _this.HasStarted = false;
+                }
             }
-
             if (!e.shiftKey) {
                 if (e.keyCode == 13) {
                     console.log("pushed enter button");
@@ -243,15 +239,15 @@ var SearchWordKeyPlugIn = (function (_super) {
     };
 
     SearchWordKeyPlugIn.prototype.CreateSearchWindow = function () {
-        $('<form name="searchform" class="navbar-search"><input type="text" name="search-query" class="search-query" placeholder="Search"/><input type="submit" value="search" name="searchbutton" id="searchbutton"/> </form>').appendTo($('body'));
+        $('<nav class="navbar pull-right" style="position: absolute"><form class="navbar-form" role="Search"><input type="text" class="form-control" placeholder="Search"/><input type="submit" value="search" class="btn"/></form></nav>').appendTo($('body'));
 
-        $('.navbar-search').css({ width: '200px', background: '"url(./img/input.gif)" "left" "top" "no-repeat"', display: 'block', height: '24px', position: 'float', top: 0, left: 0 });
+        $('nav').css({ width: '260px', margin: 0, height: '24px', top: '0', right: '0' });
 
-        //
-        $('.search-query').css({ width: '156px', position: 'absolute', top: '3px', left: '12px', border: "'1px' 'solid' '#FFF'" });
+        $('.navbar-form').css({ width: '230px', position: 'absolute' });
 
-        //
-        $('#searchbutton').css({ position: 'absolute', top: '3px', left: '174px' });
+        $('.form-control').css({ width: '156px', position: 'absolute' });
+
+        $('.btn').css({ position: 'absolute', left: '176px' });
     };
 
     SearchWordKeyPlugIn.prototype.Color = function (HitNodes, currentNodeColor, caseViewer, enterFlag) {

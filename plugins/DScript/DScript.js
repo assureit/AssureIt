@@ -1,8 +1,3 @@
-/// <reference path="../../src/CaseModel.ts" />
-/// <reference path="../../src/CaseViewer.ts" />
-/// <reference path="../../src/PlugInManager.ts" />
-/// <reference path="../../src/EditorUtil.ts" />
-/// <reference path="./DScriptGenerator.ts" />
 var __extends = this.__extends || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
     function __() { this.constructor = d; }
@@ -95,12 +90,6 @@ var DScriptEditorPlugIn = (function (_super) {
         this.widgets = [];
         _super.call(this, plugInManager);
 
-        //$("#dscript-editor-wrapper").append($('<div></div>').append(
-        //			$('<textarea id="dscript-editor-left"  placeholder=""></textarea>')));
-        //$("#dscript-editor-wrapper").append($('<div></div>').append(
-        //			$('<textarea id="dscript-editor-right"  placeholder="Generated DScript code goes here."></textarea>')));
-        //$("#dscript-editor-wrapper").append($('<div></div>').append(
-        //			$('<textarea id="dscript-editor-bottom"  placeholder="Generated shell code goes here."></textarea>')));
         this.editor_left = CodeMirror.fromTextArea(document.getElementById('dscript-editor-left'), {
             lineNumbers: true,
             mode: "text/x-csrc",
@@ -114,13 +103,6 @@ var DScriptEditorPlugIn = (function (_super) {
             lineWrapping: true
         });
 
-        //this.editor_bottom = CodeMirror.fromTextArea(document.getElementById('dscript-editor-bottom'), {
-        //	lineNumbers: true,
-        //	mode: "text/x-csrc",
-        //	readOnly: true,
-        //	placeholder: "Generated Shell code goes here.",
-        //	lineWrapping: true,
-        //});
         $('#dscript-editor-wrapper').css({
             position: 'absolute',
             top: '5%',
@@ -131,7 +113,6 @@ var DScriptEditorPlugIn = (function (_super) {
             background: 'rgba(255, 255, 255, 0.85)'
         });
 
-        /* FIXME Replace it with sophisticated style. */
         $(this.editor_left.getWrapperElement()).css({
             width: '100%',
             height: '100%'
@@ -141,10 +122,6 @@ var DScriptEditorPlugIn = (function (_super) {
             height: '100%'
         });
 
-        //$(this.editor_bottom.getWrapperElement()).css({
-        //	width: '100%',
-        //	height: '100%',
-        //});
         $('#dscript-editor-left').parent().css({
             width: '50%',
             height: '100%',
@@ -158,13 +135,6 @@ var DScriptEditorPlugIn = (function (_super) {
             display: 'block'
         });
 
-        //$('#dscript-editor-bottom').parent()
-        //	.css({
-        //		width: '50%',
-        //		height: '50%',
-        //		float: 'right',
-        //		display: 'block',
-        //	});
         this.highlighter = new ErrorHighlight(this.editor_left);
         var self = this;
         this.editor_left.on("change", function (e) {
@@ -185,7 +155,6 @@ var DScriptEditorPlugIn = (function (_super) {
                 var error = Generator.errorMessage[i];
                 console.log(error);
 
-                //this.highlighter.Highlight(error.LineNumber, error.Message);
                 var msg = document.createElement("div");
                 var icon = msg.appendChild(document.createElement("span"));
                 msg.appendChild(document.createTextNode(error.Message));

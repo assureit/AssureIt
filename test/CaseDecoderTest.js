@@ -1,5 +1,3 @@
-/// <reference path="../d.ts/qunit.d.ts" />
-/// <reference path="../src/CaseDecoder.ts" />
 function Check_CaseDecoder_ParseJson() {
     var JsonData = {
         "DCaseName": "test",

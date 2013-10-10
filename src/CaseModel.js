@@ -9,11 +9,6 @@ var AssureIt;
     })();
     AssureIt.CaseAnnotation = CaseAnnotation;
 
-    /* obsolete */
-    //export class CaseNote {
-    //	constructor(public Name: string, public Body: any) {
-    //	}
-    //}
     (function (NodeType) {
         NodeType[NodeType["Goal"] = 0] = "Goal";
         NodeType[NodeType["Context"] = 1] = "Context";
@@ -128,7 +123,6 @@ var AssureIt;
             return HitNodes;
         };
 
-        /* plug-In */
         NodeModel.prototype.InvokePatternPlugInRecursive = function (model) {
             var pluginMap = this.Case.pluginManager.PatternPlugInMap;
             for (var key in pluginMap) {
@@ -172,7 +166,6 @@ var AssureIt;
             this.ElementMap = {};
         };
 
-        /* Deprecated */
         Case.prototype.SetElementTop = function (ElementTop) {
             this.ElementTop = ElementTop;
             this.SaveIdCounterMax(ElementTop);

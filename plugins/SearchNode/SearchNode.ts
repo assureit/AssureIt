@@ -66,20 +66,25 @@ class SearchWordKeyPlugIn extends AssureIt.ShortcutKeyPlugIn {
 		this.HasStarted = false;
 		$("body").keydown((e)=>{
 			if (e.ctrlKey) {
+				if (e.keyCode == 81/*q*/) {
+					e.preventDefault();
+					$('nav').remove();
+				}
 				if (e.keyCode == 70/*f*/) {
 					e.preventDefault();
-					if ($('.navbar-search').length != 1) {
+					console.log("form length" +  $('nav').length);
+					if ($('nav').length == 0) {
 						console.log("here");
 						this.CreateSearchWindow();
-						$('.navbar-search').show(2000);
-						$('.navbar-search input:first').focus();
-						$('#searchbutton').click((ev: JQueryEventObject)=> {
+						$('nav').show(3000);
+						$('.navbar-form input:first').focus();
+						$('.btn').click((ev: JQueryEventObject)=> {
 							ev.preventDefault();
 							if (!this.HasStarted) {
 								this.Search(Case0, caseViewer,serverApi);
 								this.HasStarted = true;
 							} else {
-								if ($('.navbar-search input:first').val() != this.Keyword) {
+								if ($('.navbar-form input:first').val() != this.Keyword) {
 									this.FirstMove = true;
 									this.Color(this.HitNodes, this.currentNodeColor, caseViewer, true);
 									$('body').unbind("keydown",this.Search.controllSearch);
@@ -91,7 +96,7 @@ class SearchWordKeyPlugIn extends AssureIt.ShortcutKeyPlugIn {
 										this.HasStarted = false;
 									}
 
-									console.log($('.navbar-search input:first').val());
+									console.log($('.navbar-form input:first').val());
 								}
 							}
 						});
@@ -103,7 +108,7 @@ class SearchWordKeyPlugIn extends AssureIt.ShortcutKeyPlugIn {
 	}
 
 	Search(Case0: AssureIt.Case, caseViewer: AssureIt.CaseViewer ,serverApi: AssureIt.ServerAPI): void {
-		this.Keyword = $('.navbar-search input:first').val();
+		this.Keyword = $('.navbar-form input:first').val();
 		var nodeIndex: number = 0;
 		var moveFlag: boolean = false;
 		var TopNodeModel: AssureIt.NodeModel = Case0.ElementTop;
@@ -138,16 +143,17 @@ class SearchWordKeyPlugIn extends AssureIt.ShortcutKeyPlugIn {
 		CaseMap.SVGShape.SetColor("#ffff00", "#ff4500");
 
 		var controllSearch = (e: JQueryEventObject)=> {
-			if (e.keyCode == 81/*q*/) {
-				console.log('quitting');
-				$('body').unbind("keydown",controllSearch);
-				this.Color(this.HitNodes, this.currentNodeColor, caseViewer, true);
-				$('.navbar-search').remove();
-				this.HitNodes = [];
-				this.currentNodeColor = [];
-				this.HasStarted = false;
+			if (e.ctrlKey) {
+				if (e.keyCode == 81/*q*/) {
+					console.log('quitting');
+					$('body').unbind("keydown",controllSearch);
+					this.Color(this.HitNodes, this.currentNodeColor, caseViewer, true);
+					$('nav').remove();
+					this.HitNodes = [];
+					this.currentNodeColor = [];
+					this.HasStarted = false;
+				}
 			}
-
 			if (!e.shiftKey) {
 				if (e.keyCode == 13/*Enter*/) {
 					console.log("pushed enter button");
@@ -236,16 +242,16 @@ class SearchWordKeyPlugIn extends AssureIt.ShortcutKeyPlugIn {
 	}
 
 	CreateSearchWindow(): void {
-		$('<form name="searchform" class="navbar-search"><input type="text" name="search-query" class="search-query" placeholder="Search"/><input type="submit" value="search" name="searchbutton" id="searchbutton"/> </form>').appendTo($('body'));
+		$('<nav class="navbar pull-right" style="position: absolute"><form class="navbar-form" role="Search"><input type="text" class="form-control" placeholder="Search"/><input type="submit" value="search" class="btn"/></form></nav>').appendTo($('body'));
 
 
+		$('nav').css({width: '260px', margin: 0, height: '24px', top: '0', right: '0' });
 
+		$('.navbar-form').css({width: '230px', position: 'absolute'});
 
-		$('.navbar-search').css({width: '200px', background: '"url(./img/input.gif)" "left" "top" "no-repeat"',display: 'block', height: '24px', position: 'float', top: 0, left: 0});
-//
-		$('.search-query').css({width: '156px', position: 'absolute', top: '3px', left: '12px', border: "'1px' 'solid' '#FFF'"});
-//
-		$('#searchbutton').css({position: 'absolute', top: '3px', left: '174px'});
+		$('.form-control').css({width: '156px', position: 'absolute'});
+
+		$('.btn').css({position: 'absolute', left: '176px'});
 	}
 
 	Color (HitNodes: AssureIt.NodeModel[], currentNodeColor: {[index: string]: string}[], caseViewer: AssureIt.CaseViewer, enterFlag: boolean): void {
