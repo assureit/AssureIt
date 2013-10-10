@@ -74,9 +74,9 @@ class SearchWordKeyPlugIn extends AssureIt.ShortcutKeyPlugIn {
 					e.preventDefault();
 					console.log("form length" +  $('nav').length);
 					if ($('nav').length == 0) {
-						console.log("here");
 						this.CreateSearchWindow();
-						$('nav').show(3000);
+
+						//$('nav').show(3000);
 						$('.navbar-form input:first').focus();
 						$('.btn').click((ev: JQueryEventObject)=> {
 							ev.preventDefault();

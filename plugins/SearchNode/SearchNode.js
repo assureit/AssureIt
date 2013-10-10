@@ -70,9 +70,8 @@ var SearchWordKeyPlugIn = (function (_super) {
                     e.preventDefault();
                     console.log("form length" + $('nav').length);
                     if ($('nav').length == 0) {
-                        console.log("here");
                         _this.CreateSearchWindow();
-                        $('nav').show(3000);
+
                         $('.navbar-form input:first').focus();
                         $('.btn').click(function (ev) {
                             ev.preventDefault();

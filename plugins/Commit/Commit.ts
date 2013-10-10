@@ -44,7 +44,7 @@ class CommitWindow {
 		var res = {};
 
 		/* Compare case0.ElementMap and oldcase.ElementMap */
-		var added: string[] = [], deleted: string[] = [], modified: string = [];
+		var added: string[] = [], deleted: string[] = [], modified: string[] = [];
 		for (var i in case0.ElementMap) {
 			var node = case0.ElementMap[i];
 			var oldnode = oldcase.ElementMap[i];
