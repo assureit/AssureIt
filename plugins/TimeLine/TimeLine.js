@@ -68,7 +68,7 @@ var TimeLineKeyPlugIn = (function (_super) {
         var historyId = this.GetHistoryId();
         if (historyId == -1) {
             var commits = serverApi.GetCommitList(Case.CaseId);
-            historyId = commits.Size() - 1;
+            historyId = commits.Size();
         }
         if (historyId > 0) {
             historyId--;
@@ -84,7 +84,7 @@ var TimeLineKeyPlugIn = (function (_super) {
         }
         var commits = serverApi.GetCommitList(Case.CaseId);
         var max = commits.Size() - 1;
-        if (historyId >= 0 && historyId <= max) {
+        if (historyId >= 0 && historyId < max) {
             historyId++;
             var loc = serverApi.basepath + "case/" + Case.CaseId;
             location.href = loc + '/history/' + (historyId);
