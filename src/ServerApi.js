@@ -93,7 +93,7 @@ var AssureIt;
         };
 
         ServerAPI.prototype.GetNodeTree = function (commitId) {
-            return this.RemoteCall("getNodeTree", { commitId: commitId }).contents;
+            return this.RemoteCall("getNodeTree", { commitId: commitId });
         };
 
         ServerAPI.prototype.SearchNode = function (text) {
