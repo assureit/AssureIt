@@ -426,7 +426,12 @@ module AssureIt {
 		}
 
 		SetTemporaryColor(fill: string, stroke: string): void {
-			this.TemporaryColor = { "fill": fill, "stroke": stroke };
+			if((!fill || fill == "none") && (!stroke || stroke == "none")) {
+				this.TemporaryColor = null;
+			}
+			else {
+				this.TemporaryColor = { "fill": fill, "stroke": stroke };
+			}
 		}
 
 		GetTemporaryColor(): { [index: string]: string } {

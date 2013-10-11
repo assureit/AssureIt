@@ -427,7 +427,11 @@ var AssureIt;
         };
 
         NodeView.prototype.SetTemporaryColor = function (fill, stroke) {
-            this.TemporaryColor = { "fill": fill, "stroke": stroke };
+            if ((!fill || fill == "none") && (!stroke || stroke == "none")) {
+                this.TemporaryColor = null;
+            } else {
+                this.TemporaryColor = { "fill": fill, "stroke": stroke };
+            }
         };
 
         NodeView.prototype.GetTemporaryColor = function () {

@@ -80,12 +80,12 @@ function showNode(caseViewer: AssureIt.CaseViewer, nodeModel: AssureIt.NodeModel
 	SVGRenderFunction(caseViewer, view);
 }
 
-function blushAllAncestor(caseViewer: AssureIt.CaseViewer, nodeModel: AssureIt.NodeModel, fill: string, stroke: string) {
-	if(nodeModel == null) return;
+function blushAllAncestor(nodeView: AssureIt.NodeView, fill: string, stroke: string) {
+	if(nodeView == null) return;
 
-	caseViewer.ViewMap[nodeModel.Label].SetTemporaryColor(fill, stroke);
+	nodeView.SetTemporaryColor(fill, stroke);
 
-	blushAllAncestor(caseViewer, nodeModel.Parent, fill, stroke);
+	blushAllAncestor(nodeView.ParentShape, fill, stroke);
 }
 
 
@@ -95,6 +95,7 @@ class MonitorNode {
 	Type: string;
 	Condition: string;
 	LatestData: any;
+	TurningPointData: any;
 	PastData: any[];
 	Status: boolean;
 	EvidenceNode: AssureIt.NodeModel;
@@ -104,6 +105,7 @@ class MonitorNode {
 		this.Type = Type;
 		this.Condition = Condition;
 		this.LatestData = null;
+		this.TurningPointData = null;
 		this.PastData = [];
 		this.Status = true;
 		this.EvidenceNode = EvidenceNode;
@@ -132,28 +134,32 @@ class MonitorNode {
 	}
 
 	UpdateLatestData(RECAPI: AssureIt.RECAPI) {
-		if(this.Status == true) {
-			var latestData = RECAPI.getLatestData(this.Location, this.Type);
+		var latestData = RECAPI.getLatestData(this.Location, this.Type);
 
-			if(latestData == null) {
-				// TODO: alert
-				console.log("latest data is null");
-			}
-			else {
-				if(JSON.stringify(this.LatestData) != JSON.stringify(latestData)) {
-					this.LatestData = latestData;
-					this.UpdatePastData(latestData);
-				}
+		if(latestData == null) {
+			// TODO: alert
+			console.log("latest data is null");
+		}
+		else {
+			if(JSON.stringify(this.LatestData) != JSON.stringify(latestData)) {
+				this.LatestData = latestData;
+				this.UpdatePastData(latestData);
 			}
 		}
 	}
 
 	UpdateStatus() {
-		if(this.Status == true) {
-			var script: string = "var "+this.Type+"="+this.LatestData.data+";";
-			script += this.Condition+";";
-			this.Status = eval(script);   // FIXME: don't use eval()
+		var status: boolean;
+		var script: string = "var "+this.Type+"="+this.LatestData.data+";";
+
+		script += this.Condition+";";
+		status = eval(script);   // FIXME: don't use eval()
+
+		if(!status && !this.TurningPointData) {
+			this.TurningPointData = this.LatestData;
 		}
+
+		this.Status = status;
 	}
 
 	Show(caseViewer: AssureIt.CaseViewer, HTMLRenderFunction: Function, SVGRenderFunction: Function) {
@@ -290,10 +296,21 @@ class MonitorSVGRenderPlugIn extends AssureIt.SVGRenderPlugIn {
 		var nodeModel: AssureIt.NodeModel = nodeView.Source;
 		var monitorNode: MonitorNode = monitorManager.MonitorNodeMap[nodeModel.Label];
 
-		if(monitorNode != null && !monitorNode.Status) {
+		if(!monitorNode) return true;
+
+		if(monitorNode.Status) {
+			if(monitorNode.TurningPointData) {
+				var fill: string = "#FFFF99";   // FIXME: allow any color
+				var stroke: string = "none";
+				nodeView.SVGShape.SetColor(fill, stroke);
+				blushAllAncestor(nodeView.ParentShape, fill, stroke);
+			}
+		}
+		else {
 			var fill: string = "#FF9999";   // FIXME: allow any color
 			var stroke: string = "none";
-			blushAllAncestor(caseViewer, nodeModel, fill, stroke);
+			nodeView.SVGShape.SetColor(fill, stroke);
+			blushAllAncestor(nodeView.ParentShape, fill, stroke);
 		}
 
 		return true;
