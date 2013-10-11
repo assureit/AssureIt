@@ -39,6 +39,15 @@ var DScriptGenerator = (function () {
             if (key == "prototype" || key == "Reaction") {
                 continue;
             } else if (key == "Monitor") {
+                var condStr = env[key];
+                condStr = condStr.replace(/[a-zA-Z]+/g, function (matchedStr) {
+                    return "GetDataFromRec(Location, \"" + matchedStr + "\")";
+                });
+                condStr = condStr.replace(/[0-9]+/g, function (matchedStr) {
+                    return "\"" + matchedStr + "\"";
+                });
+                condStr = condStr.replace(/[\{\}]/g, "").trim();
+                ret += this.Indent + "let Monitor = " + condStr + ";" + this.LineFeed;
             } else {
                 ret += this.Indent + "let " + key + " = \"" + env[key] + "\";" + this.LineFeed;
             }
