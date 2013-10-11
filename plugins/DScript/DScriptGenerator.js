@@ -167,7 +167,7 @@ var DScriptGenerator = (function () {
         return ret;
     };
 
-    DScriptGenerator.prototype.CodeGen = function (viewMap, rootNode) {
+    DScriptGenerator.prototype.CodeGen = function (rootNode) {
         var ret = "";
         if (rootNode == null) {
         } else {

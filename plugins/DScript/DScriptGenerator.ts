@@ -198,7 +198,7 @@ class DScriptGenerator {
 		return ret;
 	}
 
-	CodeGen(viewMap: {[index: string]: AssureIt.NodeModel }, rootNode: AssureIt.NodeModel): string {
+	CodeGen(rootNode: AssureIt.NodeModel): string {
 		var ret: string = "";
 		if(rootNode == null) {
 			//pass

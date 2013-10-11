@@ -252,12 +252,10 @@ var DScriptEditorPlugIn = (function (_super) {
         }
         this.RootNodeModel = nodeModel;
         this.Highlighter.ClearHighlight();
-        var genflag = false;
 
         try  {
             var generator = new DScriptGenerator();
-            var script = generator.CodeGen(orig_ElementMap, nodeModel);
-
+            var script = generator.CodeGen(nodeModel);
             var dscriptActionMap = new DScriptActionMap(nodeModel);
             var nodeRelation = dscriptActionMap.GetNodeRelation();
             var actionRelation = dscriptActionMap.GetActionRelation();

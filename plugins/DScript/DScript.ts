@@ -290,12 +290,10 @@ class DScriptEditorPlugIn extends AssureIt.ActionPlugIn {
 		}
 		this.RootNodeModel = nodeModel;
 		this.Highlighter.ClearHighlight();
-		var genflag: boolean = false; //generate main function flag
 
 		try {
 			var generator: DScriptGenerator = new DScriptGenerator();
-			var script = generator.CodeGen(orig_ElementMap, nodeModel);
-
+			var script = generator.CodeGen(nodeModel);
  			var dscriptActionMap: DScriptActionMap = new DScriptActionMap(nodeModel);
 			var nodeRelation = dscriptActionMap.GetNodeRelation();
 			var actionRelation = dscriptActionMap.GetActionRelation();
