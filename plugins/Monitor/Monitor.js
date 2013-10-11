@@ -274,14 +274,12 @@ var MonitorSVGRenderPlugIn = (function (_super) {
             if (monitorNode.TurningPointData) {
                 var fill = "#FFFF99";
                 var stroke = "none";
-                nodeView.SVGShape.SetColor(fill, stroke);
-                blushAllAncestor(nodeView.ParentShape, fill, stroke);
+                blushAllAncestor(nodeView, fill, stroke);
             }
         } else {
             var fill = "#FF9999";
             var stroke = "none";
-            nodeView.SVGShape.SetColor(fill, stroke);
-            blushAllAncestor(nodeView.ParentShape, fill, stroke);
+            blushAllAncestor(nodeView, fill, stroke);
         }
 
         return true;

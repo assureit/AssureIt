@@ -302,15 +302,13 @@ class MonitorSVGRenderPlugIn extends AssureIt.SVGRenderPlugIn {
 			if(monitorNode.TurningPointData) {
 				var fill: string = "#FFFF99";   // FIXME: allow any color
 				var stroke: string = "none";
-				nodeView.SVGShape.SetColor(fill, stroke);
-				blushAllAncestor(nodeView.ParentShape, fill, stroke);
+				blushAllAncestor(nodeView, fill, stroke);
 			}
 		}
 		else {
 			var fill: string = "#FF9999";   // FIXME: allow any color
 			var stroke: string = "none";
-			nodeView.SVGShape.SetColor(fill, stroke);
-			blushAllAncestor(nodeView.ParentShape, fill, stroke);
+			blushAllAncestor(nodeView, fill, stroke);
 		}
 
 		return true;
