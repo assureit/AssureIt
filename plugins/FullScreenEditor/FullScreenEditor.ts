@@ -66,7 +66,7 @@ class FullScreenEditorActionPlugIn extends AssureIt.ActionPlugIn {
 		super(plugInManager);
 		this.editor = CodeMirror.fromTextArea(document.getElementById('fullscreen-editor'), {
 			lineNumbers: true,
-			mode: "text/x-asn",
+			//mode: "text/x-asn",
 			lineWrapping: true,
 		});
 		$(this.editor.getWrapperElement()).css({
@@ -164,6 +164,8 @@ class FullScreenEditorActionPlugIn extends AssureIt.ActionPlugIn {
 						/* In order to keep labels the same as much as possible */
 						var orig_idCounters = case0.ReserveIdCounters(orig_model);
 						var orig_ElementMap = case0.ReserveElementMap(orig_model);
+
+						orig_view.DeleteHTMLElementRecursive(null, null);
 
 						var decoder    : AssureIt.CaseDecoder = new AssureIt.CaseDecoder();
 						var new_model  : AssureIt.NodeModel = decoder.ParseASN(case0, editor.getValue(), orig_model);

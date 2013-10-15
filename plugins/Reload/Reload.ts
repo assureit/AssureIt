@@ -25,6 +25,7 @@ class ReloadKeyPlugIn extends AssureIt.ShortcutKeyPlugIn {
 	RegisterKeyEvents(caseViewer: AssureIt.CaseViewer, Case0: AssureIt.Case, serverApi: AssureIt.ServerAPI) : boolean {
 		$("body").keydown((e)=>{
 			if(e.keyCode == 82/*r*/ && e.shiftKey) {
+				caseViewer.DeleteHTMLElementAll();
 				caseViewer.Draw();
 			}
 		});

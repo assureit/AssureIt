@@ -26,6 +26,7 @@ var ReloadKeyPlugIn = (function (_super) {
     ReloadKeyPlugIn.prototype.RegisterKeyEvents = function (caseViewer, Case0, serverApi) {
         $("body").keydown(function (e) {
             if (e.keyCode == 82 && e.shiftKey) {
+                caseViewer.DeleteHTMLElementAll();
                 caseViewer.Draw();
             }
         });
