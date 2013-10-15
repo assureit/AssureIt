@@ -100,8 +100,8 @@ class DScriptEditorPlugIn extends AssureIt.ActionPlugIn {
 			placeholder: "Generated DScript code goes here.",
 			lineWrapping: true,
 		});
-		this.NodeRelationTable = $("<table>");
-		this.ActionRelationTable = $("<table>");
+		this.NodeRelationTable = $("<table>").addClass("table table-striped");
+		this.ActionRelationTable = $("<table>").addClass("table table-striped");
 		this.Highlighter = new ErrorHighlight(this.ASNEditor);
 
 		this.ASNEditor.on("change", function(e: JQueryEventObject) {
@@ -120,9 +120,9 @@ class DScriptEditorPlugIn extends AssureIt.ActionPlugIn {
 		});
 
 		var paneManager = new DScriptPaneManager(wrapper, $(this.ASNEditor.getWrapperElement()));
-		paneManager.AddToOptionsList($(this.DScriptEditor.getWrapperElement()), "DScript Viewer");
-		paneManager.AddToOptionsList(this.NodeRelationTable, "Node Relation Table");
-		paneManager.AddToOptionsList(this.ActionRelationTable, "Action Relation Table");
+		paneManager.AddToOptionsList($(this.DScriptEditor.getWrapperElement()), "DScript Viewer", false);
+		paneManager.AddToOptionsList(this.NodeRelationTable, "Node Relation Table", false, true);
+		paneManager.AddToOptionsList(this.ActionRelationTable, "Action Relation Table", false, true);
 		paneManager.SetRefreshFunc(function() {
 			self.ASNEditor.refresh();
 			self.DScriptEditor.refresh();

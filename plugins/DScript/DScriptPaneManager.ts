@@ -31,12 +31,12 @@ class DScriptPaneManager {
 		});
 	}
 
-	public AddToOptionsList(widget: JQuery, name: string, overrideFlag: boolean = false): void {
+	public AddToOptionsList(widget: JQuery, name: string, overrideFlag: boolean, keepStyle = false): void {
 		if (name in this.Options && !overrideFlag) {
 			console.log("DScriptPaneManaer:Warning!! Cannot append the Option " + name);
 		}
 		else {
-			DScriptPaneManager.ExpandWidget(widget);
+			if (!keepStyle) DScriptPaneManager.ExpandWidget(widget);
 			this.Options[name] = widget;
 		}
 	}
@@ -46,10 +46,10 @@ class DScriptPaneManager {
 	}
 
 	public CreateDefaultWidget(): JQuery { // create buttons from OptionsList
-		var defaultWidget = $("<div/>");
+		var defaultWidget = $("<div/>").addClass("btn-group-vertical");
 		var self = this;
 		for (var key in self.Options) {
-			var newButton = $("<div/>");
+			var newButton = $("<button/>").addClass("btn btn-default");
 			newButton.text(key);
 			newButton.click(function() {
 				var frame = defaultWidget.parent();

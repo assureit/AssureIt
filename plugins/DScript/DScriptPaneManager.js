@@ -28,12 +28,13 @@ var DScriptPaneManager = (function () {
         });
     };
 
-    DScriptPaneManager.prototype.AddToOptionsList = function (widget, name, overrideFlag) {
-        if (typeof overrideFlag === "undefined") { overrideFlag = false; }
+    DScriptPaneManager.prototype.AddToOptionsList = function (widget, name, overrideFlag, keepStyle) {
+        if (typeof keepStyle === "undefined") { keepStyle = false; }
         if (name in this.Options && !overrideFlag) {
             console.log("DScriptPaneManaer:Warning!! Cannot append the Option " + name);
         } else {
-            DScriptPaneManager.ExpandWidget(widget);
+            if (!keepStyle)
+                DScriptPaneManager.ExpandWidget(widget);
             this.Options[name] = widget;
         }
     };
@@ -43,10 +44,10 @@ var DScriptPaneManager = (function () {
     };
 
     DScriptPaneManager.prototype.CreateDefaultWidget = function () {
-        var defaultWidget = $("<div/>");
+        var defaultWidget = $("<div/>").addClass("btn-group-vertical");
         var self = this;
         for (var key in self.Options) {
-            var newButton = $("<div/>");
+            var newButton = $("<button/>").addClass("btn btn-default");
             newButton.text(key);
             newButton.click(function () {
                 var frame = defaultWidget.parent();
