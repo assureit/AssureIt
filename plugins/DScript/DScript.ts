@@ -85,8 +85,9 @@ class DScriptEditorPlugIn extends AssureIt.ActionPlugIn {
 
 	constructor(plugInManager: AssureIt.PlugInManager) {
 		super(plugInManager);
-		this.Widgets = [];
+		var self = this;
 
+		this.Widgets = [];
 		this.ASNEditor = new CodeMirror($("<div/>").get(0), {
 			lineNumbers: true,
 			mode: "text/x-csrc",
@@ -101,9 +102,8 @@ class DScriptEditorPlugIn extends AssureIt.ActionPlugIn {
 		});
 		this.NodeRelationTable = $("<table>");
 		this.ActionRelationTable = $("<table>");
-
 		this.Highlighter = new ErrorHighlight(this.ASNEditor);
-		var self = this;
+
 		this.ASNEditor.on("change", function(e: JQueryEventObject) {
 			self.GenerateCode();
 		});
@@ -123,6 +123,10 @@ class DScriptEditorPlugIn extends AssureIt.ActionPlugIn {
 		paneManager.AddToOptionsList($(this.DScriptEditor.getWrapperElement()), "DScript Viewer");
 		paneManager.AddToOptionsList(this.NodeRelationTable, "Node Relation Table");
 		paneManager.AddToOptionsList(this.ActionRelationTable, "Action Relation Table");
+		paneManager.SetRefreshFunc(function() {
+			self.ASNEditor.refresh();
+			self.DScriptEditor.refresh();
+		});
 		this.PaneManager = paneManager;
 	}
 

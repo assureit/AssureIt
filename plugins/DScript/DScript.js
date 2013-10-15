@@ -78,8 +78,9 @@ var DScriptEditorPlugIn = (function (_super) {
     __extends(DScriptEditorPlugIn, _super);
     function DScriptEditorPlugIn(plugInManager) {
         _super.call(this, plugInManager);
-        this.Widgets = [];
+        var self = this;
 
+        this.Widgets = [];
         this.ASNEditor = new CodeMirror($("<div/>").get(0), {
             lineNumbers: true,
             mode: "text/x-csrc",
@@ -94,9 +95,8 @@ var DScriptEditorPlugIn = (function (_super) {
         });
         this.NodeRelationTable = $("<table>");
         this.ActionRelationTable = $("<table>");
-
         this.Highlighter = new ErrorHighlight(this.ASNEditor);
-        var self = this;
+
         this.ASNEditor.on("change", function (e) {
             self.GenerateCode();
         });
@@ -116,6 +116,10 @@ var DScriptEditorPlugIn = (function (_super) {
         paneManager.AddToOptionsList($(this.DScriptEditor.getWrapperElement()), "DScript Viewer");
         paneManager.AddToOptionsList(this.NodeRelationTable, "Node Relation Table");
         paneManager.AddToOptionsList(this.ActionRelationTable, "Action Relation Table");
+        paneManager.SetRefreshFunc(function () {
+            self.ASNEditor.refresh();
+            self.DScriptEditor.refresh();
+        });
         this.PaneManager = paneManager;
     }
     DScriptEditorPlugIn.prototype.Delegate = function (caseViewer, case0, serverApi) {

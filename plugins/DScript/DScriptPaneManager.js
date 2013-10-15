@@ -4,6 +4,8 @@ var DScriptPaneManager = (function () {
         this.ParentWidget = parentWidget;
         this.Widgets = [widget0.get(0)];
         this.Options = {};
+        this.RefreshFunc = function () {
+        };
 
         var frame = this.CreateFrame();
         ;
@@ -36,6 +38,10 @@ var DScriptPaneManager = (function () {
         }
     };
 
+    DScriptPaneManager.prototype.SetRefreshFunc = function (func) {
+        this.RefreshFunc = func;
+    };
+
     DScriptPaneManager.prototype.CreateDefaultWidget = function () {
         var defaultWidget = $("<div/>");
         var self = this;
@@ -49,6 +55,7 @@ var DScriptPaneManager = (function () {
                 self.Widgets.push(widget.get(0));
                 frame.append(widget);
                 defaultWidget.remove();
+                self.RefreshFunc();
             });
             defaultWidget.append(newButton);
         }
@@ -120,6 +127,7 @@ var DScriptPaneManager = (function () {
             if (!keepStyle)
                 DScriptPaneManager.ExpandWidget(newWidget);
             parentFrame.append(childFrame1).append(childFrame2);
+            this.RefreshFunc();
         } else {
         }
         return ret;

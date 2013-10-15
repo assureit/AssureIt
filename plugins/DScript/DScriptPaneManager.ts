@@ -2,11 +2,13 @@ class DScriptPaneManager {
 	ParentWidget: JQuery;
 	Widgets: HTMLElement[];
 	Options: any;
+	RefreshFunc;
 	
  	constructor(parentWidget: JQuery, widget0: JQuery, keepStyle: boolean = false) {
 		this.ParentWidget = parentWidget;
 		this.Widgets = [widget0.get(0)];
 		this.Options = {};
+		this.RefreshFunc = function(){};
 
 		var frame: JQuery = this.CreateFrame();;
 		if (widget0 != null) {
@@ -39,6 +41,10 @@ class DScriptPaneManager {
 		}
 	}
 
+	public SetRefreshFunc(func) {
+		this.RefreshFunc = func;
+	}
+
 	public CreateDefaultWidget(): JQuery { // create buttons from OptionsList
 		var defaultWidget = $("<div/>");
 		var self = this;
@@ -52,6 +58,7 @@ class DScriptPaneManager {
 				self.Widgets.push(widget.get(0));
 				frame.append(widget);
 				defaultWidget.remove();
+				self.RefreshFunc();
 			});
 			defaultWidget.append(newButton);
 		}
@@ -121,6 +128,7 @@ class DScriptPaneManager {
 			childFrame2.append(newWidget);
 			if (!keepStyle) DScriptPaneManager.ExpandWidget(newWidget);
 			parentFrame.append(childFrame1).append(childFrame2);
+			this.RefreshFunc();
 		}
 		else {
 			//pass
