@@ -25,11 +25,34 @@ var CopyPasteMenuPlugIn = (function (_super) {
     };
 
     CopyPasteMenuPlugIn.prototype.Delegate = function (caseViewer, caseModel, element, serverApi) {
+        console.log(this.CopiedNode);
         var self = this;
         element.append('<a href="#" ><img id="copy" src="' + serverApi.basepath + 'images/icon.png" title="Copy" alt="copy" /></a>');
         if (self.CopiedNode != null && this.IsPastable(caseModel)) {
             element.append('<a href="#" ><img id="paste" src="' + serverApi.basepath + 'images/icon.png" title="Paste" alt="paste" /></a>');
         }
+
+        var copy = function (ev) {
+            var encoder = new AssureIt.CaseEncoder();
+            self.CopiedNode = encoder.ConvertToASN(caseModel, false);
+            self.CopiedNodeType = caseModel.Type;
+            console.log('encoded');
+            console.log(self.CopiedNode);
+        };
+
+        var paste = function (ev) {
+            var decoder = new AssureIt.CaseDecoder();
+            var decoded = decoder.ParseASN(caseModel.Case, self.CopiedNode, null);
+            decoded.Parent = caseModel;
+            caseModel.Children.push(decoded);
+            caseViewer.Draw();
+        };
+
+        $('#copy').unbind('click').unbind('dblclick');
+        $('#copy').click(copy);
+        $('#paste').unbind('click').unbind('dblclick');
+        $('#paste').click(paste);
+
         return true;
     };
 
@@ -41,7 +64,7 @@ var CopyPasteMenuPlugIn = (function (_super) {
                     return true;
                 break;
             case AssureIt.NodeType.Context:
-                if (!caseModel.HasContext())
+                if (ParentType != AssureIt.NodeType.Context && !caseModel.HasContext())
                     return true;
                 break;
             case AssureIt.NodeType.Strategy:
