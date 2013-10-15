@@ -51,7 +51,7 @@ var DScriptGenerator = (function () {
                 return "GetDataFromRec(Location, \"" + matchedStr + "\")";
             });
             condStr = condStr.replace(/[0-9]+/g, function (matchedStr) {
-                return "\"" + matchedStr + "\"";
+                return matchedStr;
             });
             condStr = condStr.replace(/[\{\}]/g, "").trim();
             ret += this.Indent + "boolean Monitor = " + condStr + ";" + this.LineFeed;
@@ -64,7 +64,7 @@ var DScriptGenerator = (function () {
         var ret = "";
         ret += this.GenerateLocalVariable();
 
-        ret += this.Indent + "DFault " + funcName + " {" + this.LineFeed;
+        ret += this.Indent + "DFault " + funcName + "() {" + this.LineFeed;
 
         ret += this.Indent + "}" + this.LineFeed;
 

@@ -76,7 +76,7 @@ class DScriptGenerator {
 				return "GetDataFromRec(Location, \"" + matchedStr + "\")";
 			});
 			condStr = condStr.replace(/[0-9]+/g, function(matchedStr) {
-				return "\"" + matchedStr + "\""
+				return matchedStr;
 			});
 			condStr = condStr.replace(/[\{\}]/g, "").trim();
 			ret += this.Indent + "boolean Monitor = " + condStr + ";" + this.LineFeed;
@@ -90,7 +90,7 @@ class DScriptGenerator {
 		ret += this.GenerateLocalVariable();
 
 		/* Define Action Function */
-		ret += this.Indent + "DFault " + funcName + " {" + this.LineFeed;
+		ret += this.Indent + "DFault " + funcName + "() {" + this.LineFeed;
 		//ret += GetFunctionBody(); //TODO
 		ret += this.Indent + "}" + this.LineFeed;
 
