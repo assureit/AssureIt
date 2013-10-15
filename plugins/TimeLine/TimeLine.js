@@ -42,7 +42,7 @@ var TimeLineKeyPlugIn = (function (_super) {
         return true;
     };
 
-    TimeLineKeyPlugIn.prototype.RegisterKeyEvents = function (Case0, serverApi) {
+    TimeLineKeyPlugIn.prototype.RegisterKeyEvents = function (caseViewer, Case0, serverApi) {
         var _this = this;
         $("body").keydown(function (e) {
             if (e.keyCode == 37 && e.shiftKey) {

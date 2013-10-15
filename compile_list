@@ -21,6 +21,7 @@ plugins/DefaultStatementRender/DefaultStatementRender.ts
 plugins/LayoutPortrait/LayoutPortrait.ts
 plugins/Export/Export.ts
 plugins/TimeLine/TimeLine.ts
+plugins/Reload/Reload.ts
 plugins/Scale/Scale.ts
 plugins/Scale/ScaleUp.ts
 plugins/Commit/Commit.ts

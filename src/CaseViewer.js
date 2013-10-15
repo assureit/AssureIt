@@ -526,6 +526,7 @@ var AssureIt;
             var shapelayer = $(this.Screen.ShapeLayer);
             var screenlayer = $(this.Screen.ContentLayer);
             this.UpdateViewMap();
+            this.ViewMap[this.ElementTop.Label].DeleteHTMLElementRecursive(null, null);
             this.ViewMap[this.ElementTop.Label].AppendHTMLElementRecursive(shapelayer, screenlayer, this);
             this.pluginManager.RegisterActionEventListeners(this, this.Source, this.serverApi);
             this.Update();
