@@ -66,7 +66,7 @@ class FullScreenEditorActionPlugIn extends AssureIt.ActionPlugIn {
 		super(plugInManager);
 		this.editor = CodeMirror.fromTextArea(document.getElementById('fullscreen-editor'), {
 			lineNumbers: true,
-			//mode: "text/x-asn",
+			mode: "text/x-csrc",
 			lineWrapping: true,
 		});
 		$(this.editor.getWrapperElement()).css({

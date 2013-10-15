@@ -60,6 +60,7 @@ var FullScreenEditorActionPlugIn = (function (_super) {
         _super.call(this, plugInManager);
         this.editor = CodeMirror.fromTextArea(document.getElementById('fullscreen-editor'), {
             lineNumbers: true,
+            mode: "text/x-csrc",
             lineWrapping: true
         });
         $(this.editor.getWrapperElement()).css({
