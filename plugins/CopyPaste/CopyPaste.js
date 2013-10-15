@@ -9,15 +9,22 @@ var CopyPastePlugIn = (function (_super) {
     function CopyPastePlugIn(plugInManager) {
         _super.call(this, plugInManager);
         this.plugInManager = plugInManager;
-        this.MenuBarContentsPlugIn = new CopyPasteMenuBarPlugIn(plugInManager);
+        this.MenuBarContentsPlugIn = new CopyPasteMenuPlugIn(plugInManager);
     }
     return CopyPastePlugIn;
 })(AssureIt.PlugInSet);
 
-var CopyPasteMenuBarPlugIn = (function (_super) {
-    __extends(CopyPasteMenuBarPlugIn, _super);
-    function CopyPasteMenuBarPlugIn(plugInManager) {
+var CopyPasteMenuPlugIn = (function (_super) {
+    __extends(CopyPasteMenuPlugIn, _super);
+    function CopyPasteMenuPlugIn(plugInManager) {
         _super.call(this, plugInManager);
     }
-    return CopyPasteMenuBarPlugIn;
+    CopyPasteMenuPlugIn.prototype.IsEnabled = function (caseViewer, caseModel) {
+        return true;
+    };
+
+    CopyPasteMenuPlugIn.prototype.Delegate = function (caseViewer, caseModel, element, serverApi) {
+        return true;
+    };
+    return CopyPasteMenuPlugIn;
 })(AssureIt.MenuBarContentsPlugIn);

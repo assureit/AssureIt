@@ -6,13 +6,21 @@ class CopyPastePlugIn extends AssureIt.PlugInSet {
 
 	constructor(public plugInManager: AssureIt.PlugInManager) {
 		super(plugInManager);
-		this.MenuBarContentsPlugIn = new CopyPasteMenuBarPlugIn(plugInManager);
+		this.MenuBarContentsPlugIn = new CopyPasteMenuPlugIn(plugInManager);
 	}
 }
 
-class CopyPasteMenuBarPlugIn extends AssureIt.MenuBarContentsPlugIn {
+class CopyPasteMenuPlugIn extends AssureIt.MenuBarContentsPlugIn {
 
 	constructor(plugInManager: AssureIt.PlugInManager) {
 		super(plugInManager);
+	}
+
+	IsEnabled(caseViewer: AssureIt.CaseViewer, caseModel: AssureIt.NodeModel): boolean {
+		return true;
+	}
+
+	Delegate(caseViewer: AssureIt.CaseViewer, caseModel: AssureIt.NodeModel, element: JQuery, serverApi: AssureIt.ServerAPI): boolean {
+		return true;
 	}
 }
