@@ -133,7 +133,6 @@ var FullScreenEditorActionPlugIn = (function (_super) {
 
         if (!this.ShowFullScreenEditor) {
             this.ShowFullScreenEditor = function (ev) {
-                $('#background').unbind('dblclick');
                 ev.stopPropagation();
                 self.plugInManager.UseUILayer(self);
                 self.isDisplayed = true;
@@ -224,7 +223,6 @@ var FullScreenEditorActionPlugIn = (function (_super) {
             };
         }
 
-        $('#background').unbind('dblclick');
         return true;
     };
 

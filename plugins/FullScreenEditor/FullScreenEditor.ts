@@ -141,7 +141,6 @@ class FullScreenEditorActionPlugIn extends AssureIt.ActionPlugIn {
 
 		if(!this.ShowFullScreenEditor) {
 			this.ShowFullScreenEditor = function (ev: Event) {
-				$('#background').unbind('dblclick');
 				ev.stopPropagation();
 				self.plugInManager.UseUILayer(self);
 				self.isDisplayed = true;
@@ -240,7 +239,6 @@ class FullScreenEditorActionPlugIn extends AssureIt.ActionPlugIn {
 			}
 		}
 
-		$('#background').unbind('dblclick');
 		return true;
 	}
 
