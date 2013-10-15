@@ -23,7 +23,7 @@ var FullScreenMenuPlugIn = (function (_super) {
         this.editorPlugIn = editorPlugIn;
     }
     FullScreenMenuPlugIn.prototype.IsEnabled = function (caseViewer, caseModel) {
-        return true;
+        return caseViewer.Source.IsEditable();
     };
 
     FullScreenMenuPlugIn.prototype.Delegate = function (caseViewer, caseModel, element, serverApi) {
