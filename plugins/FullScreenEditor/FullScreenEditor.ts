@@ -25,7 +25,7 @@ class FullScreenMenuPlugIn extends AssureIt.MenuBarContentsPlugIn {
 	}
 
 	IsEnabled(caseViewer: AssureIt.CaseViewer, caseModel: AssureIt.NodeModel): boolean {
-		return false;
+		return true;
 	}
 
 	Delegate(caseViewer: AssureIt.CaseViewer, caseModel: AssureIt.NodeModel, element: JQuery, serverApi: AssureIt.ServerAPI): boolean {
@@ -44,7 +44,7 @@ class FullScreenEditorLayoutPlugIn extends AssureIt.HTMLRenderPlugIn {
 	}
 
 	IsEnabled (caseViewer: AssureIt.CaseViewer, caseModel: AssureIt.NodeModel) : boolean {
-		return false;
+		return true;
 	}
 
 	Delegate(caseViewer: AssureIt.CaseViewer, caseModel: AssureIt.NodeModel, element: JQuery) : boolean {
@@ -88,7 +88,7 @@ class FullScreenEditorActionPlugIn extends AssureIt.ActionPlugIn {
 	}
 
 	IsEnabled (caseViewer: AssureIt.CaseViewer, case0: AssureIt.Case) : boolean {
-		return false;
+		return true;
 	}
 
 	static Object_Clone(obj: any) : any {

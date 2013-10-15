@@ -23,7 +23,7 @@ var FullScreenMenuPlugIn = (function (_super) {
         this.editorPlugIn = editorPlugIn;
     }
     FullScreenMenuPlugIn.prototype.IsEnabled = function (caseViewer, caseModel) {
-        return false;
+        return true;
     };
 
     FullScreenMenuPlugIn.prototype.Delegate = function (caseViewer, caseModel, element, serverApi) {
@@ -45,7 +45,7 @@ var FullScreenEditorLayoutPlugIn = (function (_super) {
         _super.call(this, plugInManager);
     }
     FullScreenEditorLayoutPlugIn.prototype.IsEnabled = function (caseViewer, caseModel) {
-        return false;
+        return true;
     };
 
     FullScreenEditorLayoutPlugIn.prototype.Delegate = function (caseViewer, caseModel, element) {
@@ -80,7 +80,7 @@ var FullScreenEditorActionPlugIn = (function (_super) {
         this.ErrorHighlight = new ErrorHighlight(this.editor);
     }
     FullScreenEditorActionPlugIn.prototype.IsEnabled = function (caseViewer, case0) {
-        return false;
+        return true;
     };
 
     FullScreenEditorActionPlugIn.Object_Clone = function (obj) {
