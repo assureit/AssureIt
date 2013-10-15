@@ -73,11 +73,15 @@ function appendNode(caseViewer: AssureIt.CaseViewer, nodeModel: AssureIt.NodeMod
 	return newNodeModel;
 }
 
-function showNode(caseViewer: AssureIt.CaseViewer, nodeModel: AssureIt.NodeModel, HTMLRenderFunction: Function, SVGRenderFunction: Function) {
+function showNode(caseViewer: AssureIt.CaseViewer, nodeModel: AssureIt.NodeModel, HTMLRenderFunctions: Function[], SVGRenderFunctions: Function[]) {
 	var element: JQuery = caseViewer.ViewMap[nodeModel.Label].HTMLDoc.DocBase;
 	var view: AssureIt.NodeView = caseViewer.ViewMap[nodeModel.Label];
-	HTMLRenderFunction(caseViewer, nodeModel, element);
-	SVGRenderFunction(caseViewer, view);
+	for(var i: number = 0; i < HTMLRenderFunctions.length; i++) {
+		HTMLRenderFunctions[i](caseViewer, nodeModel, element);
+	}
+	for(var i: number = 0; i < SVGRenderFunctions.length; i++) {
+		SVGRenderFunctions[i](caseViewer, view);
+	}
 }
 
 function blushAllAncestor(nodeView: AssureIt.NodeView, fill: string, stroke: string) {
@@ -162,10 +166,10 @@ class MonitorNode {
 		this.Status = status;
 	}
 
-	Show(caseViewer: AssureIt.CaseViewer, HTMLRenderFunction: Function, SVGRenderFunction: Function) {
+	Show(caseViewer: AssureIt.CaseViewer, HTMLRenderFunctions: Function[], SVGRenderFunctions: Function[]) {
 		var data: string =  "{ "+this.LatestData.type+" = "+this.LatestData.data+" }";
 		this.EvidenceNode.Notes["LatestData"] = data;
-		showNode(caseViewer, this.EvidenceNode, HTMLRenderFunction, SVGRenderFunction);
+		showNode(caseViewer, this.EvidenceNode, HTMLRenderFunctions, SVGRenderFunctions);
 	}
 
 }
@@ -177,8 +181,8 @@ class MonitorManager {
 	Timer: number;
 	MonitorNodeMap: { [index: string]: MonitorNode };
 	CaseViewer: AssureIt.CaseViewer;
-	HTMLRenderFunction: Function;
-	SVGRenderFunction: Function;
+	HTMLRenderFunctions: Function[];
+	SVGRenderFunctions: Function[];
 
 	constructor() {
 		this.MonitorNodeMap = {};
@@ -187,8 +191,11 @@ class MonitorManager {
 	Init(caseViewer: AssureIt.CaseViewer, recpath: string) {
 		this.RECAPI = new AssureIt.RECAPI(recpath);
 		this.CaseViewer = caseViewer;
-		this.HTMLRenderFunction = this.CaseViewer.GetPlugInHTMLRender("note");
-		this.SVGRenderFunction = this.CaseViewer.GetPlugInSVGRender("monitor");
+		this.HTMLRenderFunctions = [];
+		this.HTMLRenderFunctions.push(this.CaseViewer.GetPlugInHTMLRender("note"));
+		this.HTMLRenderFunctions.push(this.CaseViewer.GetPlugInHTMLRender("monitor"));
+		this.SVGRenderFunctions = [];
+		this.SVGRenderFunctions.push(this.CaseViewer.GetPlugInSVGRender("monitor"));
 	}
 
 	StartMonitors(interval: number) {
@@ -218,7 +225,7 @@ class MonitorManager {
 				if(monitorNode.LatestData == null) continue;
 
 				monitorNode.UpdateStatus();
-				monitorNode.Show(self.CaseViewer, self.HTMLRenderFunction, self.SVGRenderFunction);
+				monitorNode.Show(self.CaseViewer, self.HTMLRenderFunctions, self.SVGRenderFunctions);
 			}
 
 			self.CaseViewer.Draw();
@@ -276,11 +283,63 @@ class MonitorPlugIn extends AssureIt.PlugInSet {
 
 	constructor(public plugInManager: AssureIt.PlugInManager) {
 		super(plugInManager);
+		this.HTMLRenderPlugIn = new MonitorHTMLRenderPlugIn(plugInManager);
 		this.SVGRenderPlugIn = new MonitorSVGRenderPlugIn(plugInManager);
 		this.MenuBarContentsPlugIn = new MonitorMenuBarPlugIn(plugInManager);
 		this.SideMenuPlugIn = new MonitorSideMenuPlugIn(plugInManager);
 		monitorManager = new MonitorManager();
 		this.PlugInEnv = { "MonitorManager": monitorManager };
+	}
+
+}
+
+
+class MonitorHTMLRenderPlugIn extends AssureIt.HTMLRenderPlugIn {
+
+	IsEnabled(caseViewer: AssureIt.CaseViewer, nodeModel: AssureIt.NodeModel): boolean {
+		return true;
+	}
+
+	Delegate(caseViewer: AssureIt.CaseViewer, nodeModel: AssureIt.NodeModel, element: JQuery) : boolean {
+		element.children("#monitor-logs").remove();
+
+		var monitorNode = monitorManager.MonitorNodeMap[nodeModel.Label];
+		if(monitorNode == null) return;
+
+		var $logs = $('<div id="monitor-logs"></div>');
+		if(monitorNode.PastData.length < 1) {
+			return true;
+		}
+
+		var linkColor: string;
+		if(monitorNode.Status == true) {
+			if(monitorNode.TurningPointData == null) {
+				linkColor = 'blue';
+			}
+			else {
+				linkColor = 'orange';
+			}
+		}
+		else {
+			linkColor = 'red';
+		}
+
+		var $link = $('<a href="#"><p align="right" style="color: '+linkColor+'">past data</p></a>');
+		$link.click(function(ev: Event) {
+			ev.stopPropagation();
+			if(monitorNode.PastData.length < 1) {
+				return;
+			}
+
+			var childWindow = window.open();
+			for(var i: number = 0; i < monitorNode.PastData.length; i++) {
+				var log: string = JSON.stringify(monitorNode.PastData[i]);
+				$(childWindow.document.body).append($('<p>'+log+'</p>'));
+			}
+		});
+
+		$link.appendTo($logs);
+		$logs.appendTo(element);
 	}
 
 }
@@ -428,7 +487,6 @@ class MonitorMenuBarPlugIn extends AssureIt.MenuBarContentsPlugIn {
 		}
 		else {
 			element.append('<a href="#" ><img id="monitor-tgl" src="'+serverApi.basepath+'images/monitor.png" title="Remove monitor" alt="monitor-tgl" /></a>');
-			element.append('<a href="#" ><img id="monitor-logs" src="'+serverApi.basepath+'images/log.png" title="Show logs" alt="monitor-logs" /></a>');
 		}
 
 		$('#monitor-tgl').unbind('click');
@@ -439,25 +497,6 @@ class MonitorMenuBarPlugIn extends AssureIt.MenuBarContentsPlugIn {
 			else {
 				monitorManager.RemoveMonitor(caseModel.Label);
 			}
-		});
-
-		$('#monitor-logs').unbind('mousedown');
-		$('#monitor-logs').unbind('mouseup');
-		$('#monitor-logs').mousedown(function() {
-			var monitorNode: MonitorNode = monitorManager.MonitorNodeMap[caseModel.Label];
-			var p: string = "";
-			for(var i: number = 0; i < monitorNode.PastData.length; i++) {
-				p += '<p align="center">'
-					+ JSON.stringify(monitorNode.PastData[i])
-					+ '</p>';
-			}
-
-			var $logs = $('<div id="logs">'+p+'</div>').css("font-size", "xx-small");
-			$logs.offset({top: 30, left: 0});
-			$logs.appendTo(element);
-		});
-		$('#monitor-logs').mouseup(function() {
-			$('#logs').remove();
 		});
 
 		return true;
