@@ -21,6 +21,8 @@ var AssureIt;
             this.MenuBarContentsPlugIn = null;
             this.ShortcutKeyPlugIn = null;
             this.SideMenuPlugIn = null;
+
+            this.PlugInEnv = null;
         }
         return PlugInSet;
     })();
@@ -215,6 +217,8 @@ var AssureIt;
             this.ShortcutKeyPlugInMap = {};
             this.SideMenuPlugInMap = {};
 
+            this.PlugInEnvMap = {};
+
             this.UILayer = [];
         }
         PlugInManager.prototype.SetPlugIn = function (key, plugIn) {
@@ -241,6 +245,9 @@ var AssureIt;
             }
             if (plugIn.SideMenuPlugIn) {
                 this.SetSideMenuPlugIn(key, plugIn.SideMenuPlugIn);
+            }
+            if (plugIn.PlugInEnv) {
+                this.SetPlugInEnv(key, plugIn.PlugInEnv);
             }
         };
 
@@ -292,6 +299,14 @@ var AssureIt;
 
         PlugInManager.prototype.SetSideMenuPlugIn = function (key, SideMenuPlugIn) {
             this.SideMenuPlugInMap[key] = SideMenuPlugIn;
+        };
+
+        PlugInManager.prototype.SetPlugInEnv = function (key, PlugInEnv) {
+            this.PlugInEnvMap[key] = PlugInEnv;
+        };
+
+        PlugInManager.prototype.GetPlugInEnv = function (key) {
+            return this.PlugInEnvMap[key];
         };
 
         PlugInManager.prototype.UseUILayer = function (plugin) {

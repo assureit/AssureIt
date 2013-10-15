@@ -7,7 +7,7 @@ var __extends = this.__extends || function (d, b) {
 var monitorManager = null;
 
 function extractTypeFromCondition(condition) {
-    var text = condition.replace(/\{/g, " ").replace(/\}/g, " ").replace(/\(/g, " ").replace(/\)/g, " ").replace(/<=/g, " ").replace(/>=/g, " ").replace(/</g, " ").replace(/>/g, " ");
+    var text = condition.replace(/\{/g, " ").replace(/\}/g, " ").replace(/\(/g, " ").replace(/\)/g, " ").replace(/==/g, " ").replace(/<=/g, " ").replace(/>=/g, " ").replace(/</g, " ").replace(/>/g, " ");
 
     var words = text.split(" ");
     var types = [];
@@ -74,17 +74,13 @@ function showNode(caseViewer, nodeModel, HTMLRenderFunction, SVGRenderFunction) 
     SVGRenderFunction(caseViewer, view);
 }
 
-function blushAllAncestor(caseViewer, nodeModel, fill, stroke) {
-    if (nodeModel == null)
+function blushAllAncestor(nodeView, fill, stroke) {
+    if (nodeView == null)
         return;
 
-    caseViewer.ViewMap[nodeModel.Label].SVGShape.SetColor(fill, stroke);
+    nodeView.SetTemporaryColor(fill, stroke);
 
-    var contextNode = getContextNode(nodeModel);
-
-    if (contextNode != null) {
-        caseViewer.ViewMap[contextNode.Label].SVGShape.SetColor(fill, stroke);
-    }
+    blushAllAncestor(nodeView.ParentShape, fill, stroke);
 }
 
 var MonitorNode = (function () {
@@ -93,6 +89,7 @@ var MonitorNode = (function () {
         this.Type = Type;
         this.Condition = Condition;
         this.LatestData = null;
+        this.TurningPointData = null;
         this.PastData = [];
         this.Status = true;
         this.EvidenceNode = EvidenceNode;
@@ -119,26 +116,30 @@ var MonitorNode = (function () {
     };
 
     MonitorNode.prototype.UpdateLatestData = function (RECAPI) {
-        if (this.Status == true) {
-            var latestData = RECAPI.getLatestData(this.Location, this.Type);
+        var latestData = RECAPI.getLatestData(this.Location, this.Type);
 
-            if (latestData == null) {
-                console.log("latest data is null");
-            } else {
-                if (JSON.stringify(this.LatestData) != JSON.stringify(latestData)) {
-                    this.LatestData = latestData;
-                    this.UpdatePastData(latestData);
-                }
+        if (latestData == null) {
+            console.log("latest data is null");
+        } else {
+            if (JSON.stringify(this.LatestData) != JSON.stringify(latestData)) {
+                this.LatestData = latestData;
+                this.UpdatePastData(latestData);
             }
         }
     };
 
     MonitorNode.prototype.UpdateStatus = function () {
-        if (this.Status == true) {
-            var script = "var " + this.Type + "=" + this.LatestData.data + ";";
-            script += this.Condition + ";";
-            this.Status = eval(script);
+        var status;
+        var script = "var " + this.Type + "=" + this.LatestData.data + ";";
+
+        script += this.Condition + ";";
+        status = eval(script);
+
+        if (!status && !this.TurningPointData) {
+            this.TurningPointData = this.LatestData;
         }
+
+        this.Status = status;
     };
 
     MonitorNode.prototype.Show = function (caseViewer, HTMLRenderFunction, SVGRenderFunction) {
@@ -150,15 +151,16 @@ var MonitorNode = (function () {
 })();
 
 var MonitorManager = (function () {
-    function MonitorManager(caseViewer, recpath) {
-        console.log("recpath");
-        console.log(recpath);
-        this.RECAPI = new AssureIt.RECAPI(recpath);
+    function MonitorManager() {
         this.MonitorNodeMap = {};
+    }
+    MonitorManager.prototype.Init = function (caseViewer, recpath) {
+        this.RECAPI = new AssureIt.RECAPI(recpath);
         this.CaseViewer = caseViewer;
         this.HTMLRenderFunction = this.CaseViewer.GetPlugInHTMLRender("note");
         this.SVGRenderFunction = this.CaseViewer.GetPlugInSVGRender("monitor");
-    }
+    };
+
     MonitorManager.prototype.StartMonitors = function (interval) {
         var self = this;
 
@@ -246,6 +248,8 @@ var MonitorPlugIn = (function (_super) {
         this.SVGRenderPlugIn = new MonitorSVGRenderPlugIn(plugInManager);
         this.MenuBarContentsPlugIn = new MonitorMenuBarPlugIn(plugInManager);
         this.SideMenuPlugIn = new MonitorSideMenuPlugIn(plugInManager);
+        monitorManager = new MonitorManager();
+        this.PlugInEnv = { "MonitorManager": monitorManager };
     }
     return MonitorPlugIn;
 })(AssureIt.PlugInSet);
@@ -263,10 +267,19 @@ var MonitorSVGRenderPlugIn = (function (_super) {
         var nodeModel = nodeView.Source;
         var monitorNode = monitorManager.MonitorNodeMap[nodeModel.Label];
 
-        if (monitorNode != null && !monitorNode.Status) {
+        if (!monitorNode)
+            return true;
+
+        if (monitorNode.Status) {
+            if (monitorNode.TurningPointData) {
+                var fill = "#FFFF99";
+                var stroke = "none";
+                blushAllAncestor(nodeView, fill, stroke);
+            }
+        } else {
             var fill = "#FF9999";
             var stroke = "none";
-            blushAllAncestor(caseViewer, nodeModel, fill, stroke);
+            blushAllAncestor(nodeView, fill, stroke);
         }
 
         return true;
@@ -353,10 +366,6 @@ var MonitorMenuBarPlugIn = (function (_super) {
     };
 
     MonitorMenuBarPlugIn.prototype.Delegate = function (caseViewer, caseModel, element, serverApi) {
-        if (monitorManager == null) {
-            monitorManager = new MonitorManager(caseViewer, serverApi.recpath);
-        }
-
         if (!isMonitorNode(caseModel)) {
             return true;
         }
@@ -411,9 +420,7 @@ var MonitorSideMenuPlugIn = (function (_super) {
     };
 
     MonitorSideMenuPlugIn.prototype.AddMenu = function (caseViewer, Case0, serverApi) {
-        if (monitorManager == null) {
-            monitorManager = new MonitorManager(caseViewer, serverApi.recpath);
-        }
+        monitorManager.Init(caseViewer, serverApi.recpath);
 
         return new AssureIt.SideMenuModel('#', 'Monitors', "monitors", "glyphicon-list-alt", function (ev) {
             var monitorTableWindow = new MonitorTableWindow();

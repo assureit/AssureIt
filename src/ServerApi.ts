@@ -103,7 +103,7 @@ module AssureIt {
 		}
 
 		GetNodeTree(commitId) {
-			return this.RemoteCall("getNodeTree", { commitId: commitId }).contents;
+			return this.RemoteCall("getNodeTree", { commitId: commitId });
 		}
 
 		SearchNode(text: string) {

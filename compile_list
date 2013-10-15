@@ -12,7 +12,9 @@ plugins/DScript/DScriptActionMap.ts
 plugins/FullScreenEditor/FullScreenEditor.ts
 plugins/MenuBar/MenuBar.ts
 plugins/Monitor/Monitor.ts
+plugins/CopyPaste/CopyPaste.ts
 plugins/Note/Note.ts
+plugins/LastModified/LastModified.ts
 plugins/DragFile/DragFile.ts
 plugins/BeforeUnload/BeforeUnload.ts
 plugins/DefaultStatementRender/DefaultStatementRender.ts

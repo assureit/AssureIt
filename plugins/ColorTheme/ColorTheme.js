@@ -84,7 +84,14 @@ var ColorThemeSVGRenderPlugIn = (function (_super) {
             stroke = this.stroke.Diff;
         }
 
-        nodeView.SVGShape.SetColor(fill, stroke);
+        var temporaryColor = nodeView.GetTemporaryColor();
+
+        if (temporaryColor == null) {
+            nodeView.SVGShape.SetColor(fill, stroke);
+        } else {
+            nodeView.SVGShape.SetColor(temporaryColor["fill"], temporaryColor["stroke"]);
+        }
+
         return true;
     };
     return ColorThemeSVGRenderPlugIn;

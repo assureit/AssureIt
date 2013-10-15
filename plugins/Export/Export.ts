@@ -36,8 +36,8 @@ class ExportMenuPlugIn extends AssureIt.SideMenuPlugIn {
 		//$('#export-pdf').click(this.editorPlugIn.ExportPdf);
 		//$('#export-xml').click(this.editorPlugIn.ExportXml);
 		//$('#export-png').click(this.editorPlugIn.ExportPng);
-		return new AssureIt.SideMenuModel('#', "Export to XML", "export-xml", "glyphicon-floppy-disk", (ev:Event)=> {
-			this.editorPlugIn.ExportXml(ev);	
+		return new AssureIt.SideMenuModel('#', "Export to XML", "export-xml", "glyphicon-export", (ev:Event)=> {
+			this.editorPlugIn.ExportXml(ev);
 		});
 	}
 }

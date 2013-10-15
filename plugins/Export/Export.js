@@ -27,7 +27,7 @@ var ExportMenuPlugIn = (function (_super) {
 
     ExportMenuPlugIn.prototype.AddMenu = function (caseViewer, Case0, serverApi) {
         var _this = this;
-        return new AssureIt.SideMenuModel('#', "Export to XML", "export-xml", "glyphicon-floppy-disk", function (ev) {
+        return new AssureIt.SideMenuModel('#', "Export to XML", "export-xml", "glyphicon-export", function (ev) {
             _this.editorPlugIn.ExportXml(ev);
         });
     };
