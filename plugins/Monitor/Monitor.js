@@ -67,11 +67,15 @@ function appendNode(caseViewer, nodeModel, type) {
     return newNodeModel;
 }
 
-function showNode(caseViewer, nodeModel, HTMLRenderFunction, SVGRenderFunction) {
+function showNode(caseViewer, nodeModel, HTMLRenderFunctions, SVGRenderFunctions) {
     var element = caseViewer.ViewMap[nodeModel.Label].HTMLDoc.DocBase;
     var view = caseViewer.ViewMap[nodeModel.Label];
-    HTMLRenderFunction(caseViewer, nodeModel, element);
-    SVGRenderFunction(caseViewer, view);
+    for (var i = 0; i < HTMLRenderFunctions.length; i++) {
+        HTMLRenderFunctions[i](caseViewer, nodeModel, element);
+    }
+    for (var i = 0; i < SVGRenderFunctions.length; i++) {
+        SVGRenderFunctions[i](caseViewer, view);
+    }
 }
 
 function blushAllAncestor(nodeView, fill, stroke) {
@@ -142,10 +146,10 @@ var MonitorNode = (function () {
         this.Status = status;
     };
 
-    MonitorNode.prototype.Show = function (caseViewer, HTMLRenderFunction, SVGRenderFunction) {
+    MonitorNode.prototype.Show = function (caseViewer, HTMLRenderFunctions, SVGRenderFunctions) {
         var data = "{ " + this.LatestData.type + " = " + this.LatestData.data + " }";
         this.EvidenceNode.Notes["LatestData"] = data;
-        showNode(caseViewer, this.EvidenceNode, HTMLRenderFunction, SVGRenderFunction);
+        showNode(caseViewer, this.EvidenceNode, HTMLRenderFunctions, SVGRenderFunctions);
     };
     return MonitorNode;
 })();
@@ -157,8 +161,11 @@ var MonitorManager = (function () {
     MonitorManager.prototype.Init = function (caseViewer, recpath) {
         this.RECAPI = new AssureIt.RECAPI(recpath);
         this.CaseViewer = caseViewer;
-        this.HTMLRenderFunction = this.CaseViewer.GetPlugInHTMLRender("note");
-        this.SVGRenderFunction = this.CaseViewer.GetPlugInSVGRender("monitor");
+        this.HTMLRenderFunctions = [];
+        this.HTMLRenderFunctions.push(this.CaseViewer.GetPlugInHTMLRender("note"));
+        this.HTMLRenderFunctions.push(this.CaseViewer.GetPlugInHTMLRender("monitor"));
+        this.SVGRenderFunctions = [];
+        this.SVGRenderFunctions.push(this.CaseViewer.GetPlugInSVGRender("monitor"));
     };
 
     MonitorManager.prototype.StartMonitors = function (interval) {
@@ -188,7 +195,7 @@ var MonitorManager = (function () {
                     continue;
 
                 monitorNode.UpdateStatus();
-                monitorNode.Show(self.CaseViewer, self.HTMLRenderFunction, self.SVGRenderFunction);
+                monitorNode.Show(self.CaseViewer, self.HTMLRenderFunctions, self.SVGRenderFunctions);
             }
 
             self.CaseViewer.Draw();
@@ -245,6 +252,7 @@ var MonitorPlugIn = (function (_super) {
     function MonitorPlugIn(plugInManager) {
         _super.call(this, plugInManager);
         this.plugInManager = plugInManager;
+        this.HTMLRenderPlugIn = new MonitorHTMLRenderPlugIn(plugInManager);
         this.SVGRenderPlugIn = new MonitorSVGRenderPlugIn(plugInManager);
         this.MenuBarContentsPlugIn = new MonitorMenuBarPlugIn(plugInManager);
         this.SideMenuPlugIn = new MonitorSideMenuPlugIn(plugInManager);
@@ -253,6 +261,58 @@ var MonitorPlugIn = (function (_super) {
     }
     return MonitorPlugIn;
 })(AssureIt.PlugInSet);
+
+var MonitorHTMLRenderPlugIn = (function (_super) {
+    __extends(MonitorHTMLRenderPlugIn, _super);
+    function MonitorHTMLRenderPlugIn() {
+        _super.apply(this, arguments);
+    }
+    MonitorHTMLRenderPlugIn.prototype.IsEnabled = function (caseViewer, nodeModel) {
+        return true;
+    };
+
+    MonitorHTMLRenderPlugIn.prototype.Delegate = function (caseViewer, nodeModel, element) {
+        element.children("#monitor-logs").remove();
+
+        var monitorNode = monitorManager.MonitorNodeMap[nodeModel.Label];
+        if (monitorNode == null)
+            return;
+
+        var $logs = $('<div id="monitor-logs"></div>');
+        if (monitorNode.PastData.length < 1) {
+            return true;
+        }
+
+        var linkColor;
+        if (monitorNode.Status == true) {
+            if (monitorNode.TurningPointData == null) {
+                linkColor = 'blue';
+            } else {
+                linkColor = 'orange';
+            }
+        } else {
+            linkColor = 'red';
+        }
+
+        var $link = $('<a href="#"><p align="right" style="color: ' + linkColor + '">past data</p></a>');
+        $link.click(function (ev) {
+            ev.stopPropagation();
+            if (monitorNode.PastData.length < 1) {
+                return;
+            }
+
+            var childWindow = window.open();
+            for (var i = 0; i < monitorNode.PastData.length; i++) {
+                var log = JSON.stringify(monitorNode.PastData[i]);
+                $(childWindow.document.body).append($('<p>' + log + '</p>'));
+            }
+        });
+
+        $link.appendTo($logs);
+        $logs.appendTo(element);
+    };
+    return MonitorHTMLRenderPlugIn;
+})(AssureIt.HTMLRenderPlugIn);
 
 var MonitorSVGRenderPlugIn = (function (_super) {
     __extends(MonitorSVGRenderPlugIn, _super);
@@ -376,7 +436,6 @@ var MonitorMenuBarPlugIn = (function (_super) {
             element.append('<a href="#" ><img id="monitor-tgl" src="' + serverApi.basepath + 'images/monitor.png" title="Set monitor" alt="monitor-tgl" /></a>');
         } else {
             element.append('<a href="#" ><img id="monitor-tgl" src="' + serverApi.basepath + 'images/monitor.png" title="Remove monitor" alt="monitor-tgl" /></a>');
-            element.append('<a href="#" ><img id="monitor-logs" src="' + serverApi.basepath + 'images/log.png" title="Show logs" alt="monitor-logs" /></a>');
         }
 
         $('#monitor-tgl').unbind('click');
@@ -386,23 +445,6 @@ var MonitorMenuBarPlugIn = (function (_super) {
             } else {
                 monitorManager.RemoveMonitor(caseModel.Label);
             }
-        });
-
-        $('#monitor-logs').unbind('mousedown');
-        $('#monitor-logs').unbind('mouseup');
-        $('#monitor-logs').mousedown(function () {
-            var monitorNode = monitorManager.MonitorNodeMap[caseModel.Label];
-            var p = "";
-            for (var i = 0; i < monitorNode.PastData.length; i++) {
-                p += '<p align="center">' + JSON.stringify(monitorNode.PastData[i]) + '</p>';
-            }
-
-            var $logs = $('<div id="logs">' + p + '</div>').css("font-size", "xx-small");
-            $logs.offset({ top: 30, left: 0 });
-            $logs.appendTo(element);
-        });
-        $('#monitor-logs').mouseup(function () {
-            $('#logs').remove();
         });
 
         return true;
