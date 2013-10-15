@@ -35,42 +35,49 @@ var DScriptGenerator = (function () {
     DScriptGenerator.prototype.GenerateLocalVariable = function () {
         var ret = "";
         var env = this.GetEnvironment();
-        var hasMonitor = false;
         for (var key in env) {
             if (key == "prototype" || key == "Reaction") {
                 continue;
             } else if (key == "Monitor") {
-                hasMonitor = true;
+                var condStr = env["Monitor"];
+                var words = condStr.replace(/\{|\}|\(|\)|<=|>=|==|<|>/g, " ").split(" ");
+                var types = [];
+
+                for (var i = 0; i < words.length; i++) {
+                    if (words[i] != "" && !$.isNumeric(words[i])) {
+                        types.push(words[i]);
+                    }
+                }
+                if (types.length != 1) {
+                }
+
+                var type = types[0];
+                ret += this.Indent + "let Type = \"" + type + "\";" + this.LineFeed;
             } else {
                 ret += this.Indent + "let " + key + " = \"" + env[key] + "\";" + this.LineFeed;
             }
         }
-        if (hasMonitor) {
-            var condStr = env["Monitor"];
-            condStr = condStr.replace(/[a-zA-Z]+/g, function (matchedStr) {
-                return "GetDataFromRec(Location, \"" + matchedStr + "\")";
-            });
-            condStr = condStr.replace(/[0-9]+/g, function (matchedStr) {
-                return matchedStr;
-            });
-            condStr = condStr.replace(/[\{\}]/g, "").trim();
-            ret += this.Indent + "boolean Monitor = " + condStr + ";" + this.LineFeed;
-        }
-
         return ret;
     };
     DScriptGenerator.prototype.GenerateAction = function (funcName) {
-        funcName = funcName.replace("()", "");
         var ret = "";
+        var env = this.GetEnvironment();
+
         ret += this.GenerateLocalVariable();
 
-        ret += this.Indent + "DFault " + funcName + "() {" + this.LineFeed;
+        ret += this.Indent + "DFault " + funcName + " {" + this.LineFeed;
 
+        if ("Monitor" in env) {
+            var condStr = env["Monitor"].replace(/\{|\}/g, "").replace(/[a-zA-Z]+/g, "GetDataFromRec(Location, Type)").trim();
+            ret += this.Indent + "boolean Monitor = " + condStr + this.LineFeed;
+        }
+
+        ret += __dscript__.script.funcdef[funcName].replace(/\n/g, "\n" + this.Indent + "\t");
         ret += this.Indent + "}" + this.LineFeed;
 
         ret += this.Indent + "DFault ret = null;" + this.LineFeed;
         ret += this.Indent + "if(Location == LOCATION) {" + this.LineFeed;
-        ret += this.Indent + this.Indent + "ret = dlog " + funcName + "();" + this.LineFeed;
+        ret += this.Indent + this.Indent + "ret = dlog " + funcName + ";" + this.LineFeed;
         ret += this.Indent + "}" + this.LineFeed;
         ret += this.Indent + "return ret;" + this.LineFeed;
 
