@@ -168,6 +168,13 @@ module AssureIt {
 			this.InvokePatternPlugInRecursive(this);
 		}
 
+		HasContext() : boolean {
+			for (var i in this.Children) {
+				if (this.Children[i].Type == NodeType.Context) return true;
+			}
+			return false;
+		}
+
 		//InvokePlugInModifier(EventType : string, EventBody : any) : boolean {
 		//	var recall = false;
 		//	for(var a in this.Annotations) {

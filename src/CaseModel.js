@@ -157,6 +157,14 @@ var AssureIt;
         NodeModel.prototype.InvokePatternPlugIn = function () {
             this.InvokePatternPlugInRecursive(this);
         };
+
+        NodeModel.prototype.HasContext = function () {
+            for (var i in this.Children) {
+                if (this.Children[i].Type == NodeType.Context)
+                    return true;
+            }
+            return false;
+        };
         return NodeModel;
     })();
     AssureIt.NodeModel = NodeModel;
