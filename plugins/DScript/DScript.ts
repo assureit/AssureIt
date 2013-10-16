@@ -100,8 +100,8 @@ class DScriptEditorPlugIn extends AssureIt.ActionPlugIn {
 			placeholder: "Generated DScript code goes here.",
 			lineWrapping: true,
 		});
-		this.NodeRelationTable = $("<table>").addClass("table table-striped");
-		this.ActionRelationTable = $("<table>").addClass("table table-striped");
+		this.NodeRelationTable = this.createTable(["action", "risk", "reaction"]);
+		this.ActionRelationTable = this.createTable(["location", "action", "risk", "reaction"]);
 		this.Highlighter = new ErrorHighlight(this.ASNEditor);
 
 		this.ASNEditor.on("change", function(e: JQueryEventObject) {
@@ -122,8 +122,8 @@ class DScriptEditorPlugIn extends AssureIt.ActionPlugIn {
 		var paneManager = new DScriptPaneManager(wrapper, $(this.ASNEditor.getWrapperElement()));
 		paneManager.AddToOptionsList($(this.ASNEditor.getWrapperElement()), "ASN Editor", false);
 		paneManager.AddToOptionsList($(this.DScriptEditor.getWrapperElement()), "DScript Viewer", false);
-		paneManager.AddToOptionsList(this.NodeRelationTable, "Node Relation Table", false, true);
-		paneManager.AddToOptionsList(this.ActionRelationTable, "Action Relation Table", false, true);
+		paneManager.AddToOptionsList(this.NodeRelationTable.parent(), "Node Relation Table", false, true);
+		paneManager.AddToOptionsList(this.ActionRelationTable.parent(), "Action Relation Table", false, true);
 		paneManager.SetRefreshFunc(function() {
 			self.ASNEditor.refresh();
 			self.DScriptEditor.refresh();
@@ -193,6 +193,20 @@ class DScriptEditorPlugIn extends AssureIt.ActionPlugIn {
 		self.GenerateCode();
 	}
 
+	createTable(columnNames: string[]): JQuery {
+		var table: JQuery = $("<table/>");
+		var header: JQuery = $("<thead/>");
+		var body: JQuery = $("<tbody/>");
+
+		var tr: JQuery = $("<tr/>");
+		for (var i: number = 0; i < columnNames.length; i++) {
+			tr.append($("<th>").text(columnNames[i]));
+		}
+		header.append(tr);
+		table.append(header).append(body);
+		$("<div/>").append(table);
+		return (<any>table).dataTable();
+	}
 // 	UpdateLineComment(editor: any, widgets: any[], generator: DScriptGenerator): void {
 // 		editor.operation(function() {
 // 			for (var i: number = 0; i < widgets.length; ++i) {
@@ -213,57 +227,29 @@ class DScriptEditorPlugIn extends AssureIt.ActionPlugIn {
 // 	}
 
 	UpdateNodeRelationTable(nodeRelation): void {
-		var table: JQuery = this.NodeRelationTable;
-		var tableWidth: number = table.parent().width();
-		var header: JQuery = $("<tr><th>action</th><th>risk</th><th>reaction</th></tr>");
-		var tpl: string = "<tr><td>${action}</td><td>${risk}</td><td>${reaction}</td></tr>";
-		var style = {
-            maxWidth: tableWidth / 3,
-			minWidth: tableWidth / 3,
-            overflow: 'hidden',
-            textOverflow: 'ellipsis',
-			textAlign: 'center',
-            whiteSpace: 'nowrap',
-		}
-		table.children().remove();
-		header.children().css(style);
-		table.append(header);
+		(<any>this.NodeRelationTable).fnClearTable();
 		for (var key in nodeRelation) {
-			var rowSrc: string = tpl
-				.replace("${action}", nodeRelation[key]["action"])
-				.replace("${risk}", "*")
-				.replace("${reaction}", nodeRelation[key]["reaction"]);
-			var row: JQuery = $(rowSrc);
-			row.children().css(style);
-			table.append(row);
+			var relationMap = nodeRelation[key];
+			var data: string[] = [
+				relationMap["action"],
+				"*",
+				relationMap["reaction"],
+			];
+			(<any>this.NodeRelationTable).fnAddData(data);
 		}
 	}
 
 	UpdateActionRelationTable(actionRelation): void {
-		var table: JQuery = this.ActionRelationTable;
-		var tableWidth: number = table.parent().width();
-		var header: JQuery = $("<tr><th>action</th><th>risk</th><th>reaction</th></tr>");
-		var tpl: string = "<tr><td>${action}</td><td>${risk}</td><td>${reaction}</td></tr>";
-		var style = {
-            maxWidth: tableWidth / 3,
-			minWidth: tableWidth / 3,
-            overflow: 'hidden',
-            textOverflow: 'ellipsis',
-			textAlign: 'center',
-            whiteSpace: 'nowrap',
-		}
-		table.children().remove();
-		header.children().css(style);
-		table.append(header);
+		(<any>this.ActionRelationTable).fnClearTable();
 		for (var key in actionRelation) {
-			var tmp = actionRelation[key];
-			var rowSrc: string = tpl
-				.replace("${action}", tmp["action"]["func"] + " in " + tmp["action"]["node"])
-				.replace("${risk}", tmp["risk"])
-				.replace("${reaction}", tmp["reaction"]["func"] + " in " + tmp["reaction"]["node"]);
-			var row: JQuery = $(rowSrc);
-			row.children().css(style);
-			table.append(row);
+			var relationMap = actionRelation[key];
+			var data: string[] = [
+				relationMap["location"],
+				relationMap["action"]["node"] + ":" + relationMap["action"]["func"],
+				relationMap["risk"],
+				relationMap["reaction"]["node"] + ":" + relationMap["reaction"]["func"],
+			];
+			(<any>this.ActionRelationTable).fnAddData(data);
 		}
 	}
 

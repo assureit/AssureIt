@@ -93,8 +93,8 @@ var DScriptEditorPlugIn = (function (_super) {
             placeholder: "Generated DScript code goes here.",
             lineWrapping: true
         });
-        this.NodeRelationTable = $("<table>").addClass("table table-striped");
-        this.ActionRelationTable = $("<table>").addClass("table table-striped");
+        this.NodeRelationTable = this.createTable(["action", "risk", "reaction"]);
+        this.ActionRelationTable = this.createTable(["location", "action", "risk", "reaction"]);
         this.Highlighter = new ErrorHighlight(this.ASNEditor);
 
         this.ASNEditor.on("change", function (e) {
@@ -115,8 +115,8 @@ var DScriptEditorPlugIn = (function (_super) {
         var paneManager = new DScriptPaneManager(wrapper, $(this.ASNEditor.getWrapperElement()));
         paneManager.AddToOptionsList($(this.ASNEditor.getWrapperElement()), "ASN Editor", false);
         paneManager.AddToOptionsList($(this.DScriptEditor.getWrapperElement()), "DScript Viewer", false);
-        paneManager.AddToOptionsList(this.NodeRelationTable, "Node Relation Table", false, true);
-        paneManager.AddToOptionsList(this.ActionRelationTable, "Action Relation Table", false, true);
+        paneManager.AddToOptionsList(this.NodeRelationTable.parent(), "Node Relation Table", false, true);
+        paneManager.AddToOptionsList(this.ActionRelationTable.parent(), "Action Relation Table", false, true);
         paneManager.SetRefreshFunc(function () {
             self.ASNEditor.refresh();
             self.DScriptEditor.refresh();
@@ -180,52 +180,45 @@ var DScriptEditorPlugIn = (function (_super) {
         self.GenerateCode();
     };
 
+    DScriptEditorPlugIn.prototype.createTable = function (columnNames) {
+        var table = $("<table/>");
+        var header = $("<thead/>");
+        var body = $("<tbody/>");
+
+        var tr = $("<tr/>");
+        for (var i = 0; i < columnNames.length; i++) {
+            tr.append($("<th>").text(columnNames[i]));
+        }
+        header.append(tr);
+        table.append(header).append(body);
+        $("<div/>").append(table);
+        return (table).dataTable();
+    };
+
     DScriptEditorPlugIn.prototype.UpdateNodeRelationTable = function (nodeRelation) {
-        var table = this.NodeRelationTable;
-        var tableWidth = table.parent().width();
-        var header = $("<tr><th>action</th><th>risk</th><th>reaction</th></tr>");
-        var tpl = "<tr><td>${action}</td><td>${risk}</td><td>${reaction}</td></tr>";
-        var style = {
-            maxWidth: tableWidth / 3,
-            minWidth: tableWidth / 3,
-            overflow: 'hidden',
-            textOverflow: 'ellipsis',
-            textAlign: 'center',
-            whiteSpace: 'nowrap'
-        };
-        table.children().remove();
-        header.children().css(style);
-        table.append(header);
+        (this.NodeRelationTable).fnClearTable();
         for (var key in nodeRelation) {
-            var rowSrc = tpl.replace("${action}", nodeRelation[key]["action"]).replace("${risk}", "*").replace("${reaction}", nodeRelation[key]["reaction"]);
-            var row = $(rowSrc);
-            row.children().css(style);
-            table.append(row);
+            var relationMap = nodeRelation[key];
+            var data = [
+                relationMap["action"],
+                "*",
+                relationMap["reaction"]
+            ];
+            (this.NodeRelationTable).fnAddData(data);
         }
     };
 
     DScriptEditorPlugIn.prototype.UpdateActionRelationTable = function (actionRelation) {
-        var table = this.ActionRelationTable;
-        var tableWidth = table.parent().width();
-        var header = $("<tr><th>action</th><th>risk</th><th>reaction</th></tr>");
-        var tpl = "<tr><td>${action}</td><td>${risk}</td><td>${reaction}</td></tr>";
-        var style = {
-            maxWidth: tableWidth / 3,
-            minWidth: tableWidth / 3,
-            overflow: 'hidden',
-            textOverflow: 'ellipsis',
-            textAlign: 'center',
-            whiteSpace: 'nowrap'
-        };
-        table.children().remove();
-        header.children().css(style);
-        table.append(header);
+        (this.ActionRelationTable).fnClearTable();
         for (var key in actionRelation) {
-            var tmp = actionRelation[key];
-            var rowSrc = tpl.replace("${action}", tmp["action"]["func"] + " in " + tmp["action"]["node"]).replace("${risk}", tmp["risk"]).replace("${reaction}", tmp["reaction"]["func"] + " in " + tmp["reaction"]["node"]);
-            var row = $(rowSrc);
-            row.children().css(style);
-            table.append(row);
+            var relationMap = actionRelation[key];
+            var data = [
+                relationMap["location"],
+                relationMap["action"]["node"] + ":" + relationMap["action"]["func"],
+                relationMap["risk"],
+                relationMap["reaction"]["node"] + ":" + relationMap["reaction"]["func"]
+            ];
+            (this.ActionRelationTable).fnAddData(data);
         }
     };
 
