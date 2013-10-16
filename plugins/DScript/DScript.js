@@ -113,6 +113,7 @@ var DScriptEditorPlugIn = (function (_super) {
         });
 
         var paneManager = new DScriptPaneManager(wrapper, $(this.ASNEditor.getWrapperElement()));
+        paneManager.AddToOptionsList($(this.ASNEditor.getWrapperElement()), "ASN Editor", false);
         paneManager.AddToOptionsList($(this.DScriptEditor.getWrapperElement()), "DScript Viewer", false);
         paneManager.AddToOptionsList(this.NodeRelationTable, "Node Relation Table", false, true);
         paneManager.AddToOptionsList(this.ActionRelationTable, "Action Relation Table", false, true);

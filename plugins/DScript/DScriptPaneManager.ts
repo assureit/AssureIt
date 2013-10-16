@@ -57,11 +57,26 @@ class DScriptPaneManager {
 		this.RefreshFunc = func;
 	}
 
+	public RefreshDefaultWidget(): void {
+		var usedList = [];
+		for (var key in this.Options) {
+			if (this.Widgets.indexOf(this.Options[key].get(0)) != -1) {
+				usedList.push(key);
+			}
+		}
+		$(".widget-select-button").each(function() {
+			if (usedList.indexOf($(this).text()) != -1) {
+				this.remove();
+			}
+		});
+	}
+
 	public CreateDefaultWidget(): JQuery { // create buttons from OptionsList
-		var defaultWidget = $("<div/>").addClass("btn-group-vertical");
+		var defaultWidget = $("<div/>").addClass("btn-group-vertical default-widget");
 		var self = this;
 		for (var key in self.Options) {
-			var newButton = $("<button/>").addClass("btn btn-default");
+			if (this.Widgets.indexOf(self.Options[key].get(0)) != -1) continue;
+			var newButton = $("<button/>").addClass("btn btn-default widget-select-button");
 			newButton.text(key);
 			newButton.click(function() {
 				var frame = defaultWidget.parent();
@@ -71,6 +86,7 @@ class DScriptPaneManager {
 				frame.append(widget);
 				defaultWidget.remove();
 				self.RefreshFunc();
+				self.RefreshDefaultWidget();
 			});
 			defaultWidget.append(newButton);
 		}
@@ -87,8 +103,15 @@ class DScriptPaneManager {
 		buttonUp.click(function() {
 			console.log("click up");
 			var widget = newFrame.children(".managed-widget");
-			if (widget.length == 1 && self.Widgets.indexOf(widget.get(0)) != -1) {
+			if (widget.length == 1 &&
+				(self.Widgets.indexOf(widget.get(0)) != -1 ||
+				 widget.hasClass("default-widget"))) {
 				self.AddWidgetOnBottom(widget, self.CreateDefaultWidget());
+			}
+			else {
+				console.log("DScriptPaneManager error");
+				console.log(widget);
+				console.log(self.Widgets);
 			}
 		});
 		var buttonDown: JQuery = $("<div/>");
@@ -96,8 +119,15 @@ class DScriptPaneManager {
 		buttonDown.click(function() {
 			console.log("click down");
 			var widget = newFrame.children(".managed-widget");
-			if (widget.length == 1 && self.Widgets.indexOf(widget.get(0)) != -1) {
+			if (widget.length == 1 &&
+				(self.Widgets.indexOf(widget.get(0)) != -1 ||
+				 widget.hasClass("default-widget"))) {
 				self.AddWidgetOnTop(widget, self.CreateDefaultWidget());
+			}
+			else {
+				console.log("DScriptPaneManager error");
+				console.log(widget);
+				console.log(self.Widgets);
 			}
 		});
 		var buttonLeft: JQuery = $("<div/>");
@@ -105,8 +135,15 @@ class DScriptPaneManager {
 		buttonLeft.click(function() {
 			console.log("click left");
 			var widget = newFrame.children(".managed-widget");
-			if (widget.length == 1 && self.Widgets.indexOf(widget.get(0)) != -1) {
+			if (widget.length == 1 &&
+				(self.Widgets.indexOf(widget.get(0)) != -1 ||
+				 widget.hasClass("default-widget"))) {
 				self.AddWidgetOnRight(widget, self.CreateDefaultWidget());
+			}
+			else {
+				console.log("DScriptPaneManager error");
+				console.log(widget);
+				console.log(self.Widgets);
 			}
 		});
 		var buttonRight: JQuery = $("<div/>");
@@ -114,8 +151,15 @@ class DScriptPaneManager {
 		buttonRight.click(function() {
 			console.log("click right");
 			var widget = newFrame.children(".managed-widget");
-			if (widget.length == 1 && self.Widgets.indexOf(widget.get(0)) != -1) {
+			if (widget.length == 1 &&
+				(self.Widgets.indexOf(widget.get(0)) != -1 ||
+				 widget.hasClass("default-widget"))) {
 				self.AddWidgetOnLeft(widget, self.CreateDefaultWidget());
+			}
+			else {
+				console.log("DScriptPaneManager error");
+				console.log(widget);
+				console.log(self.Widgets);
 			}
 		});
 		var buttonDelete: JQuery = $("<div/>");
@@ -146,16 +190,21 @@ class DScriptPaneManager {
 		parentFrame.parent().append(siblingFrame);
 		parentFrame = currentFrame.parent(".managed-frame");
 		parentFrame.remove();
+
+		var idx = this.Widgets.indexOf(locatedWidget.get(0));
+		this.Widgets.splice(idx, 1);
+
 		this.RefreshFunc();
 	}
 
 	private AddWidgetCommon(locatedWidget: JQuery, newWidget: JQuery, keepStyle: boolean = false) {
 		var ret: boolean = false;
 		var index: number = this.Widgets.indexOf(locatedWidget.get(0));
-		if (index != -1) {
+		var isDefaultWidget = locatedWidget.hasClass("default-widget");
+		if (index != -1 || isDefaultWidget) {
 			ret = true;
-			this.Widgets.push(newWidget.get(0));
 			newWidget.addClass("managed-widget");
+			if (isDefaultWidget) this.Widgets.push(newWidget.get(0));
 			var childFrame1: JQuery = this.CreateFrame();
 			var childFrame2: JQuery = this.CreateFrame();
 			var parentFrame: JQuery = locatedWidget.parent();
