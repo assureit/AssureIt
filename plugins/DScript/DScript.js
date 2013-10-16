@@ -205,7 +205,8 @@ var DScriptEditorPlugIn = (function (_super) {
         table.append(header).append(body);
         $("<div/>").append(table);
         return (table).dataTable({
-            "fnRowCallback": callbackFunc
+            fnRowCallback: callbackFunc,
+            bAutoWidth: true
         });
     };
 

@@ -224,7 +224,8 @@ class DScriptEditorPlugIn extends AssureIt.ActionPlugIn {
 		table.append(header).append(body);
 		$("<div/>").append(table);
 		return (<any>table).dataTable({
-			"fnRowCallback" : callbackFunc,
+			fnRowCallback : callbackFunc,
+			bAutoWidth: true,
 		});
 	}
 // 	UpdateLineComment(editor: any, widgets: any[], generator: DScriptGenerator): void {
