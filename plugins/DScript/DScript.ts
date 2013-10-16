@@ -100,8 +100,26 @@ class DScriptEditorPlugIn extends AssureIt.ActionPlugIn {
 			placeholder: "Generated DScript code goes here.",
 			lineWrapping: true,
 		});
-		this.NodeRelationTable = this.createTable(["action", "risk", "reaction"]);
-		this.ActionRelationTable = this.createTable(["location", "action", "risk", "reaction"]);
+		this.NodeRelationTable = this.createTable(
+			["action", "risk", "reaction"],
+			function(nRow, aData, iDisplayIndex, iDisplayIndexFull) {
+			}
+		);
+		this.ActionRelationTable = this.createTable(
+			["location", "action", "risk", "reaction"],
+			function(nRow, aData, iDisplayIndex, iDisplayIndexFull) {
+				if (aData[3].match("Undefined") != null) {
+					var $nRow = $(nRow);
+					if ($nRow.hasClass("odd")) {
+						$nRow.children().css("background-color", "#FFDDDD");
+					}
+					else if ($nRow.hasClass("even")) {
+						$nRow.children().css("background-color", "#FFC4C4");
+					}
+				}
+				return nRow;
+			}
+		);
 		this.Highlighter = new ErrorHighlight(this.ASNEditor);
 
 		this.ASNEditor.on("change", function(e: JQueryEventObject) {
@@ -193,7 +211,7 @@ class DScriptEditorPlugIn extends AssureIt.ActionPlugIn {
 		self.GenerateCode();
 	}
 
-	createTable(columnNames: string[]): JQuery {
+	createTable(columnNames: string[], callbackFunc = null): JQuery {
 		var table: JQuery = $("<table/>");
 		var header: JQuery = $("<thead/>");
 		var body: JQuery = $("<tbody/>");
@@ -205,7 +223,9 @@ class DScriptEditorPlugIn extends AssureIt.ActionPlugIn {
 		header.append(tr);
 		table.append(header).append(body);
 		$("<div/>").append(table);
-		return (<any>table).dataTable();
+		return (<any>table).dataTable({
+			"fnRowCallback" : callbackFunc,
+		});
 	}
 // 	UpdateLineComment(editor: any, widgets: any[], generator: DScriptGenerator): void {
 // 		editor.operation(function() {

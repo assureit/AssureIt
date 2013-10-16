@@ -93,8 +93,19 @@ var DScriptEditorPlugIn = (function (_super) {
             placeholder: "Generated DScript code goes here.",
             lineWrapping: true
         });
-        this.NodeRelationTable = this.createTable(["action", "risk", "reaction"]);
-        this.ActionRelationTable = this.createTable(["location", "action", "risk", "reaction"]);
+        this.NodeRelationTable = this.createTable(["action", "risk", "reaction"], function (nRow, aData, iDisplayIndex, iDisplayIndexFull) {
+        });
+        this.ActionRelationTable = this.createTable(["location", "action", "risk", "reaction"], function (nRow, aData, iDisplayIndex, iDisplayIndexFull) {
+            if (aData[3].match("Undefined") != null) {
+                var $nRow = $(nRow);
+                if ($nRow.hasClass("odd")) {
+                    $nRow.children().css("background-color", "#FFDDDD");
+                } else if ($nRow.hasClass("even")) {
+                    $nRow.children().css("background-color", "#FFC4C4");
+                }
+            }
+            return nRow;
+        });
         this.Highlighter = new ErrorHighlight(this.ASNEditor);
 
         this.ASNEditor.on("change", function (e) {
@@ -180,7 +191,8 @@ var DScriptEditorPlugIn = (function (_super) {
         self.GenerateCode();
     };
 
-    DScriptEditorPlugIn.prototype.createTable = function (columnNames) {
+    DScriptEditorPlugIn.prototype.createTable = function (columnNames, callbackFunc) {
+        if (typeof callbackFunc === "undefined") { callbackFunc = null; }
         var table = $("<table/>");
         var header = $("<thead/>");
         var body = $("<tbody/>");
@@ -192,7 +204,9 @@ var DScriptEditorPlugIn = (function (_super) {
         header.append(tr);
         table.append(header).append(body);
         $("<div/>").append(table);
-        return (table).dataTable();
+        return (table).dataTable({
+            "fnRowCallback": callbackFunc
+        });
     };
 
     DScriptEditorPlugIn.prototype.UpdateNodeRelationTable = function (nodeRelation) {
