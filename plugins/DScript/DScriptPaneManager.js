@@ -180,7 +180,8 @@ var DScriptPaneManager = (function () {
             parentFrame = currentFrame.parent(".managed-frame");
             parentFrame.remove();
             var idx = this.Widgets.indexOf(locatedWidget.get(0));
-            this.Widgets.splice(idx, 1);
+            if (idx != -1)
+                this.Widgets.splice(idx, 1);
         }
         this.RefreshFunc();
     };
