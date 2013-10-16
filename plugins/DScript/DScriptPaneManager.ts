@@ -96,10 +96,21 @@ class DScriptPaneManager {
 	private CreateFrame(): JQuery {
 		var self = this;
 		var newFrame: JQuery = $("<div/>");
-		newFrame.addClass("managed-frame");
 
-		var buttonUp: JQuery = $("<div/>");
-		buttonUp.addClass("simple-arrow-up");
+		var buttonUp: JQuery = $("<canvas width='40px' height='40px'></canvas>");
+		buttonUp.css({
+			position : "absolute",
+			right : 0,
+			top : 0,
+			zIndex : 10,
+		});
+		var ctx = buttonUp.get(0).getContext("2d");
+		ctx.beginPath();
+		ctx.moveTo(5, 20);
+		ctx.lineTo(35, 20);
+		ctx.strokeRect(5, 5, 30, 30);
+		ctx.closePath();
+		ctx.stroke();
 		buttonUp.click(function() {
 			console.log("click up");
 			var widget = newFrame.children(".managed-widget");
@@ -114,24 +125,20 @@ class DScriptPaneManager {
 				console.log(self.Widgets);
 			}
 		});
-		var buttonDown: JQuery = $("<div/>");
-		buttonDown.addClass("simple-arrow-down");
-		buttonDown.click(function() {
-			console.log("click down");
-			var widget = newFrame.children(".managed-widget");
-			if (widget.length == 1 &&
-				(self.Widgets.indexOf(widget.get(0)) != -1 ||
-				 widget.hasClass("default-widget"))) {
-				self.AddWidgetOnTop(widget, self.CreateDefaultWidget());
-			}
-			else {
-				console.log("DScriptPaneManager error");
-				console.log(widget);
-				console.log(self.Widgets);
-			}
+		var buttonLeft: JQuery = $("<canvas width='40px' height='40px'></canvas>");
+		buttonLeft.css({
+			position : "absolute",
+			right : 0,
+			top : 40,
+			zIndex : 10,
 		});
-		var buttonLeft: JQuery = $("<div/>");
-		buttonLeft.addClass("simple-arrow-left");
+		var ctx = buttonLeft.get(0).getContext("2d");
+		ctx.beginPath();
+		ctx.moveTo(20, 5);
+		ctx.lineTo(20, 35);
+		ctx.strokeRect(5, 5, 30, 30);
+		ctx.closePath();
+		ctx.stroke();
 		buttonLeft.click(function() {
 			console.log("click left");
 			var widget = newFrame.children(".managed-widget");
@@ -146,39 +153,37 @@ class DScriptPaneManager {
 				console.log(self.Widgets);
 			}
 		});
-		var buttonRight: JQuery = $("<div/>");
-		buttonRight.addClass("simple-arrow-right");
-		buttonRight.click(function() {
-			console.log("click right");
-			var widget = newFrame.children(".managed-widget");
-			if (widget.length == 1 &&
-				(self.Widgets.indexOf(widget.get(0)) != -1 ||
-				 widget.hasClass("default-widget"))) {
-				self.AddWidgetOnLeft(widget, self.CreateDefaultWidget());
-			}
-			else {
-				console.log("DScriptPaneManager error");
-				console.log(widget);
-				console.log(self.Widgets);
-			}
+		var buttonDelete: JQuery = $("<canvas width='40px' height='40px'></canvas>");
+		buttonDelete.css({
+			position : "absolute",
+			right : 0,
+			top : 80,
+			zIndex : 10,
 		});
-		var buttonDelete: JQuery = $("<div/>");
-		buttonDelete.addClass("simple-arrow-delete");
+		var ctx = buttonDelete.get(0).getContext("2d");
+		ctx.beginPath();
+		ctx.lineWidth = 3;
+		ctx.moveTo(10, 10);
+		ctx.lineTo(30, 30);
+		ctx.moveTo(30, 10);
+		ctx.lineTo(10, 30);
+		ctx.closePath();
+		ctx.stroke();
 		buttonDelete.click(function() {
 			console.log("click delete");
 			self.DeleteWidget($(this).parent().children(".managed-widget"));
 		});
 		
 		newFrame.append(buttonUp);
-		newFrame.append(buttonDown);
 		newFrame.append(buttonLeft);
-		newFrame.append(buttonRight);
 		newFrame.append(buttonDelete);
+		newFrame.addClass("managed-frame");
 		newFrame.css({
 			borderColor : "#000000",
 			borderStyle : "solid",
 			borderWidth : 0,
 		});
+
 		return newFrame;
 	}
 
