@@ -37,12 +37,13 @@ module AssureIt {
 			}
 			this.DocBase = $('<div class="node">').css("position", "absolute")
 				.attr('id', NodeModel.Label);
-			if (NodeModel.Type == NodeType.Goal) {
+			/* FIXME: node labeling */
+			//if (NodeModel.Type == NodeType.Goal) {
 				this.DocBase.append($('<h4>' + NodeModel.Label + '</h4>'));
-			} else {
-				var Label = NodeModel.Label[0]+NodeModel.Parent.Label.substring(1)
-				this.DocBase.append($('<h4>' + Label + '</h4>'));
-			}
+			//} else {
+			//	var Label = NodeModel.Label[0]+NodeModel.Parent.Label.substring(1)
+			//	this.DocBase.append($('<h4>' + Label + '</h4>'));
+			//}
 			//this.DocBase.append($('<p>' + NodeModel.Statement + '</p>'));
 
 			this.InvokePlugInHTMLRender(Viewer, NodeModel, this.DocBase);
