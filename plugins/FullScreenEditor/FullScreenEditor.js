@@ -23,7 +23,7 @@ var FullScreenMenuPlugIn = (function (_super) {
         this.editorPlugIn = editorPlugIn;
     }
     FullScreenMenuPlugIn.prototype.IsEnabled = function (caseViewer, caseModel) {
-        return false;
+        return caseViewer.Source.IsEditable();
     };
 
     FullScreenMenuPlugIn.prototype.Delegate = function (caseViewer, caseModel, element, serverApi) {
@@ -45,7 +45,7 @@ var FullScreenEditorLayoutPlugIn = (function (_super) {
         _super.call(this, plugInManager);
     }
     FullScreenEditorLayoutPlugIn.prototype.IsEnabled = function (caseViewer, caseModel) {
-        return false;
+        return true;
     };
 
     FullScreenEditorLayoutPlugIn.prototype.Delegate = function (caseViewer, caseModel, element) {
@@ -60,7 +60,7 @@ var FullScreenEditorActionPlugIn = (function (_super) {
         _super.call(this, plugInManager);
         this.editor = CodeMirror.fromTextArea(document.getElementById('fullscreen-editor'), {
             lineNumbers: true,
-            mode: "text/x-asn",
+            mode: "text/x-csrc",
             lineWrapping: true
         });
         $(this.editor.getWrapperElement()).css({
@@ -80,7 +80,7 @@ var FullScreenEditorActionPlugIn = (function (_super) {
         this.ErrorHighlight = new ErrorHighlight(this.editor);
     }
     FullScreenEditorActionPlugIn.prototype.IsEnabled = function (caseViewer, case0) {
-        return false;
+        return true;
     };
 
     FullScreenEditorActionPlugIn.Object_Clone = function (obj) {
@@ -133,7 +133,6 @@ var FullScreenEditorActionPlugIn = (function (_super) {
 
         if (!this.ShowFullScreenEditor) {
             this.ShowFullScreenEditor = function (ev) {
-                $('#background').unbind('dblclick');
                 ev.stopPropagation();
                 self.plugInManager.UseUILayer(self);
                 self.isDisplayed = true;
@@ -152,6 +151,8 @@ var FullScreenEditorActionPlugIn = (function (_super) {
 
                     var orig_idCounters = case0.ReserveIdCounters(orig_model);
                     var orig_ElementMap = case0.ReserveElementMap(orig_model);
+
+                    orig_view.DeleteHTMLElementRecursive(null, null);
 
                     var decoder = new AssureIt.CaseDecoder();
                     var new_model = decoder.ParseASN(case0, editor.getValue(), orig_model);
@@ -224,7 +225,6 @@ var FullScreenEditorActionPlugIn = (function (_super) {
             };
         }
 
-        $('#background').unbind('dblclick');
         return true;
     };
 

@@ -37,7 +37,12 @@ module AssureIt {
 			}
 			this.DocBase = $('<div class="node">').css("position", "absolute")
 				.attr('id', NodeModel.Label);
-			this.DocBase.append($('<h4>' + NodeModel.Label + '</h4>'));
+			if (NodeModel.Type == NodeType.Goal) {
+				this.DocBase.append($('<h4>' + NodeModel.Label + '</h4>'));
+			} else {
+				var Label = NodeModel.Label[0]+NodeModel.Parent.Label.substring(1)
+				this.DocBase.append($('<h4>' + Label + '</h4>'));
+			}
 			//this.DocBase.append($('<p>' + NodeModel.Statement + '</p>'));
 
 			this.InvokePlugInHTMLRender(Viewer, NodeModel, this.DocBase);
@@ -523,9 +528,15 @@ module AssureIt {
 			var shapelayer = $(this.Screen.ShapeLayer);
 			var screenlayer = $(this.Screen.ContentLayer);
 			this.UpdateViewMap();
+			this.ViewMap[this.ElementTop.Label].DeleteHTMLElementRecursive(null, null);
 			this.ViewMap[this.ElementTop.Label].AppendHTMLElementRecursive(shapelayer, screenlayer, this);
 			this.pluginManager.RegisterActionEventListeners(this, this.Source, this.serverApi);
 			this.Update();
+		}
+
+		DeleteHTMLElementAll(): void {
+			$('#layer0').children().remove();
+			$('#layer1').children().remove();
 		}
 	}
 
