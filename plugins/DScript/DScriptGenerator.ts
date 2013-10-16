@@ -62,23 +62,7 @@ class DScriptGenerator {
 				continue;
 			}
 			else if (key == "Monitor") {
-				var condStr = env["Monitor"];
-				var words: string[] = condStr
-					.replace(/\{|\}|\(|\)|<=|>=|==|<|>/g, " ")
-					.split(" ");
-				var types: string[] = [];
-
-				for(var i: number = 0; i < words.length; i++) {
-					if(words[i] != "" && !$.isNumeric(words[i])) {
-						types.push(words[i]);
-					}
-				}
-				if(types.length != 1) {
-					// TODO: generate error
-				}
-
-				var type = types[0];
-				ret += this.Indent + "let Type = \"" + type + "\";" + this.LineFeed;
+				// lazy generation
 			}
 			else {
 				ret += this.Indent + "let " + key + " = \"" + env[key] + "\";" + this.LineFeed;
@@ -96,14 +80,19 @@ class DScriptGenerator {
 		ret += this.Indent + "DFault " + funcName + " {" + this.LineFeed;
 
 		if("Monitor" in env) {
-			var condStr: string = env["Monitor"]
-									.replace(/\{|\}/g, "")
-									.replace(/[a-zA-Z]+/g, "GetDataFromRec(Location, Type)")
-									.trim();
-			ret += this.Indent + "boolean Monitor = " + condStr + this.LineFeed;
+			var condStr = env["Monitor"]
+							.replace(/\{|\}/g, "")
+							.replace(/[a-zA-Z]+/g, function(matchedStr) {
+									return "GetDataFromRec(Location, \"" + matchedStr + "\")";
+							})
+							.trim();
+			ret += this.Indent + this.Indent + "boolean Monitor = " + condStr + ";" + this.LineFeed;
 		}
 
-		ret += __dscript__.script.funcdef[funcName].replace(/\n/g, "\n" + this.Indent + "\t");   // FIXME
+		ret += __dscript__.script.funcdef[funcName]
+			.replace(/\n/g, this.LineFeed + this.Indent + this.Indent)   // FIXME
+		ret += this.LineFeed;
+		ret = ret.replace(/\t\t\n/, "");
 		ret += this.Indent + "}" + this.LineFeed;
 
 		/* Call Action Function */
