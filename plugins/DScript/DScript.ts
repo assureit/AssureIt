@@ -297,6 +297,7 @@ class DScriptEditorPlugIn extends AssureIt.ActionPlugIn {
 		this.Highlighter.ClearHighlight();
 
 		try {
+			nodeModel.UpdateEnvironment();
 			var generator: DScriptGenerator = new DScriptGenerator();
 			var script = generator.CodeGen(nodeModel);
  			var dscriptActionMap: DScriptActionMap = new DScriptActionMap(nodeModel);

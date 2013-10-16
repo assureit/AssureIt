@@ -3,7 +3,6 @@ var DScriptGenerator = (function () {
         if (typeof genMainFunctionFlag === "undefined") { genMainFunctionFlag = false; }
         this.Indent = "\t";
         this.LineFeed = "\n";
-        this.Env = {};
         this.GenMainFunctionFlag = genMainFunctionFlag;
     }
     DScriptGenerator.prototype.SearchChildrenByType = function (node, type) {
@@ -32,9 +31,8 @@ var DScriptGenerator = (function () {
     DScriptGenerator.prototype.GenerateRuntimeContextDecl = function () {
         return "class RuntimeContext {" + this.LineFeed + "}" + this.LineFeed + this.LineFeed;
     };
-    DScriptGenerator.prototype.GenerateLocalVariable = function () {
+    DScriptGenerator.prototype.GenerateLocalVariable = function (env) {
         var ret = "";
-        var env = this.GetEnvironment();
         for (var key in env) {
             if (key == "prototype" || key == "Reaction") {
                 continue;
@@ -45,11 +43,9 @@ var DScriptGenerator = (function () {
         }
         return ret;
     };
-    DScriptGenerator.prototype.GenerateAction = function (funcName) {
+    DScriptGenerator.prototype.GenerateAction = function (funcName, env) {
         var ret = "";
-        var env = this.GetEnvironment();
-
-        ret += this.GenerateLocalVariable();
+        ret += this.GenerateLocalVariable(env);
 
         ret += this.Indent + "DFault " + funcName + " {" + this.LineFeed;
 
@@ -72,35 +68,6 @@ var DScriptGenerator = (function () {
         ret += this.Indent + "return ret;" + this.LineFeed;
 
         return ret;
-    };
-
-    DScriptGenerator.prototype.GetEnvironment = function () {
-        return this.Env;
-    };
-    DScriptGenerator.prototype.PushEnvironment = function (node) {
-        var contexts = this.SearchChildrenByType(node, AssureIt.NodeType.Context);
-        var envConstructor = null;
-        if (contexts.length == 0) {
-            envConstructor = function () {
-            };
-        } else if (contexts.length == 1) {
-            var context = contexts[0];
-            envConstructor = function () {
-                for (var key in context.Notes) {
-                    this[key] = context.Notes[key];
-                }
-            };
-        } else {
-            envConstructor = function () {
-            };
-        }
-        envConstructor.prototype = this.Env;
-        var newEnv = new envConstructor();
-        newEnv.prototype = this.Env;
-        this.Env = newEnv;
-    };
-    DScriptGenerator.prototype.PopEnvironment = function () {
-        this.Env = this.Env.prototype;
     };
 
     DScriptGenerator.prototype.GenerateNodeFunction_GoalOrStrategy = function (node) {
@@ -134,7 +101,7 @@ var DScriptGenerator = (function () {
         var ret = "";
         ret += "DFault " + node.Label + "() {" + this.LineFeed;
         if (action != null) {
-            ret += this.GenerateAction(action);
+            ret += this.GenerateAction(action, node.Environment);
         } else {
             ret += this.Indent + "return null;";
         }
@@ -144,7 +111,6 @@ var DScriptGenerator = (function () {
 
     DScriptGenerator.prototype.GenerateNodeFunction = function (node) {
         var ret = "";
-        this.PushEnvironment(node);
         for (var i = 0; i < node.Children.length; i++) {
             ret += this.GenerateNodeFunction(node.Children[i]);
             ret += this.LineFeed;
@@ -163,7 +129,6 @@ var DScriptGenerator = (function () {
                 console.log("DScriptGenerator: invalid Node Type");
                 console.log(node);
         }
-        this.PopEnvironment();
         return ret;
     };
 

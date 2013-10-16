@@ -259,6 +259,7 @@ var DScriptEditorPlugIn = (function (_super) {
         this.Highlighter.ClearHighlight();
 
         try  {
+            nodeModel.UpdateEnvironment();
             var generator = new DScriptGenerator();
             var script = generator.CodeGen(nodeModel);
             var dscriptActionMap = new DScriptActionMap(nodeModel);

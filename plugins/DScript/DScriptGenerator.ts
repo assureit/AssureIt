@@ -4,13 +4,11 @@
 class DScriptGenerator {
 	Indent: string;
 	LineFeed: string;
-	Env: any;
 	GenMainFunctionFlag: boolean;
 
 	constructor(genMainFunctionFlag: boolean = false) {
 		this.Indent = "\t";
 		this.LineFeed = "\n";
-		this.Env = {};
 		this.GenMainFunctionFlag = genMainFunctionFlag;
 	}
 
@@ -54,9 +52,8 @@ class DScriptGenerator {
 	GenerateRuntimeContextDecl(): string {
 		return "class RuntimeContext {" + this.LineFeed + "}" + this.LineFeed + this.LineFeed;
 	}
-	GenerateLocalVariable(): string {
+	GenerateLocalVariable(env): string {
 		var ret: string = "";
-		var env: any = this.GetEnvironment();
 		for (var key in env) {
 			if (key == "prototype" || key == "Reaction") {
 				continue;
@@ -70,11 +67,9 @@ class DScriptGenerator {
 		}
 		return ret;
 	}
-	GenerateAction(funcName: string): string {
+	GenerateAction(funcName: string, env): string {
 		var ret: string = "";
-		var env = this.GetEnvironment();
-
-		ret += this.GenerateLocalVariable();
+		ret += this.GenerateLocalVariable(env);
 
 		/* Define Action Function */
 		ret += this.Indent + "DFault " + funcName + " {" + this.LineFeed;
@@ -103,36 +98,6 @@ class DScriptGenerator {
 		ret += this.Indent + "return ret;" + this.LineFeed;
 
 		return ret;
-	}
-
-	GetEnvironment(): any {
-		return this.Env;
-	}
-	PushEnvironment(node: AssureIt.NodeModel): void {
-		var contexts = this.SearchChildrenByType(node, AssureIt.NodeType.Context);
-		var envConstructor = null;
-		if (contexts.length == 0) {
-			envConstructor = function() {}
-		}
-		else if (contexts.length == 1) {
-			var context = contexts[0];
-			envConstructor = function() {
-				for (var key in context.Notes) {
-					this[key] = context.Notes[key];
-				}
-			}
-		}
-		else {
-			//TODO: should support multi contexts
-			envConstructor = function() {}
-		}
-		envConstructor.prototype = this.Env;
-		var newEnv = new envConstructor();
-		newEnv.prototype = this.Env; // store old env
-		this.Env = newEnv;
-	}
-	PopEnvironment(): void {
-		this.Env = this.Env.prototype;
 	}
 
 	GenerateNodeFunction_GoalOrStrategy(node: AssureIt.NodeModel): string {
@@ -168,7 +133,7 @@ class DScriptGenerator {
 		var ret: string = "";
 		ret += "DFault " + node.Label + "() {" + this.LineFeed;
 		if (action != null) {
-			ret += this.GenerateAction(action);
+			ret += this.GenerateAction(action, node.Environment);
 		}
 		else {
 			ret += this.Indent + "return null;";
@@ -179,7 +144,6 @@ class DScriptGenerator {
 
 	GenerateNodeFunction(node: AssureIt.NodeModel): string {
 		var ret: string = "";
-		this.PushEnvironment(node);
 		for (var i: number = 0; i < node.Children.length; i++) {
 			ret += this.GenerateNodeFunction(node.Children[i]);
 			ret += this.LineFeed;
@@ -199,7 +163,6 @@ class DScriptGenerator {
 			console.log("DScriptGenerator: invalid Node Type")
 			console.log(node);
 		}
-		this.PopEnvironment();
 		return ret;
 	}
 
