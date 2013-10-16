@@ -38,14 +38,23 @@ var DScriptActionMap = (function () {
         var ret = null;
         var action = actionNode.GetNote("Action");
         if (!(action == null)) {
-            var reaction = reactionNode.GetNote("Action");
+            var reaction = null;
+            var reactionNodeLabel = null;
+            if (reactionNode != null) {
+                reactionNodeLabel = reactionNode.Label;
+                reaction = reactionNode.GetNote("Action");
+                reaction = (reaction != null ? reaction : "-");
+            } else {
+                reactionNodeLabel = "Undefined";
+                reaction = "Undefined";
+            }
             ret = {
                 "action": {
                     "node": actionNode.Label,
                     "func": action
                 },
                 "reaction": {
-                    "node": reactionNode.Label,
+                    "node": reactionNodeLabel,
                     "func": reaction
                 },
                 "risk": risk,
@@ -71,20 +80,36 @@ var DScriptActionMap = (function () {
         }
 
         for (var key in this.NodeRelation) {
-            var actionEvidences = this.SearchNodeByType(elementMap[this.NodeRelation[key]["action"]], AssureIt.NodeType.Evidence);
-            var reactionEvidences = this.SearchNodeByType(elementMap[this.NodeRelation[key]["reaction"]], AssureIt.NodeType.Evidence);
-            if (reactionEvidences.length == 1) {
+            var actionNodes = this.SearchNodeByType(elementMap[this.NodeRelation[key]["action"]], AssureIt.NodeType.Evidence);
+            var reactionNodes = this.SearchNodeByType(elementMap[this.NodeRelation[key]["reaction"]], AssureIt.NodeType.Evidence);
+            if (reactionNodes.length == 1) {
             } else {
                 console.log("too many reactions in " + key);
                 continue;
             }
-            for (var i = 0; i < actionEvidences.length; i++) {
-                var actionNode = actionEvidences[i];
+            for (var i = 0; i < actionNodes.length; i++) {
+                var actionNode = actionNodes[i];
                 var location = actionNode.Environment.Location;
-                var actionRelation = this.GenActionRelation(actionNode, reactionEvidences[0], "*", location != null ? location : "*");
+                var actionRelation = this.GenActionRelation(actionNode, reactionNodes[0], "*", location != null ? location : "*");
                 if (actionRelation == null)
                     continue;
-                console.log(actionRelation);
+                this.AddActionRelation(actionRelation);
+                actionNode.Type = null;
+            }
+            reactionNodes[0].Type = null;
+        }
+        for (var key in elementMap) {
+            var node = elementMap[key];
+            if (node.Type == null) {
+                node.Type = AssureIt.NodeType.Evidence;
+                continue;
+            } else if (node.Type != AssureIt.NodeType.Evidence) {
+                continue;
+            } else {
+                var location = node.Environment.Location;
+                var actionRelation = this.GenActionRelation(node, null, "*", location != null ? location : "*");
+                if (actionRelation == null)
+                    continue;
                 this.AddActionRelation(actionRelation);
             }
         }
