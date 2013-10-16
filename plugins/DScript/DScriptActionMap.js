@@ -34,8 +34,7 @@ var DScriptActionMap = (function () {
         this.NodeRelation[nodeRelation["action"]] = nodeRelation;
     };
 
-    DScriptActionMap.prototype.GenActionRelation = function (actionNode, reactionNode, risk) {
-        if (typeof risk === "undefined") { risk = "*"; }
+    DScriptActionMap.prototype.GenActionRelation = function (actionNode, reactionNode, risk, location) {
         var ret = null;
         var action = actionNode.GetNote("Action");
         if (!(action == null)) {
@@ -49,7 +48,8 @@ var DScriptActionMap = (function () {
                     "node": reactionNode.Label,
                     "func": reaction
                 },
-                "risk": risk
+                "risk": risk,
+                "location": location
             };
         }
         return ret;
@@ -80,9 +80,11 @@ var DScriptActionMap = (function () {
             }
             for (var i = 0; i < actionEvidences.length; i++) {
                 var actionNode = actionEvidences[i];
-                var actionRelation = this.GenActionRelation(actionNode, reactionEvidences[0]);
+                var location = actionNode.Environment.Location;
+                var actionRelation = this.GenActionRelation(actionNode, reactionEvidences[0], "*", location != null ? location : "*");
                 if (actionRelation == null)
                     continue;
+                console.log(actionRelation);
                 this.AddActionRelation(actionRelation);
             }
         }

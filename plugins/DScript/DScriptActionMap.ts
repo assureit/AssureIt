@@ -61,7 +61,7 @@ class DScriptActionMap {
 		this.NodeRelation[nodeRelation["action"]] = nodeRelation; //FIX ME!! if key is dulicated
 	}
 
-	private GenActionRelation(actionNode: AssureIt.NodeModel, reactionNode: AssureIt.NodeModel, risk: string = "*"): any {
+	private GenActionRelation(actionNode: AssureIt.NodeModel, reactionNode: AssureIt.NodeModel, risk: string, location: string): any {
 		var ret = null;
 		var action = actionNode.GetNote("Action");
 		if (!(action == null)) {
@@ -76,6 +76,7 @@ class DScriptActionMap {
 					"func" : reaction,
 				},
 				"risk" : risk,
+				"location" : location,
 			};
 		}
 		return ret;
@@ -121,8 +122,10 @@ class DScriptActionMap {
 			}
 			for (var i: number = 0; i < actionEvidences.length; i++) {
 				var actionNode: AssureIt.NodeModel = actionEvidences[i];
-				var actionRelation = this.GenActionRelation(actionNode, reactionEvidences[0]);
+				var location: string = actionNode.Environment.Location;
+				var actionRelation = this.GenActionRelation(actionNode, reactionEvidences[0], "*", location != null ? location : "*");
 				if (actionRelation == null) continue;
+				console.log(actionRelation);
 				this.AddActionRelation(actionRelation);
 			}
 		}
