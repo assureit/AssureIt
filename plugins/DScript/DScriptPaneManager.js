@@ -176,6 +176,7 @@ var DScriptPaneManager = (function () {
             borderStyle: "solid",
             borderWidth: 0
         });
+        newFrame.children("canvas").addClass("widget-split-button");
 
         return newFrame;
     };
@@ -218,6 +219,7 @@ var DScriptPaneManager = (function () {
             childFrame2.append(newWidget);
             if (!keepStyle)
                 DScriptPaneManager.ExpandWidget(newWidget);
+            parentFrame.children(".widget-split-button").css("display", "none");
             parentFrame.append(childFrame1).append(childFrame2);
             this.RefreshFunc();
         } else {

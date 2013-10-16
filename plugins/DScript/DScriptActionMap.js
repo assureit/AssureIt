@@ -34,8 +34,8 @@ var DScriptActionMap = (function () {
         this.NodeRelation[nodeRelation["action"]] = nodeRelation;
     };
 
-    DScriptActionMap.prototype.GenActionRelation = function (actionNode, reactionNode, fault) {
-        if (typeof fault === "undefined") { fault = "*"; }
+    DScriptActionMap.prototype.GenActionRelation = function (actionNode, reactionNode, risk) {
+        if (typeof risk === "undefined") { risk = "*"; }
         var ret = null;
         var action = actionNode.GetNote("Action");
         if (!(action == null)) {
@@ -49,7 +49,7 @@ var DScriptActionMap = (function () {
                     "node": reactionNode.Label,
                     "func": reaction
                 },
-                "fault": fault
+                "risk": risk
             };
         }
         return ret;

@@ -11,7 +11,7 @@ DScriptActionMap.NodeRelation: {
 actionRelation: {
     action: {node: string, func: string},
     reaction: {node: string, func: string},
-    fault: string,
+    risk: string,
 }
 DScriptActionMap.ActionRelation: {
     ${actionFunc1}: actionRelation[],
@@ -61,7 +61,7 @@ class DScriptActionMap {
 		this.NodeRelation[nodeRelation["action"]] = nodeRelation; //FIX ME!! if key is dulicated
 	}
 
-	private GenActionRelation(actionNode: AssureIt.NodeModel, reactionNode: AssureIt.NodeModel, fault: string = "*"): any {
+	private GenActionRelation(actionNode: AssureIt.NodeModel, reactionNode: AssureIt.NodeModel, risk: string = "*"): any {
 		var ret = null;
 		var action = actionNode.GetNote("Action");
 		if (!(action == null)) {
@@ -75,7 +75,7 @@ class DScriptActionMap {
 					"node" : reactionNode.Label,
 					"func" : reaction,
 				},
-				"fault" : fault,
+				"risk" : risk,
 			};
 		}
 		return ret;

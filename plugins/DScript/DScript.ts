@@ -215,8 +215,8 @@ class DScriptEditorPlugIn extends AssureIt.ActionPlugIn {
 	UpdateNodeRelationTable(nodeRelation): void {
 		var table: JQuery = this.NodeRelationTable;
 		var tableWidth: number = table.parent().width();
-		var header: JQuery = $("<tr><th>action</th><th>fault</th><th>reaction</th></tr>");
-		var tpl: string = "<tr><td>${action}</td><td>${fault}</td><td>${reaction}</td></tr>";
+		var header: JQuery = $("<tr><th>action</th><th>risk</th><th>reaction</th></tr>");
+		var tpl: string = "<tr><td>${action}</td><td>${risk}</td><td>${reaction}</td></tr>";
 		var style = {
             maxWidth: tableWidth / 3,
 			minWidth: tableWidth / 3,
@@ -231,7 +231,7 @@ class DScriptEditorPlugIn extends AssureIt.ActionPlugIn {
 		for (var key in nodeRelation) {
 			var rowSrc: string = tpl
 				.replace("${action}", nodeRelation[key]["action"])
-				.replace("${fault}", "*")
+				.replace("${risk}", "*")
 				.replace("${reaction}", nodeRelation[key]["reaction"]);
 			var row: JQuery = $(rowSrc);
 			row.children().css(style);
@@ -242,8 +242,8 @@ class DScriptEditorPlugIn extends AssureIt.ActionPlugIn {
 	UpdateActionRelationTable(actionRelation): void {
 		var table: JQuery = this.ActionRelationTable;
 		var tableWidth: number = table.parent().width();
-		var header: JQuery = $("<tr><th>action</th><th>fault</th><th>reaction</th></tr>");
-		var tpl: string = "<tr><td>${action}</td><td>${fault}</td><td>${reaction}</td></tr>";
+		var header: JQuery = $("<tr><th>action</th><th>risk</th><th>reaction</th></tr>");
+		var tpl: string = "<tr><td>${action}</td><td>${risk}</td><td>${reaction}</td></tr>";
 		var style = {
             maxWidth: tableWidth / 3,
 			minWidth: tableWidth / 3,
@@ -259,7 +259,7 @@ class DScriptEditorPlugIn extends AssureIt.ActionPlugIn {
 			var tmp = actionRelation[key];
 			var rowSrc: string = tpl
 				.replace("${action}", tmp["action"]["func"] + " in " + tmp["action"]["node"])
-				.replace("${fault}", tmp["fault"])
+				.replace("${risk}", tmp["risk"])
 				.replace("${reaction}", tmp["reaction"]["func"] + " in " + tmp["reaction"]["node"]);
 			var row: JQuery = $(rowSrc);
 			row.children().css(style);
