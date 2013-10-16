@@ -30,6 +30,18 @@ class DScriptPaneManager {
 			width : '100%',
 		});
 	}
+	static CopyStyle(src: JQuery, dist: JQuery): void {
+		dist.css({
+			top : src.css("top"),
+			left : src.css("left"),
+			height : src.css("height"),
+			width : src.css("width"),
+			borderRightWidth : src.css("border-right-width"),
+			borderLeftWidth : src.css("border-left-width"),
+			borderTopWidth : src.css("border-top-width"),
+			borderBottomWidth : src.css("border-bottom-width"),
+		});
+	}
 
 	public AddToOptionsList(widget: JQuery, name: string, overrideFlag: boolean, keepStyle = false): void {
 		if (name in this.Options && !overrideFlag) {
@@ -106,12 +118,35 @@ class DScriptPaneManager {
 				self.AddWidgetOnLeft(widget, self.CreateDefaultWidget());
 			}
 		});
-
+		var buttonDelete: JQuery = $("<div/>");
+		buttonDelete.addClass("simple-arrow-delete");
+		buttonDelete.click(function() {
+			console.log("click delete");
+			self.DeleteWidget($(this).parent().children(".managed-widget"));
+		});
+		
 		newFrame.append(buttonUp);
 		newFrame.append(buttonDown);
 		newFrame.append(buttonLeft);
 		newFrame.append(buttonRight);
+		newFrame.append(buttonDelete);
+		newFrame.css({
+			borderColor : "#000000",
+			borderStyle : "solid",
+			borderWidth : 0,
+		});
 		return newFrame;
+	}
+
+	private DeleteWidget(locatedWidget: JQuery) { // don't delete widget, but delete the frame which has the widget
+		var currentFrame = locatedWidget.parent(".managed-frame");
+		var parentFrame = currentFrame.parent(".managed-frame");
+		var siblingFrame = currentFrame.siblings(".managed-frame");
+		DScriptPaneManager.CopyStyle(parentFrame, siblingFrame);
+		parentFrame.parent().append(siblingFrame);
+		parentFrame = currentFrame.parent(".managed-frame");
+		parentFrame.remove();
+		this.RefreshFunc();
 	}
 
 	private AddWidgetCommon(locatedWidget: JQuery, newWidget: JQuery, keepStyle: boolean = false) {
@@ -145,7 +180,7 @@ class DScriptPaneManager {
 				left : 0,
 				height : '100%',
 				width : '50%',
-				borderRight: '1px solid #000000'
+				borderRightWidth: '1px'
 			});
 			newWidget.parent().css({
 				position : 'absolute',
@@ -169,7 +204,7 @@ class DScriptPaneManager {
 				left : '50%',
 				height : '100%',
 				width : '50%',
-				borderLeft: '1px solid #000000'
+				borderLeftWidth: '1px'
 			});
 			newWidget.parent().css({
 				position : 'absolute',
@@ -193,7 +228,7 @@ class DScriptPaneManager {
 				left : 0,
 				height : '50%',
 				width : '100%',
-				borderTop: '1px solid #000000'
+				borderTopWidth: '1px'
 			});
 			newWidget.parent().css({
 				position : 'absolute',
@@ -217,7 +252,7 @@ class DScriptPaneManager {
 				left : 0,
 				height : '50%',
 				width : '100%',
-				borderBottom: '1px solid #000000'
+				borderBottomWidth: '1px'
 			});
 			newWidget.parent().css({
 				position : 'absolute',

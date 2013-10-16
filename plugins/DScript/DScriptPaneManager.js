@@ -27,6 +27,18 @@ var DScriptPaneManager = (function () {
             width: '100%'
         });
     };
+    DScriptPaneManager.CopyStyle = function (src, dist) {
+        dist.css({
+            top: src.css("top"),
+            left: src.css("left"),
+            height: src.css("height"),
+            width: src.css("width"),
+            borderRightWidth: src.css("border-right-width"),
+            borderLeftWidth: src.css("border-left-width"),
+            borderTopWidth: src.css("border-top-width"),
+            borderBottomWidth: src.css("border-bottom-width")
+        });
+    };
 
     DScriptPaneManager.prototype.AddToOptionsList = function (widget, name, overrideFlag, keepStyle) {
         if (typeof keepStyle === "undefined") { keepStyle = false; }
@@ -104,12 +116,35 @@ var DScriptPaneManager = (function () {
                 self.AddWidgetOnLeft(widget, self.CreateDefaultWidget());
             }
         });
+        var buttonDelete = $("<div/>");
+        buttonDelete.addClass("simple-arrow-delete");
+        buttonDelete.click(function () {
+            console.log("click delete");
+            self.DeleteWidget($(this).parent().children(".managed-widget"));
+        });
 
         newFrame.append(buttonUp);
         newFrame.append(buttonDown);
         newFrame.append(buttonLeft);
         newFrame.append(buttonRight);
+        newFrame.append(buttonDelete);
+        newFrame.css({
+            borderColor: "#000000",
+            borderStyle: "solid",
+            borderWidth: 0
+        });
         return newFrame;
+    };
+
+    DScriptPaneManager.prototype.DeleteWidget = function (locatedWidget) {
+        var currentFrame = locatedWidget.parent(".managed-frame");
+        var parentFrame = currentFrame.parent(".managed-frame");
+        var siblingFrame = currentFrame.siblings(".managed-frame");
+        DScriptPaneManager.CopyStyle(parentFrame, siblingFrame);
+        parentFrame.parent().append(siblingFrame);
+        parentFrame = currentFrame.parent(".managed-frame");
+        parentFrame.remove();
+        this.RefreshFunc();
     };
 
     DScriptPaneManager.prototype.AddWidgetCommon = function (locatedWidget, newWidget, keepStyle) {
@@ -144,7 +179,7 @@ var DScriptPaneManager = (function () {
                 left: 0,
                 height: '100%',
                 width: '50%',
-                borderRight: '1px solid #000000'
+                borderRightWidth: '1px'
             });
             newWidget.parent().css({
                 position: 'absolute',
@@ -167,7 +202,7 @@ var DScriptPaneManager = (function () {
                 left: '50%',
                 height: '100%',
                 width: '50%',
-                borderLeft: '1px solid #000000'
+                borderLeftWidth: '1px'
             });
             newWidget.parent().css({
                 position: 'absolute',
@@ -190,7 +225,7 @@ var DScriptPaneManager = (function () {
                 left: 0,
                 height: '50%',
                 width: '100%',
-                borderTop: '1px solid #000000'
+                borderTopWidth: '1px'
             });
             newWidget.parent().css({
                 position: 'absolute',
@@ -213,7 +248,7 @@ var DScriptPaneManager = (function () {
                 left: 0,
                 height: '50%',
                 width: '100%',
-                borderBottom: '1px solid #000000'
+                borderBottomWidth: '1px'
             });
             newWidget.parent().css({
                 position: 'absolute',
