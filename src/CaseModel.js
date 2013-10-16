@@ -128,6 +128,22 @@ var AssureIt;
             return HitNodes;
         };
 
+        NodeModel.prototype.Equals = function (model) {
+            if (model == null)
+                return false;
+            if (this.Type != model.Type)
+                return false;
+            if (this.Statement != model.Statement)
+                return false;
+            if (Object.keys(this.Notes).length != Object.keys(model.Notes).length)
+                return false;
+            for (var i in Object.keys(this.Notes)) {
+                if (this.Notes[i] != model.Notes[i])
+                    return false;
+            }
+            return true;
+        };
+
         NodeModel.prototype.InvokePatternPlugInRecursive = function (model) {
             var pluginMap = this.Case.pluginManager.PatternPlugInMap;
             for (var key in pluginMap) {
@@ -141,13 +157,22 @@ var AssureIt;
         NodeModel.prototype.InvokePatternPlugIn = function () {
             this.InvokePatternPlugInRecursive(this);
         };
+
+        NodeModel.prototype.HasContext = function () {
+            for (var i in this.Children) {
+                if (this.Children[i].Type == NodeType.Context)
+                    return true;
+            }
+            return false;
+        };
         return NodeModel;
     })();
     AssureIt.NodeModel = NodeModel;
 
     var Case = (function () {
-        function Case(CaseName, CaseId, CommitId, pluginManager) {
+        function Case(CaseName, summaryString, oldasn, CaseId, CommitId, pluginManager) {
             this.CaseName = CaseName;
+            this.oldasn = oldasn;
             this.CaseId = CaseId;
             this.CommitId = CommitId;
             this.pluginManager = pluginManager;
@@ -157,6 +182,7 @@ var AssureIt;
             this.IdCounters = [{}, {}, {}, {}, {}];
             this.ElementMap = {};
             this.TranslationMap = {};
+            this.oldsummary = JSON.parse(summaryString);
         }
         Case.prototype.DeleteNodesRecursive = function (root) {
             var Children = root.Children;
@@ -316,6 +342,8 @@ var AssureIt;
             var keys = Object.keys(this.ElementMap);
             for (var i = 0; i < keys.length; i++) {
                 if (!(keys[i] in that.ElementMap)) {
+                    this.ElementMap[keys[i]].HasDiff = true;
+                } else if (!this.ElementMap[keys[i]].Equals(that.ElementMap[keys[i]])) {
                     this.ElementMap[keys[i]].HasDiff = true;
                 }
             }

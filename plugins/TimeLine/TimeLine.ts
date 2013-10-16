@@ -39,7 +39,7 @@ class TimeLineKeyPlugIn extends AssureIt.ShortcutKeyPlugIn {
 		return true;
 	}
 
-	RegisterKeyEvents(Case0: AssureIt.Case, serverApi: AssureIt.ServerAPI) : boolean {
+	RegisterKeyEvents(caseViewer: AssureIt.CaseViewer, Case0: AssureIt.Case, serverApi: AssureIt.ServerAPI) : boolean {
 		$("body").keydown((e)=>{
 			if(e.keyCode == 37/*left*/ && e.shiftKey) {
 				this.ShowPreview(Case0, serverApi);
@@ -64,7 +64,7 @@ class TimeLineKeyPlugIn extends AssureIt.ShortcutKeyPlugIn {
 		var historyId = this.GetHistoryId();
 		if(historyId == -1/* Latest and Edit mode*/) {
 			var commits: AssureIt.CommitCollection = serverApi.GetCommitList(Case.CaseId);
-			historyId = commits.Size() -1;
+			historyId = commits.Size();
 		}
 		if(historyId > 0/* not oldest*/) {
 			historyId--;
@@ -79,7 +79,7 @@ class TimeLineKeyPlugIn extends AssureIt.ShortcutKeyPlugIn {
 			return
 		}
 		var commits: AssureIt.CommitCollection = serverApi.GetCommitList(Case.CaseId);
-		var max = commits.Size() - 2;
+		var max = commits.Size() - 1;
 		if(historyId >= 0 && historyId < max/* FIXME Latest*/) {
 			historyId++;
 			var loc = serverApi.basepath + "case/" + Case.CaseId;

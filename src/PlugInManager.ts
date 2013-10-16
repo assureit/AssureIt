@@ -20,6 +20,8 @@ module AssureIt {
 		MenuBarContentsPlugIn: MenuBarContentsPlugIn;
 		SideMenuPlugIn: SideMenuPlugIn;
 
+		PlugInEnv: any;
+
 		constructor(public plugInManager: PlugInManager) {
 			this.ActionPlugIn = null;
 			this.CheckerPlugIn = null;
@@ -33,6 +35,8 @@ module AssureIt {
 			this.MenuBarContentsPlugIn = null;
 			this.ShortcutKeyPlugIn = null;
 			this.SideMenuPlugIn = null;
+
+			this.PlugInEnv = null;
 		}
 	}
 
@@ -173,7 +177,7 @@ module AssureIt {
 			return true;
 		}
 
-		RegisterKeyEvents(Case0: Case, serverApi: ServerAPI) : boolean {
+		RegisterKeyEvents(caseViewer: CaseViewer, Case0: Case, serverApi: ServerAPI) : boolean {
 			return true;
 		}
 	}
@@ -205,10 +209,13 @@ module AssureIt {
 
 		MenuBarContentsPlugInMap  : { [index: string]: MenuBarContentsPlugIn };
 		ShortcutKeyPlugInMap      : { [index: string]: ShortcutKeyPlugIn };
-		SideMenuPlugInMap : { [index: string]: SideMenuPlugIn };
+		SideMenuPlugInMap         : { [index: string]: SideMenuPlugIn };
+
+		PlugInEnvMap              : { [index: string]: any };
 
 		UILayer: AbstractPlugIn[];
 		UsingLayoutEngine: string;
+
 
 		constructor(public basepath: string) {
 			this.ActionPlugInMap = {};
@@ -223,6 +230,8 @@ module AssureIt {
 			this.MenuBarContentsPlugInMap = {};
 			this.ShortcutKeyPlugInMap = {};
 			this.SideMenuPlugInMap = {};
+
+			this.PlugInEnvMap = {};
 
 			this.UILayer = [];
 		}
@@ -251,6 +260,9 @@ module AssureIt {
 			}
 			if(plugIn.SideMenuPlugIn) {
 				this.SetSideMenuPlugIn(key, plugIn.SideMenuPlugIn);
+			}
+			if(plugIn.PlugInEnv) {
+				this.SetPlugInEnv(key, plugIn.PlugInEnv);
 			}
 		}
 
@@ -304,6 +316,14 @@ module AssureIt {
 			this.SideMenuPlugInMap[key] = SideMenuPlugIn;
 		}
 
+		private SetPlugInEnv(key: string, PlugInEnv: any): void {
+			this.PlugInEnvMap[key] = PlugInEnv;
+		}
+
+		GetPlugInEnv(key: string): any {
+			return this.PlugInEnvMap[key];
+		}
+
 		UseUILayer(plugin :AbstractPlugIn): void {
 			var beforePlugin = this.UILayer.pop();
 			if(beforePlugin != plugin && beforePlugin) {
@@ -328,11 +348,11 @@ module AssureIt {
 			}
 		}
 
-		RegisterKeyEvents(Case0: Case, serverApi: ServerAPI): void {
+		RegisterKeyEvents(caseViewer: CaseViewer, Case0: Case, serverApi: ServerAPI): void {
 			for(var key in this.ShortcutKeyPlugInMap) {
 				var plugin: ShortcutKeyPlugIn = this.ShortcutKeyPlugInMap[key];
 				if(plugin.IsEnabled(Case0, serverApi)) {
-					plugin.RegisterKeyEvents(Case0, serverApi);
+					plugin.RegisterKeyEvents(caseViewer, Case0, serverApi);
 				}
 			}
 		}

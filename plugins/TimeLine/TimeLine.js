@@ -42,7 +42,7 @@ var TimeLineKeyPlugIn = (function (_super) {
         return true;
     };
 
-    TimeLineKeyPlugIn.prototype.RegisterKeyEvents = function (Case0, serverApi) {
+    TimeLineKeyPlugIn.prototype.RegisterKeyEvents = function (caseViewer, Case0, serverApi) {
         var _this = this;
         $("body").keydown(function (e) {
             if (e.keyCode == 37 && e.shiftKey) {
@@ -68,7 +68,7 @@ var TimeLineKeyPlugIn = (function (_super) {
         var historyId = this.GetHistoryId();
         if (historyId == -1) {
             var commits = serverApi.GetCommitList(Case.CaseId);
-            historyId = commits.Size() - 1;
+            historyId = commits.Size();
         }
         if (historyId > 0) {
             historyId--;
@@ -83,7 +83,7 @@ var TimeLineKeyPlugIn = (function (_super) {
             return;
         }
         var commits = serverApi.GetCommitList(Case.CaseId);
-        var max = commits.Size() - 2;
+        var max = commits.Size() - 1;
         if (historyId >= 0 && historyId < max) {
             historyId++;
             var loc = serverApi.basepath + "case/" + Case.CaseId;

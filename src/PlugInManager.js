@@ -21,6 +21,8 @@ var AssureIt;
             this.MenuBarContentsPlugIn = null;
             this.ShortcutKeyPlugIn = null;
             this.SideMenuPlugIn = null;
+
+            this.PlugInEnv = null;
         }
         return PlugInSet;
     })();
@@ -175,7 +177,7 @@ var AssureIt;
             return true;
         };
 
-        ShortcutKeyPlugIn.prototype.RegisterKeyEvents = function (Case0, serverApi) {
+        ShortcutKeyPlugIn.prototype.RegisterKeyEvents = function (caseViewer, Case0, serverApi) {
             return true;
         };
         return ShortcutKeyPlugIn;
@@ -215,6 +217,8 @@ var AssureIt;
             this.ShortcutKeyPlugInMap = {};
             this.SideMenuPlugInMap = {};
 
+            this.PlugInEnvMap = {};
+
             this.UILayer = [];
         }
         PlugInManager.prototype.SetPlugIn = function (key, plugIn) {
@@ -241,6 +245,9 @@ var AssureIt;
             }
             if (plugIn.SideMenuPlugIn) {
                 this.SetSideMenuPlugIn(key, plugIn.SideMenuPlugIn);
+            }
+            if (plugIn.PlugInEnv) {
+                this.SetPlugInEnv(key, plugIn.PlugInEnv);
             }
         };
 
@@ -294,6 +301,14 @@ var AssureIt;
             this.SideMenuPlugInMap[key] = SideMenuPlugIn;
         };
 
+        PlugInManager.prototype.SetPlugInEnv = function (key, PlugInEnv) {
+            this.PlugInEnvMap[key] = PlugInEnv;
+        };
+
+        PlugInManager.prototype.GetPlugInEnv = function (key) {
+            return this.PlugInEnvMap[key];
+        };
+
         PlugInManager.prototype.UseUILayer = function (plugin) {
             var beforePlugin = this.UILayer.pop();
             if (beforePlugin != plugin && beforePlugin) {
@@ -318,11 +333,11 @@ var AssureIt;
             }
         };
 
-        PlugInManager.prototype.RegisterKeyEvents = function (Case0, serverApi) {
+        PlugInManager.prototype.RegisterKeyEvents = function (caseViewer, Case0, serverApi) {
             for (var key in this.ShortcutKeyPlugInMap) {
                 var plugin = this.ShortcutKeyPlugInMap[key];
                 if (plugin.IsEnabled(Case0, serverApi)) {
-                    plugin.RegisterKeyEvents(Case0, serverApi);
+                    plugin.RegisterKeyEvents(caseViewer, Case0, serverApi);
                 }
             }
         };

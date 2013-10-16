@@ -20,6 +20,7 @@ var AssureIt;
                 this.DocBase.remove();
             }
             this.DocBase = $('<div class="node">').css("position", "absolute").attr('id', NodeModel.Label);
+
             this.DocBase.append($('<h4>' + NodeModel.Label + '</h4>'));
 
             this.InvokePlugInHTMLRender(Viewer, NodeModel, this.DocBase);
@@ -351,6 +352,7 @@ var AssureIt;
             this.HTMLDoc.Render(CaseViewer, NodeModel);
             this.SVGShape = SVGShapeFactory.Create(NodeModel.Type);
             this.SVGShape.Render(CaseViewer, NodeModel, this.HTMLDoc);
+            this.TemporaryColor = null;
         }
         NodeView.prototype.Resize = function () {
             this.HTMLDoc.Resize(this.CaseViewer, this.Source);
@@ -423,6 +425,18 @@ var AssureIt;
 
         NodeView.prototype.SetArrowPosition = function (p1, p2, dir) {
             this.SVGShape.SetArrowPosition(p1, p2, dir);
+        };
+
+        NodeView.prototype.SetTemporaryColor = function (fill, stroke) {
+            if ((!fill || fill == "none") && (!stroke || stroke == "none")) {
+                this.TemporaryColor = null;
+            } else {
+                this.TemporaryColor = { "fill": fill, "stroke": stroke };
+            }
+        };
+
+        NodeView.prototype.GetTemporaryColor = function () {
+            return this.TemporaryColor;
         };
         return NodeView;
     })();
@@ -513,9 +527,15 @@ var AssureIt;
             var shapelayer = $(this.Screen.ShapeLayer);
             var screenlayer = $(this.Screen.ContentLayer);
             this.UpdateViewMap();
+            this.ViewMap[this.ElementTop.Label].DeleteHTMLElementRecursive(null, null);
             this.ViewMap[this.ElementTop.Label].AppendHTMLElementRecursive(shapelayer, screenlayer, this);
             this.pluginManager.RegisterActionEventListeners(this, this.Source, this.serverApi);
             this.Update();
+        };
+
+        CaseViewer.prototype.DeleteHTMLElementAll = function () {
+            $('#layer0').children().remove();
+            $('#layer1').children().remove();
         };
         CaseViewer.ElementWidth = 250;
         return CaseViewer;

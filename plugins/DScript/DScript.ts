@@ -357,6 +357,7 @@ return (int)data.replaceAll(\"\\n\", \"\");\n\
 				alert("Assure-It Agent is not active.");
 				console.log(e);
 			}
+			caseViewer.pluginManager.GetPlugInEnv("monitor").MonitorManager.RemoveAllMonitor();
 		});
 	}
 }

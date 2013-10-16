@@ -39,15 +39,6 @@ var DScriptGenerator = (function () {
             if (key == "prototype" || key == "Reaction") {
                 continue;
             } else if (key == "Monitor") {
-                var condStr = env[key];
-                condStr = condStr.replace(/[a-zA-Z]+/g, function (matchedStr) {
-                    return "GetDataFromRec(Location, \"" + matchedStr + "\")";
-                });
-                condStr = condStr.replace(/[0-9]+/g, function (matchedStr) {
-                    return "\"" + matchedStr + "\"";
-                });
-                condStr = condStr.replace(/[\{\}]/g, "").trim();
-                ret += this.Indent + "let Monitor = " + condStr + ";" + this.LineFeed;
             } else {
                 ret += this.Indent + "let " + key + " = \"" + env[key] + "\";" + this.LineFeed;
             }
@@ -55,17 +46,28 @@ var DScriptGenerator = (function () {
         return ret;
     };
     DScriptGenerator.prototype.GenerateAction = function (funcName) {
-        funcName = funcName.replace("()", "");
         var ret = "";
+        var env = this.GetEnvironment();
+
         ret += this.GenerateLocalVariable();
 
         ret += this.Indent + "DFault " + funcName + " {" + this.LineFeed;
 
+        if ("Monitor" in env) {
+            var condStr = env["Monitor"].replace(/\{|\}/g, "").replace(/[a-zA-Z]+/g, function (matchedStr) {
+                return "GetDataFromRec(Location, \"" + matchedStr + "\")";
+            }).trim();
+            ret += this.Indent + this.Indent + "boolean Monitor = " + condStr + ";" + this.LineFeed;
+        }
+
+        ret += __dscript__.script.funcdef[funcName].replace(/\n/g, this.LineFeed + this.Indent + this.Indent);
+        ret += this.LineFeed;
+        ret = ret.replace(/\t\t\n/, "");
         ret += this.Indent + "}" + this.LineFeed;
 
         ret += this.Indent + "DFault ret = null;" + this.LineFeed;
         ret += this.Indent + "if(Location == LOCATION) {" + this.LineFeed;
-        ret += this.Indent + this.Indent + "ret = dlog " + funcName + "();" + this.LineFeed;
+        ret += this.Indent + this.Indent + "ret = dlog " + funcName + ";" + this.LineFeed;
         ret += this.Indent + "}" + this.LineFeed;
         ret += this.Indent + "return ret;" + this.LineFeed;
 
@@ -105,7 +107,6 @@ var DScriptGenerator = (function () {
         var children = node.Children;
         var ret = "";
         ret += "DFault " + node.Label + "() {" + this.LineFeed;
-        ret += "{" + this.LineFeed;
         ret += this.Indent + "return ";
         if (children.length > 0) {
             var funcCall = "";
@@ -132,7 +133,6 @@ var DScriptGenerator = (function () {
         var action = node.GetNote("Action");
         var ret = "";
         ret += "DFault " + node.Label + "() {" + this.LineFeed;
-        ret += "{" + this.LineFeed;
         if (action != null) {
             ret += this.GenerateAction(action);
         } else {

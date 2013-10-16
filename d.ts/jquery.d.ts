@@ -227,6 +227,10 @@ interface JQueryParam {
     Static members of jQuery (those on $ and jQuery themselves)
 */
 interface JQueryStatic {
+    /****
+     jquery.cookie.js
+    *****/
+	cookie(any): any;
 
     /****
      AJAX

@@ -25,7 +25,7 @@ class FullScreenMenuPlugIn extends AssureIt.MenuBarContentsPlugIn {
 	}
 
 	IsEnabled(caseViewer: AssureIt.CaseViewer, caseModel: AssureIt.NodeModel): boolean {
-		return false;
+		return caseViewer.Source.IsEditable();
 	}
 
 	Delegate(caseViewer: AssureIt.CaseViewer, caseModel: AssureIt.NodeModel, element: JQuery, serverApi: AssureIt.ServerAPI): boolean {
@@ -44,7 +44,7 @@ class FullScreenEditorLayoutPlugIn extends AssureIt.HTMLRenderPlugIn {
 	}
 
 	IsEnabled (caseViewer: AssureIt.CaseViewer, caseModel: AssureIt.NodeModel) : boolean {
-		return false;
+		return true;
 	}
 
 	Delegate(caseViewer: AssureIt.CaseViewer, caseModel: AssureIt.NodeModel, element: JQuery) : boolean {
@@ -66,7 +66,7 @@ class FullScreenEditorActionPlugIn extends AssureIt.ActionPlugIn {
 		super(plugInManager);
 		this.editor = CodeMirror.fromTextArea(document.getElementById('fullscreen-editor'), {
 			lineNumbers: true,
-			mode: "text/x-asn",
+			mode: "text/x-csrc",
 			lineWrapping: true,
 		});
 		$(this.editor.getWrapperElement()).css({
@@ -88,7 +88,7 @@ class FullScreenEditorActionPlugIn extends AssureIt.ActionPlugIn {
 	}
 
 	IsEnabled (caseViewer: AssureIt.CaseViewer, case0: AssureIt.Case) : boolean {
-		return false;
+		return true;
 	}
 
 	static Object_Clone(obj: any) : any {
@@ -141,7 +141,6 @@ class FullScreenEditorActionPlugIn extends AssureIt.ActionPlugIn {
 
 		if(!this.ShowFullScreenEditor) {
 			this.ShowFullScreenEditor = function (ev: Event) {
-				$('#background').unbind('dblclick');
 				ev.stopPropagation();
 				self.plugInManager.UseUILayer(self);
 				self.isDisplayed = true;
@@ -165,6 +164,8 @@ class FullScreenEditorActionPlugIn extends AssureIt.ActionPlugIn {
 						/* In order to keep labels the same as much as possible */
 						var orig_idCounters = case0.ReserveIdCounters(orig_model);
 						var orig_ElementMap = case0.ReserveElementMap(orig_model);
+
+						orig_view.DeleteHTMLElementRecursive(null, null);
 
 						var decoder    : AssureIt.CaseDecoder = new AssureIt.CaseDecoder();
 						var new_model  : AssureIt.NodeModel = decoder.ParseASN(case0, editor.getValue(), orig_model);
@@ -240,7 +241,6 @@ class FullScreenEditorActionPlugIn extends AssureIt.ActionPlugIn {
 			}
 		}
 
-		$('#background').unbind('dblclick');
 		return true;
 	}
 

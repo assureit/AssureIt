@@ -37,7 +37,13 @@ module AssureIt {
 			}
 			this.DocBase = $('<div class="node">').css("position", "absolute")
 				.attr('id', NodeModel.Label);
-			this.DocBase.append($('<h4>' + NodeModel.Label + '</h4>'));
+			/* FIXME: node labeling */
+			//if (NodeModel.Type == NodeType.Goal) {
+				this.DocBase.append($('<h4>' + NodeModel.Label + '</h4>'));
+			//} else {
+			//	var Label = NodeModel.Label[0]+NodeModel.Parent.Label.substring(1)
+			//	this.DocBase.append($('<h4>' + Label + '</h4>'));
+			//}
 			//this.DocBase.append($('<p>' + NodeModel.Statement + '</p>'));
 
 			this.InvokePlugInHTMLRender(Viewer, NodeModel, this.DocBase);
@@ -333,6 +339,7 @@ module AssureIt {
 		HTMLDoc: HTMLDoc;
 		SVGShape: SVGShape;
 		ParentShape: NodeView;
+		TemporaryColor: { [index: string]: string };
 
 		IsArrowWhite: boolean = false;
 
@@ -348,6 +355,7 @@ module AssureIt {
 			this.HTMLDoc.Render(CaseViewer, NodeModel);
 			this.SVGShape = SVGShapeFactory.Create(NodeModel.Type);
 			this.SVGShape.Render(CaseViewer, NodeModel, this.HTMLDoc);
+			this.TemporaryColor = null;
 		}
 
 		Resize(): void {
@@ -421,6 +429,19 @@ module AssureIt {
 
 		SetArrowPosition(p1: Point, p2: Point, dir: Direction) {
 			this.SVGShape.SetArrowPosition(p1, p2, dir);
+		}
+
+		SetTemporaryColor(fill: string, stroke: string): void {
+			if((!fill || fill == "none") && (!stroke || stroke == "none")) {
+				this.TemporaryColor = null;
+			}
+			else {
+				this.TemporaryColor = { "fill": fill, "stroke": stroke };
+			}
+		}
+
+		GetTemporaryColor(): { [index: string]: string } {
+			return this.TemporaryColor;
 		}
 	}
 
@@ -508,9 +529,15 @@ module AssureIt {
 			var shapelayer = $(this.Screen.ShapeLayer);
 			var screenlayer = $(this.Screen.ContentLayer);
 			this.UpdateViewMap();
+			this.ViewMap[this.ElementTop.Label].DeleteHTMLElementRecursive(null, null);
 			this.ViewMap[this.ElementTop.Label].AppendHTMLElementRecursive(shapelayer, screenlayer, this);
 			this.pluginManager.RegisterActionEventListeners(this, this.Source, this.serverApi);
 			this.Update();
+		}
+
+		DeleteHTMLElementAll(): void {
+			$('#layer0').children().remove();
+			$('#layer1').children().remove();
 		}
 	}
 
