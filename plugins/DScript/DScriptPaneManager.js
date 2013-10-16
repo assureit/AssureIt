@@ -12,7 +12,7 @@ var DScriptPaneManager = (function () {
         if (widget0 != null) {
             parentWidget.append(frame.append(widget0.addClass("managed-widget")));
         } else {
-            parentWidget.append(this.CreateDefaultWidget());
+            parentWidget.append(frame.append(this.CreateDefaultWidget().addClass("managed-widget")));
         }
         DScriptPaneManager.ExpandWidget(frame);
         if (!keepStyle)
@@ -184,15 +184,19 @@ var DScriptPaneManager = (function () {
         var currentFrame = locatedWidget.parent(".managed-frame");
         var parentFrame = currentFrame.parent(".managed-frame");
         var siblingFrame = currentFrame.siblings(".managed-frame");
+        var idx = this.Widgets.indexOf(locatedWidget.get(0));
+        if (idx != -1)
+            this.Widgets.splice(idx, 1);
         if (parentFrame.length == 0) {
+            var newWidget = this.CreateDefaultWidget().addClass("managed-widget");
+            DScriptPaneManager.ExpandWidget(newWidget);
+            locatedWidget.after(newWidget);
+            locatedWidget.remove();
         } else {
             DScriptPaneManager.CopyStyle(parentFrame, siblingFrame);
             parentFrame.parent().append(siblingFrame);
             parentFrame = currentFrame.parent(".managed-frame");
             parentFrame.remove();
-            var idx = this.Widgets.indexOf(locatedWidget.get(0));
-            if (idx != -1)
-                this.Widgets.splice(idx, 1);
         }
         this.RefreshFunc();
     };

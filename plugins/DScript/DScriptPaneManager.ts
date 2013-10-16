@@ -15,7 +15,7 @@ class DScriptPaneManager {
 			parentWidget.append(frame.append(widget0.addClass("managed-widget")));
 		}
 		else {
-			parentWidget.append(this.CreateDefaultWidget())
+			parentWidget.append(frame.append(this.CreateDefaultWidget().addClass("managed-widget")));
 		}
 		DScriptPaneManager.ExpandWidget(frame);
 		if (!keepStyle) DScriptPaneManager.ExpandWidget(widget0);
@@ -191,16 +191,19 @@ class DScriptPaneManager {
 		var currentFrame = locatedWidget.parent(".managed-frame");
 		var parentFrame = currentFrame.parent(".managed-frame");
 		var siblingFrame = currentFrame.siblings(".managed-frame");
+		var idx = this.Widgets.indexOf(locatedWidget.get(0));
+		if (idx != -1) this.Widgets.splice(idx, 1);
 		if (parentFrame.length == 0) { // exist one widget in panemanager
-			//pass
+			var newWidget = this.CreateDefaultWidget().addClass("managed-widget");
+			DScriptPaneManager.ExpandWidget(newWidget);
+			locatedWidget.after(newWidget);
+			locatedWidget.remove();
 		}
 		else {
 			DScriptPaneManager.CopyStyle(parentFrame, siblingFrame);
 			parentFrame.parent().append(siblingFrame);
 			parentFrame = currentFrame.parent(".managed-frame");
 			parentFrame.remove();
-			var idx = this.Widgets.indexOf(locatedWidget.get(0));
-			if (idx != -1) this.Widgets.splice(idx, 1);
 		}
 		this.RefreshFunc();
 	}
