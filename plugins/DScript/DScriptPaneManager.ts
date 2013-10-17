@@ -60,18 +60,28 @@ class DScriptPaneManager {
 	}
 
 	private RefreshDefaultWidget(): void {
-		var usedList = [];
+		var usedList: string[] = [];
 		for (var key in this.Options) {
 			if (this.Widgets.indexOf(this.Options[key].get(0)) != -1) {
 				usedList.push(key);
 			}
 		}
 		$(".widget-select-button").each(function() {
-			if (usedList.indexOf($(this).text()) != -1) {
-				$(this).css("display", "none");
+			var self: JQuery = $(this);
+			if (usedList.indexOf(self.text()) != -1) {
+				self.css("display", "none");
 			}
 			else {
-				$(this).css("display", "block");
+				self.css("display", "block");
+			}
+		});
+		$(".default-widget").each(function() {
+			var self: JQuery = $(this);
+			if (self.children(":first").css("display") == "none") {
+				self.css("margin-top", "1px");
+			}
+			else {
+				self.css("margin-top", "0px");
 			}
 		});
 	}
@@ -90,8 +100,8 @@ class DScriptPaneManager {
 				self.Widgets.push(widget.get(0));
 				frame.append(widget);
 				defaultWidget.remove();
-				self.RefreshFunc();
 				self.RefreshDefaultWidget();
+				self.RefreshFunc();
 			});
 			newButton.css({
 				overflow : "hidden",
@@ -227,6 +237,7 @@ class DScriptPaneManager {
 			if (!keepStyle) DScriptPaneManager.ExpandWidget(newWidget);
 			parentFrame.children(".widget-split-button").css("display", "none");
 			parentFrame.append(childFrame1).append(childFrame2);
+			this.RefreshDefaultWidget();
 			this.RefreshFunc();
 		}
 		else {

@@ -64,10 +64,19 @@ var DScriptPaneManager = (function () {
             }
         }
         $(".widget-select-button").each(function () {
-            if (usedList.indexOf($(this).text()) != -1) {
-                $(this).css("display", "none");
+            var self = $(this);
+            if (usedList.indexOf(self.text()) != -1) {
+                self.css("display", "none");
             } else {
-                $(this).css("display", "block");
+                self.css("display", "block");
+            }
+        });
+        $(".default-widget").each(function () {
+            var self = $(this);
+            if (self.children(":first").css("display") == "none") {
+                self.css("margin-top", "1px");
+            } else {
+                self.css("margin-top", "0px");
             }
         });
     };
@@ -86,8 +95,8 @@ var DScriptPaneManager = (function () {
                 self.Widgets.push(widget.get(0));
                 frame.append(widget);
                 defaultWidget.remove();
-                self.RefreshFunc();
                 self.RefreshDefaultWidget();
+                self.RefreshFunc();
             });
             newButton.css({
                 overflow: "hidden",
@@ -225,6 +234,7 @@ var DScriptPaneManager = (function () {
                 DScriptPaneManager.ExpandWidget(newWidget);
             parentFrame.children(".widget-split-button").css("display", "none");
             parentFrame.append(childFrame1).append(childFrame2);
+            this.RefreshDefaultWidget();
             this.RefreshFunc();
         } else {
         }
