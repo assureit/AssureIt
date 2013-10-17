@@ -76,8 +76,13 @@ var DScriptPaneManager = (function () {
         for (var key in self.Options) {
             if (this.Widgets.indexOf(self.Options[key].get(0)) != -1)
                 continue;
-            var newButton = $("<button/>").addClass("btn btn-default widget-select-button");
+            var newButton = $("<button/>");
             newButton.text(key);
+            newButton.addClass("btn btn-default widget-select-button");
+            newButton.css({
+                overflow: "hidden",
+                textOverflow: "ellipsis"
+            });
             newButton.click(function () {
                 var frame = defaultWidget.parent();
                 var widget = self.Options[$(this).text()];
@@ -102,7 +107,7 @@ var DScriptPaneManager = (function () {
         this.ButtonUtil.CanvasClear(hCtx);
         vButton.unbind("click");
         hButton.unbind("click");
-        if (Number(frame.css("width").replace("px", "")) < this.ButtonUtil.Size * 2) {
+        if (Number(frame.css("width").replace("px", "")) < this.ButtonUtil.Size * 3) {
             this.ButtonUtil.CanvasRenderVButton(vCtx, "#CCCCCC");
         } else {
             this.ButtonUtil.CanvasRenderVButton(vCtx);
