@@ -94,19 +94,33 @@ var DScriptPaneManager = (function () {
     };
 
     DScriptPaneManager.prototype.CheckFrameSize = function (frame) {
+        var vButton = frame.children(".widget-split-button.vertical");
+        var hButton = frame.children(".widget-split-button.horizontal");
+        var vCtx = vButton.get(0).getContext("2d");
+        var hCtx = hButton.get(0).getContext("2d");
+        this.ButtonUtil.CanvasClear(vCtx);
+        this.ButtonUtil.CanvasClear(hCtx);
+        vButton.unbind("click");
+        hButton.unbind("click");
         if (Number(frame.css("width").replace("px", "")) < this.ButtonUtil.Size * 2) {
-            var vButton = frame.children(".widget-split-button.vertical");
-            var ctx = vButton.get(0).getContext("2d");
-            this.ButtonUtil.Clear(ctx);
-            this.ButtonUtil.RenderHButton(ctx, "#CCCCCC");
-            vButton.unbind("click");
+            this.ButtonUtil.CanvasRenderVButton(vCtx, "#CCCCCC");
+        } else {
+            this.ButtonUtil.CanvasRenderVButton(vCtx);
+            vButton.bind("click", { frame: frame }, this.ButtonUtil.VSplit);
         }
         if (Number(frame.css("height").replace("px", "")) < this.ButtonUtil.Size * 6) {
-            var hButton = frame.children(".widget-split-button.horizontal");
-            var ctx = hButton.get(0).getContext("2d");
-            this.ButtonUtil.Clear(ctx);
-            this.ButtonUtil.RenderVButton(ctx, "#CCCCCC");
-            hButton.unbind("click");
+            this.ButtonUtil.CanvasRenderHButton(hCtx, "#CCCCCC");
+        } else {
+            this.ButtonUtil.CanvasRenderHButton(hCtx);
+            hButton.bind("click", { frame: frame }, this.ButtonUtil.HSplit);
+        }
+
+        var childrenFrame = frame.children(".managed-frame");
+        if (childrenFrame.length > 0) {
+            var self = this;
+            childrenFrame.each(function () {
+                self.CheckFrameSize($(this));
+            });
         }
     };
 
@@ -122,18 +136,8 @@ var DScriptPaneManager = (function () {
             zIndex: 10
         });
         var ctx = buttonUp.get(0).getContext("2d");
-        this.ButtonUtil.RenderVButton(ctx);
-        buttonUp.click(function () {
-            console.log("click up");
-            var widget = newFrame.children(".managed-widget");
-            if (widget.length == 1 && (self.Widgets.indexOf(widget.get(0)) != -1 || widget.hasClass("default-widget"))) {
-                self.AddWidgetOnBottom(widget, self.CreateDefaultWidget());
-            } else {
-                console.log("DScriptPaneManager error");
-                console.log(widget);
-                console.log(self.Widgets);
-            }
-        });
+        this.ButtonUtil.CanvasRenderHButton(ctx);
+        buttonUp.bind("click", { frame: newFrame }, this.ButtonUtil.HSplit);
         var buttonLeft = $("<canvas width='${size}px' height='${size}px'></canvas>".replace(/\$\{size\}/g, String(this.ButtonUtil.Size)));
         buttonLeft.css({
             position: "absolute",
@@ -142,18 +146,8 @@ var DScriptPaneManager = (function () {
             zIndex: 10
         });
         var ctx = buttonLeft.get(0).getContext("2d");
-        this.ButtonUtil.RenderHButton(ctx);
-        buttonLeft.click(function () {
-            console.log("click left");
-            var widget = newFrame.children(".managed-widget");
-            if (widget.length == 1 && (self.Widgets.indexOf(widget.get(0)) != -1 || widget.hasClass("default-widget"))) {
-                self.AddWidgetOnRight(widget, self.CreateDefaultWidget());
-            } else {
-                console.log("DScriptPaneManager error");
-                console.log(widget);
-                console.log(self.Widgets);
-            }
-        });
+        this.ButtonUtil.CanvasRenderVButton(ctx);
+        buttonLeft.bind("click", { frame: newFrame }, this.ButtonUtil.VSplit);
         var buttonDelete = $("<canvas width='${size}px' height='${size}px'></canvas>".replace(/\$\{size\}/g, String(this.ButtonUtil.Size)));
         buttonDelete.css({
             position: "absolute",
@@ -162,11 +156,8 @@ var DScriptPaneManager = (function () {
             zIndex: 10
         });
         var ctx = buttonDelete.get(0).getContext("2d");
-        this.ButtonUtil.RenderDeleteButton(ctx);
-        buttonDelete.click(function () {
-            console.log("click delete");
-            self.DeleteWidget($(this).parent().children(".managed-widget"));
-        });
+        this.ButtonUtil.CanvasRenderDeleteButton(ctx);
+        buttonDelete.bind("click", { frame: newFrame }, this.ButtonUtil.Delete);
 
         newFrame.append(buttonUp);
         newFrame.append(buttonLeft);
@@ -196,11 +187,13 @@ var DScriptPaneManager = (function () {
             DScriptPaneManager.ExpandWidget(newWidget);
             locatedWidget.after(newWidget);
             locatedWidget.remove();
+            this.CheckFrameSize(currentFrame);
         } else {
             DScriptPaneManager.CopyStyle(parentFrame, siblingFrame);
             parentFrame.parent().append(siblingFrame);
             parentFrame = currentFrame.parent(".managed-frame");
             parentFrame.remove();
+            this.CheckFrameSize(siblingFrame);
         }
         this.RefreshFunc();
     };
@@ -331,14 +324,15 @@ var DScriptPaneManager = (function () {
     };
 
     DScriptPaneManager.prototype.CreateButtonUtil = function () {
+        var self = this;
         var ret = {
             Size: 36,
             Padding: 5,
             LineWidth: 2,
-            Clear: function (ctx) {
+            CanvasClear: function (ctx) {
                 ctx.clearRect(0, 0, this.Size, this.Size);
             },
-            RenderVButton: function (ctx, color) {
+            CanvasRenderHButton: function (ctx, color) {
                 if (typeof color === "undefined") { color = "#000000"; }
                 ctx.strokeStyle = color;
                 ctx.lineWidth = this.LineWidth;
@@ -349,7 +343,7 @@ var DScriptPaneManager = (function () {
                 ctx.closePath();
                 ctx.stroke();
             },
-            RenderHButton: function (ctx, color) {
+            CanvasRenderVButton: function (ctx, color) {
                 if (typeof color === "undefined") { color = "#000000"; }
                 ctx.strokeStyle = color;
                 ctx.lineWidth = this.LineWidth;
@@ -360,7 +354,7 @@ var DScriptPaneManager = (function () {
                 ctx.closePath();
                 ctx.stroke();
             },
-            RenderDeleteButton: function (ctx, color) {
+            CanvasRenderDeleteButton: function (ctx, color) {
                 if (typeof color === "undefined") { color = "#000000"; }
                 ctx.strokeStyle = color;
                 ctx.lineWidth = this.LineWidth + 1;
@@ -371,6 +365,29 @@ var DScriptPaneManager = (function () {
                 ctx.lineTo(this.Padding * 2, this.Size - this.Padding * 2);
                 ctx.closePath();
                 ctx.stroke();
+            },
+            HSplit: function (e) {
+                var widget = e.data.frame.children(".managed-widget");
+                if (widget.length == 1 && (self.Widgets.indexOf(widget.get(0)) != -1 || widget.hasClass("default-widget"))) {
+                    self.AddWidgetOnBottom(widget, self.CreateDefaultWidget());
+                } else {
+                    console.log("DScriptPaneManager error");
+                    console.log(widget);
+                    console.log(self.Widgets);
+                }
+            },
+            VSplit: function (e) {
+                var widget = e.data.frame.children(".managed-widget");
+                if (widget.length == 1 && (self.Widgets.indexOf(widget.get(0)) != -1 || widget.hasClass("default-widget"))) {
+                    self.AddWidgetOnRight(widget, self.CreateDefaultWidget());
+                } else {
+                    console.log("DScriptPaneManager error");
+                    console.log(widget);
+                    console.log(self.Widgets);
+                }
+            },
+            Delete: function (e) {
+                self.DeleteWidget(e.data.frame.children(".managed-widget"));
             }
         };
         return ret;

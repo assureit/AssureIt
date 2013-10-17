@@ -73,7 +73,7 @@ class DScriptPaneManager {
 		});
 	}
 
-	public CreateDefaultWidget(): JQuery { // create buttons from OptionsList
+	private CreateDefaultWidget(): JQuery { // create buttons from OptionsList
 		var defaultWidget = $("<div/>").addClass("btn-group-vertical default-widget");
 		var self = this;
 		for (var key in self.Options) {
@@ -96,19 +96,35 @@ class DScriptPaneManager {
 	}
 
 	private CheckFrameSize(frame: JQuery): void { // if frame is too small to split, disable widget-split-buttons
+		var vButton: JQuery = frame.children(".widget-split-button.vertical");
+		var hButton: JQuery = frame.children(".widget-split-button.horizontal");
+		var vCtx:CanvasRenderingContext2D = vButton.get(0).getContext("2d");
+		var hCtx: CanvasRenderingContext2D = hButton.get(0).getContext("2d");
+		this.ButtonUtil.CanvasClear(vCtx);
+		this.ButtonUtil.CanvasClear(hCtx);
+		vButton.unbind("click");
+		hButton.unbind("click");
 		if (Number(frame.css("width").replace("px", "")) < this.ButtonUtil.Size * 2) {
-			var vButton: JQuery = frame.children(".widget-split-button.vertical");
-			var ctx:CanvasRenderingContext2D = vButton.get(0).getContext("2d");
-			this.ButtonUtil.Clear(ctx);
-			this.ButtonUtil.RenderHButton(ctx, "#CCCCCC");
-			vButton.unbind("click");
+			this.ButtonUtil.CanvasRenderVButton(vCtx, "#CCCCCC");
+		}
+		else {
+			this.ButtonUtil.CanvasRenderVButton(vCtx);
+			vButton.bind("click", { frame : frame }, this.ButtonUtil.VSplit);
 		}
 		if (Number(frame.css("height").replace("px", "")) < this.ButtonUtil.Size * 6) {
-			var hButton: JQuery = frame.children(".widget-split-button.horizontal");
-			var ctx: CanvasRenderingContext2D = hButton.get(0).getContext("2d");
-			this.ButtonUtil.Clear(ctx);
-			this.ButtonUtil.RenderVButton(ctx, "#CCCCCC");
-			hButton.unbind("click");
+			this.ButtonUtil.CanvasRenderHButton(hCtx, "#CCCCCC");
+		}
+		else {
+			this.ButtonUtil.CanvasRenderHButton(hCtx);
+			hButton.bind("click", { frame : frame }, this.ButtonUtil.HSplit);
+		}
+
+		var childrenFrame = frame.children(".managed-frame");
+		if (childrenFrame.length > 0) {
+			var self = this;
+			childrenFrame.each(function() {
+				self.CheckFrameSize($(this));
+			});
 		}
 	}
 
@@ -124,21 +140,8 @@ class DScriptPaneManager {
 			zIndex : 10,
 		});
 		var ctx = buttonUp.get(0).getContext("2d");
-		this.ButtonUtil.RenderVButton(ctx);
-		buttonUp.click(function() {
-			console.log("click up");
-			var widget = newFrame.children(".managed-widget");
-			if (widget.length == 1 &&
-				(self.Widgets.indexOf(widget.get(0)) != -1 ||
-				 widget.hasClass("default-widget"))) {
-				self.AddWidgetOnBottom(widget, self.CreateDefaultWidget());
-			}
-			else {
-				console.log("DScriptPaneManager error");
-				console.log(widget);
-				console.log(self.Widgets);
-			}
-		});
+		this.ButtonUtil.CanvasRenderHButton(ctx);
+		buttonUp.bind("click", { frame : newFrame }, this.ButtonUtil.HSplit);
 		var buttonLeft: JQuery = $("<canvas width='${size}px' height='${size}px'></canvas>".replace(/\$\{size\}/g, String(this.ButtonUtil.Size)));
 		buttonLeft.css({
 			position : "absolute",
@@ -147,21 +150,8 @@ class DScriptPaneManager {
 			zIndex : 10,
 		});
 		var ctx = buttonLeft.get(0).getContext("2d");
-		this.ButtonUtil.RenderHButton(ctx);
-		buttonLeft.click(function() {
-			console.log("click left");
-			var widget = newFrame.children(".managed-widget");
-			if (widget.length == 1 &&
-				(self.Widgets.indexOf(widget.get(0)) != -1 ||
-				 widget.hasClass("default-widget"))) {
-				self.AddWidgetOnRight(widget, self.CreateDefaultWidget());
-			}
-			else {
-				console.log("DScriptPaneManager error");
-				console.log(widget);
-				console.log(self.Widgets);
-			}
-		});
+		this.ButtonUtil.CanvasRenderVButton(ctx);
+		buttonLeft.bind("click", { frame : newFrame }, this.ButtonUtil.VSplit);
 		var buttonDelete: JQuery = $("<canvas width='${size}px' height='${size}px'></canvas>".replace(/\$\{size\}/g, String(this.ButtonUtil.Size)));
 		buttonDelete.css({
 			position : "absolute",
@@ -170,11 +160,8 @@ class DScriptPaneManager {
 			zIndex : 10,
 		});
 		var ctx = buttonDelete.get(0).getContext("2d");
-		this.ButtonUtil.RenderDeleteButton(ctx);
-		buttonDelete.click(function() {
-			console.log("click delete");
-			self.DeleteWidget($(this).parent().children(".managed-widget"));
-		});
+		this.ButtonUtil.CanvasRenderDeleteButton(ctx);
+		buttonDelete.bind("click", {frame : newFrame }, this.ButtonUtil.Delete);
 		
 		newFrame.append(buttonUp);
 		newFrame.append(buttonLeft);
@@ -203,12 +190,14 @@ class DScriptPaneManager {
 			DScriptPaneManager.ExpandWidget(newWidget);
 			locatedWidget.after(newWidget);
 			locatedWidget.remove();
+			this.CheckFrameSize(currentFrame);
 		}
 		else {
 			DScriptPaneManager.CopyStyle(parentFrame, siblingFrame);
 			parentFrame.parent().append(siblingFrame);
 			parentFrame = currentFrame.parent(".managed-frame");
 			parentFrame.remove();
+			this.CheckFrameSize(siblingFrame);
 		}
 		this.RefreshFunc();
 	}
@@ -341,15 +330,16 @@ class DScriptPaneManager {
 		this.CheckFrameSize(newWidget.parent());
  	}
 
-	CreateButtonUtil() {
+	private CreateButtonUtil() {
+		var self = this;
 		var ret = {
 			Size : 36,
 			Padding : 5,
 			LineWidth : 2,
-			Clear : function(ctx: CanvasRenderingContext2D) {
+			CanvasClear : function(ctx: CanvasRenderingContext2D) {
 				ctx.clearRect(0, 0, this.Size, this.Size);
 			},
-			RenderVButton : function(ctx: CanvasRenderingContext2D, color: string = "#000000") {
+			CanvasRenderHButton : function(ctx: CanvasRenderingContext2D, color: string = "#000000") {
 				ctx.strokeStyle = color;
 				ctx.lineWidth = this.LineWidth;
 				ctx.beginPath();
@@ -359,7 +349,7 @@ class DScriptPaneManager {
 				ctx.closePath();
 				ctx.stroke();
 			},
-			RenderHButton : function(ctx: CanvasRenderingContext2D, color: string = "#000000") {
+			CanvasRenderVButton : function(ctx: CanvasRenderingContext2D, color: string = "#000000") {
 				ctx.strokeStyle = color;
 				ctx.lineWidth = this.LineWidth;
 				ctx.beginPath();
@@ -369,7 +359,7 @@ class DScriptPaneManager {
 				ctx.closePath();
 				ctx.stroke();
 			},
-			RenderDeleteButton : function(ctx: CanvasRenderingContext2D, color: string = "#000000") {
+			CanvasRenderDeleteButton : function(ctx: CanvasRenderingContext2D, color: string = "#000000") {
 				ctx.strokeStyle = color;
 				ctx.lineWidth = this.LineWidth + 1;
 				ctx.beginPath();
@@ -379,7 +369,36 @@ class DScriptPaneManager {
 				ctx.lineTo(this.Padding * 2, this.Size - this.Padding * 2);
 				ctx.closePath();
 				ctx.stroke();
-			}
+			},
+			HSplit : function(e) {
+				var widget = e.data.frame.children(".managed-widget");
+				if (widget.length == 1 &&
+					(self.Widgets.indexOf(widget.get(0)) != -1 ||
+					 widget.hasClass("default-widget"))) {
+					self.AddWidgetOnBottom(widget, self.CreateDefaultWidget());
+				}
+				else {
+					console.log("DScriptPaneManager error");
+					console.log(widget);
+					console.log(self.Widgets);
+				}
+			},
+			VSplit : function(e) {
+				var widget = e.data.frame.children(".managed-widget");
+				if (widget.length == 1 &&
+					(self.Widgets.indexOf(widget.get(0)) != -1 ||
+					 widget.hasClass("default-widget"))) {
+					self.AddWidgetOnRight(widget, self.CreateDefaultWidget());
+				}
+				else {
+					console.log("DScriptPaneManager error");
+					console.log(widget);
+					console.log(self.Widgets);
+				}
+			},
+			Delete : function(e) {
+				self.DeleteWidget(e.data.frame.children(".managed-widget"));
+			},
 		};
 		return ret;
 	}
