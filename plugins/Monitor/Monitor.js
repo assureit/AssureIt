@@ -78,13 +78,34 @@ function showNode(caseViewer, nodeModel, HTMLRenderFunctions, SVGRenderFunctions
     }
 }
 
-function blushAllAncestor(nodeView, fill, stroke) {
+function selectStrongColor(color1, color2) {
+    if (parseInt(color1.replace(/#/g, ""), 16) < parseInt(color2.replace(/#/g, ""), 16)) {
+        return color1;
+    } else {
+        return color2;
+    }
+}
+
+function blushAllAncestor(caseViewer, nodeView, fill, stroke) {
     if (nodeView == null)
         return;
 
     nodeView.SetTemporaryColor(fill, stroke);
 
-    blushAllAncestor(nodeView.ParentShape, fill, stroke);
+    if (nodeView.ParentShape != null) {
+        var brotherModels = nodeView.ParentShape.Source.Children;
+
+        for (var i = 0; i < brotherModels.length; i++) {
+            var view = caseViewer.ViewMap[brotherModels[i].Label];
+
+            if (view.GetTemporaryColor() != null) {
+                var tmpFill = view.GetTemporaryColor()["fill"];
+                fill = selectStrongColor(fill, tmpFill);
+            }
+        }
+    }
+
+    blushAllAncestor(caseViewer, nodeView.ParentShape, fill, stroke);
 }
 
 var MonitorNode = (function () {
@@ -334,12 +355,12 @@ var MonitorSVGRenderPlugIn = (function (_super) {
             if (monitorNode.TurningPointData) {
                 var fill = "#FFFF99";
                 var stroke = "none";
-                blushAllAncestor(nodeView, fill, stroke);
+                blushAllAncestor(caseViewer, nodeView, fill, stroke);
             }
         } else {
             var fill = "#FF9999";
             var stroke = "none";
-            blushAllAncestor(nodeView, fill, stroke);
+            blushAllAncestor(caseViewer, nodeView, fill, stroke);
         }
 
         return true;

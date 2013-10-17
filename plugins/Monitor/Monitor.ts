@@ -84,12 +84,34 @@ function showNode(caseViewer: AssureIt.CaseViewer, nodeModel: AssureIt.NodeModel
 	}
 }
 
-function blushAllAncestor(nodeView: AssureIt.NodeView, fill: string, stroke: string) {
+function selectStrongColor(color1: string, color2: string): string {
+	if(parseInt(color1.replace(/#/g, ""), 16) < parseInt(color2.replace(/#/g, ""), 16)) {
+		return color1;
+	}
+	else {
+		return color2;
+	}
+}
+
+function blushAllAncestor(caseViewer: AssureIt.CaseViewer, nodeView: AssureIt.NodeView, fill: string, stroke: string) {
 	if(nodeView == null) return;
 
 	nodeView.SetTemporaryColor(fill, stroke);
 
-	blushAllAncestor(nodeView.ParentShape, fill, stroke);
+	if(nodeView.ParentShape != null) {
+		var brotherModels: AssureIt.NodeModel[] = nodeView.ParentShape.Source.Children;
+
+		for(var i: number = 0; i < brotherModels.length; i++) {
+			var view: AssureIt.NodeView = caseViewer.ViewMap[brotherModels[i].Label];
+
+			if(view.GetTemporaryColor() != null) {
+				var tmpFill: string = view.GetTemporaryColor()["fill"];
+				fill = selectStrongColor(fill, tmpFill);
+			}
+		}
+	}
+
+	blushAllAncestor(caseViewer, nodeView.ParentShape, fill, stroke);
 }
 
 
@@ -361,13 +383,13 @@ class MonitorSVGRenderPlugIn extends AssureIt.SVGRenderPlugIn {
 			if(monitorNode.TurningPointData) {
 				var fill: string = "#FFFF99";   // FIXME: allow any color
 				var stroke: string = "none";
-				blushAllAncestor(nodeView, fill, stroke);
+				blushAllAncestor(caseViewer, nodeView, fill, stroke);
 			}
 		}
 		else {
 			var fill: string = "#FF9999";   // FIXME: allow any color
 			var stroke: string = "none";
-			blushAllAncestor(nodeView, fill, stroke);
+			blushAllAncestor(caseViewer, nodeView, fill, stroke);
 		}
 
 		return true;
