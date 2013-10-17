@@ -229,9 +229,9 @@ var DScriptEditorPlugIn = (function (_super) {
             var relationMap = actionRelation[key];
             var data = [
                 relationMap["location"],
-                relationMap["action"]["node"] + ":" + relationMap["action"]["func"],
+                relationMap["action"]["func"] + " : " + relationMap["action"]["node"],
                 relationMap["risk"],
-                relationMap["reaction"]["node"] + ":" + relationMap["reaction"]["func"]
+                relationMap["reaction"]["func"] + " : " + relationMap["reaction"]["node"]
             ];
             (this.ActionRelationTable).fnAddData(data);
         }

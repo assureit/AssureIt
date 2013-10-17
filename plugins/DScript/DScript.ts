@@ -266,9 +266,9 @@ class DScriptEditorPlugIn extends AssureIt.ActionPlugIn {
 			var relationMap = actionRelation[key];
 			var data: string[] = [
 				relationMap["location"],
-				relationMap["action"]["node"] + ":" + relationMap["action"]["func"],
+				relationMap["action"]["func"] + " : " + relationMap["action"]["node"],
 				relationMap["risk"],
-				relationMap["reaction"]["node"] + ":" + relationMap["reaction"]["func"],
+				relationMap["reaction"]["func"] + " : " + relationMap["reaction"]["node"],
 			];
 			(<any>this.ActionRelationTable).fnAddData(data);
 		}
