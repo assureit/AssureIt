@@ -144,12 +144,12 @@ class DScriptEditorPlugIn extends AssureIt.ActionPlugIn {
 			width : "100%",
 			height : "100%",
 			overflow : "scroll",
-		}), "Node Relation Table", false, true);
+		}), "Node Relation Table", false, false);
 		paneManager.AddToOptionsList(this.ActionRelationTable.parent().css({
 			width : "100%",
 			height : "100%",
 			overflow : "scroll",
-		}), "Action Relation Table", false, true);
+		}), "Action Relation Table", false, false);
 		paneManager.SetRefreshFunc(function() {
 			self.ASNEditor.refresh();
 			self.DScriptEditor.refresh();
