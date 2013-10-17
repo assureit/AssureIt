@@ -126,8 +126,16 @@ var DScriptEditorPlugIn = (function (_super) {
         var paneManager = new DScriptPaneManager(wrapper, $(this.ASNEditor.getWrapperElement()));
         paneManager.AddToOptionsList($(this.ASNEditor.getWrapperElement()), "ASN Editor", false);
         paneManager.AddToOptionsList($(this.DScriptEditor.getWrapperElement()), "DScript Viewer", false);
-        paneManager.AddToOptionsList(this.NodeRelationTable.parent(), "Node Relation Table", false, true);
-        paneManager.AddToOptionsList(this.ActionRelationTable.parent(), "Action Relation Table", false, true);
+        paneManager.AddToOptionsList(this.NodeRelationTable.parent().css({
+            width: "100%",
+            height: "100%",
+            overflow: "scroll"
+        }), "Node Relation Table", false, true);
+        paneManager.AddToOptionsList(this.ActionRelationTable.parent().css({
+            width: "100%",
+            height: "100%",
+            overflow: "scroll"
+        }), "Action Relation Table", false, true);
         paneManager.SetRefreshFunc(function () {
             self.ASNEditor.refresh();
             self.DScriptEditor.refresh();
