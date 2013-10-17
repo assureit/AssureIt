@@ -59,7 +59,7 @@ class DScriptPaneManager {
 		this.RefreshFunc = func;
 	}
 
-	public RefreshDefaultWidget(): void {
+	private RefreshDefaultWidget(): void {
 		var usedList = [];
 		for (var key in this.Options) {
 			if (this.Widgets.indexOf(this.Options[key].get(0)) != -1) {
@@ -68,7 +68,10 @@ class DScriptPaneManager {
 		}
 		$(".widget-select-button").each(function() {
 			if (usedList.indexOf($(this).text()) != -1) {
-				this.remove();
+				$(this).css("display", "none");
+			}
+			else {
+				$(this).css("display", "block");
 			}
 		});
 	}
@@ -77,14 +80,9 @@ class DScriptPaneManager {
 		var defaultWidget = $("<div/>").addClass("btn-group-vertical default-widget");
 		var self = this;
 		for (var key in self.Options) {
-			if (this.Widgets.indexOf(self.Options[key].get(0)) != -1) continue;
 			var newButton = $("<button/>");
 			newButton.text(key);
 			newButton.addClass("btn btn-default widget-select-button");
-			newButton.css({
-				overflow : "hidden",
-				textOverflow : "ellipsis",
-			});
 			newButton.click(function() {
 				var frame = defaultWidget.parent();
 				var widget = self.Options[$(this).text()];
@@ -95,6 +93,11 @@ class DScriptPaneManager {
 				self.RefreshFunc();
 				self.RefreshDefaultWidget();
 			});
+			newButton.css({
+				overflow : "hidden",
+				textOverflow : "ellipsis",
+			});
+			if (this.Widgets.indexOf(self.Options[key].get(0)) != -1) newButton.css("display", "none");
 			defaultWidget.append(newButton);
 		}
 		return defaultWidget;
@@ -204,6 +207,7 @@ class DScriptPaneManager {
 			parentFrame.remove();
 			this.CheckFrameSize(siblingFrame);
 		}
+		this.RefreshDefaultWidget();
 		this.RefreshFunc();
 	}
 

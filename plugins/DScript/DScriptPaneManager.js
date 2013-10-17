@@ -65,7 +65,9 @@ var DScriptPaneManager = (function () {
         }
         $(".widget-select-button").each(function () {
             if (usedList.indexOf($(this).text()) != -1) {
-                this.remove();
+                $(this).css("display", "none");
+            } else {
+                $(this).css("display", "block");
             }
         });
     };
@@ -74,15 +76,9 @@ var DScriptPaneManager = (function () {
         var defaultWidget = $("<div/>").addClass("btn-group-vertical default-widget");
         var self = this;
         for (var key in self.Options) {
-            if (this.Widgets.indexOf(self.Options[key].get(0)) != -1)
-                continue;
             var newButton = $("<button/>");
             newButton.text(key);
             newButton.addClass("btn btn-default widget-select-button");
-            newButton.css({
-                overflow: "hidden",
-                textOverflow: "ellipsis"
-            });
             newButton.click(function () {
                 var frame = defaultWidget.parent();
                 var widget = self.Options[$(this).text()];
@@ -93,6 +89,12 @@ var DScriptPaneManager = (function () {
                 self.RefreshFunc();
                 self.RefreshDefaultWidget();
             });
+            newButton.css({
+                overflow: "hidden",
+                textOverflow: "ellipsis"
+            });
+            if (this.Widgets.indexOf(self.Options[key].get(0)) != -1)
+                newButton.css("display", "none");
             defaultWidget.append(newButton);
         }
         return defaultWidget;
@@ -200,6 +202,7 @@ var DScriptPaneManager = (function () {
             parentFrame.remove();
             this.CheckFrameSize(siblingFrame);
         }
+        this.RefreshDefaultWidget();
         this.RefreshFunc();
     };
 
