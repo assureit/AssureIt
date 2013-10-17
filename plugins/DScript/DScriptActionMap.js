@@ -68,46 +68,71 @@ var DScriptActionMap = (function () {
     };
 
     DScriptActionMap.prototype.Extract = function () {
-        var contexts = this.SearchNodeByType(this.RootNode, AssureIt.NodeType.Context);
-        var elementMap = this.RootNode.Case.ElementMap;
-        for (var i = 0; i < contexts.length; i++) {
-            var context = contexts[i];
-            var nodeRelation = this.GenNodeRelation(context);
-            if (nodeRelation == null)
-                continue;
-
-            this.AddNodeRelation(nodeRelation);
-        }
-
-        for (var key in this.NodeRelation) {
-            var actionNodes = this.SearchNodeByType(elementMap[this.NodeRelation[key]["action"]], AssureIt.NodeType.Evidence);
-            var reactionNodes = this.SearchNodeByType(elementMap[this.NodeRelation[key]["reaction"]], AssureIt.NodeType.Evidence);
-            if (reactionNodes.length == 1) {
-            } else {
-                console.log("too many reactions in " + key);
-                continue;
-            }
-            for (var i = 0; i < actionNodes.length; i++) {
-                var actionNode = actionNodes[i];
-                var location = actionNode.Environment.Location;
-                var actionRelation = this.GenActionRelation(actionNode, reactionNodes[0], "*", location != null ? location : "*");
-                if (actionRelation == null)
-                    continue;
-                this.AddActionRelation(actionRelation);
-                actionNode.Type = null;
-            }
-            reactionNodes[0].Type = null;
-        }
+        var case0 = this.RootNode.Case;
+        var elementMap = case0.ElementMap;
         for (var key in elementMap) {
             var node = elementMap[key];
-            if (node.Type == null) {
-                node.Type = AssureIt.NodeType.Evidence;
+            if (node.Type != AssureIt.NodeType.Context)
                 continue;
-            } else if (node.Type != AssureIt.NodeType.Evidence) {
+            var nodeRelation = this.GenNodeRelation(node);
+            if (nodeRelation == null)
                 continue;
+            this.AddNodeRelation(nodeRelation);
+        }
+        console.log(this.NodeRelation);
+
+        var riskRelation = {};
+        for (var key in this.NodeRelation) {
+            if (!(key in elementMap)) {
+                var reactionNodes = this.SearchNodeByType(elementMap[this.NodeRelation[key]["reaction"]], AssureIt.NodeType.Evidence);
+                riskRelation[key] = reactionNodes;
             } else {
-                var location = node.Environment.Location;
-                var actionRelation = this.GenActionRelation(node, null, "*", location != null ? location : "*");
+                var actionNodes = this.SearchNodeByType(elementMap[this.NodeRelation[key]["action"]], AssureIt.NodeType.Evidence);
+                var reactionNodes = this.SearchNodeByType(elementMap[this.NodeRelation[key]["reaction"]], AssureIt.NodeType.Evidence);
+                for (var i = 0; i < actionNodes.length; i++) {
+                    var actionNode = actionNodes[i];
+                    var location = actionNode.Environment.Location;
+                    for (var j = 0; j < reactionNodes.length; j++) {
+                        var reactionNode = reactionNodes[j];
+                        var actionRelation = this.GenActionRelation(actionNode, reactionNode, "*", location != null ? location : "*");
+                        if (actionRelation == null)
+                            continue;
+                        this.AddActionRelation(actionRelation);
+                        reactionNode.Case = null;
+                    }
+                    actionNode.Case = null;
+                }
+            }
+        }
+        console.log(this.ActionRelation);
+
+        for (var key in elementMap) {
+            var node = elementMap[key];
+            if (node.Type != AssureIt.NodeType.Evidence)
+                continue;
+            if (node.Case == null) {
+                node.Case = case0;
+                continue;
+            }
+            var risk = node.Environment.Risk;
+            var location = node.Environment.Location;
+            location = (location != null ? location : "*");
+            if (risk != null && risk in riskRelation) {
+                var reactionNodes = riskRelation[risk];
+                for (var i = 0; i < reactionNodes.length; i++) {
+                    var reactionNode = reactionNodes[i];
+                    var actionRelation = this.GenActionRelation(node, reactionNode, risk, location);
+                    if (actionRelation == null)
+                        continue;
+                    this.AddActionRelation(actionRelation);
+                    if (reactionNode.GetNote("Action") in this.ActionRelation) {
+                        delete this.ActionRelation[reactionNode.GetNote("Action")];
+                    } else {
+                        reactionNode.Case = null;
+                    }
+                }
+            } else {
+                var actionRelation = this.GenActionRelation(node, null, "*", location);
                 if (actionRelation == null)
                     continue;
                 this.AddActionRelation(actionRelation);
