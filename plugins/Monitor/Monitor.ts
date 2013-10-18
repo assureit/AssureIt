@@ -372,10 +372,14 @@ class MonitorHTMLRenderPlugIn extends AssureIt.HTMLRenderPlugIn {
 			monitorManager.SetMonitor(nodeModel);
 		}
 
-		element.children("#monitor-logs").remove();
-
 		var monitorNode = monitorManager.MonitorNodeMap[nodeModel.Label];
 		if(monitorNode == null) return;
+
+		this.RenderPastMonitoringData(monitorNode, element);
+	}
+
+	RenderPastMonitoringData(monitorNode: MonitorNode, element: JQuery) {
+		element.children("#monitor-logs").remove();
 
 		var $logs = $('<div id="monitor-logs"></div>');
 		if(monitorNode.PastData.length < 1) {

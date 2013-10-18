@@ -341,11 +341,15 @@ var MonitorHTMLRenderPlugIn = (function (_super) {
             monitorManager.SetMonitor(nodeModel);
         }
 
-        element.children("#monitor-logs").remove();
-
         var monitorNode = monitorManager.MonitorNodeMap[nodeModel.Label];
         if (monitorNode == null)
             return;
+
+        this.RenderPastMonitoringData(monitorNode, element);
+    };
+
+    MonitorHTMLRenderPlugIn.prototype.RenderPastMonitoringData = function (monitorNode, element) {
+        element.children("#monitor-logs").remove();
 
         var $logs = $('<div id="monitor-logs"></div>');
         if (monitorNode.PastData.length < 1) {
