@@ -227,8 +227,8 @@ class MonitorManager {
 			for(var key in self.MonitorNodeMap) {
 				var monitorNode = self.MonitorNodeMap[key];
 
-				if(self.CaseViewer.Source.ElementMap[monitorNode.EvidenceNode.Label] == null) {
-					delete self.MonitorNodeMap[key];   // delete monitor
+				if(self.CaseViewer.Source.ElementMap[key] == null) {
+					self.RemoveMonitor(key);   // delete monitor
 					continue;
 				}
 
