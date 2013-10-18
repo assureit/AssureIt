@@ -125,6 +125,7 @@ class MonitorNode {
 	PastData: any[];
 	Status: boolean;
 	EvidenceNode: AssureIt.NodeModel;
+	IsActive: boolean;
 
 	constructor(Location: string, Type: string, Condition: string, EvidenceNode: AssureIt.NodeModel) {
 		this.Location = Location;
@@ -135,6 +136,7 @@ class MonitorNode {
 		this.PastData = [];
 		this.Status = true;
 		this.EvidenceNode = EvidenceNode;
+		this.IsActive = false;
 	}
 
 	SetLocation(location: string) {
@@ -205,6 +207,7 @@ class MonitorManager {
 	CaseViewer: AssureIt.CaseViewer;
 	HTMLRenderFunctions: Function[];
 	SVGRenderFunctions: Function[];
+	ActiveMonitors: number;
 
 	constructor() {
 		this.MonitorNodeMap = {};
@@ -218,9 +221,11 @@ class MonitorManager {
 		this.HTMLRenderFunctions.push(this.CaseViewer.GetPlugInHTMLRender("monitor"));
 		this.SVGRenderFunctions = [];
 		this.SVGRenderFunctions.push(this.CaseViewer.GetPlugInSVGRender("monitor"));
+		this.ActiveMonitors = 0;
 	}
 
 	StartMonitors(interval: number) {
+		console.log("start monitoring");
 		var self = this;
 
 		this.Timer = setInterval(function() {
@@ -236,11 +241,15 @@ class MonitorManager {
 					console.log("monitor:'"+key+"' is not registered");
 				}
 
+				if(!monitorNode.IsActive) {
+					continue;
+				}
+
 				try {
 					monitorNode.UpdateLatestData(self.RECAPI);
 				}
 				catch(e) {
-					self.RemoveAllMonitor();
+					self.DeactivateAllMonitor();
 					return;
 				}
 
@@ -255,6 +264,7 @@ class MonitorManager {
 	}
 
 	StopMonitors() {
+		console.log("stop monitoring");
 		clearTimeout(this.Timer);
 	}
 
@@ -272,20 +282,54 @@ class MonitorManager {
 			monitorNode.SetType(type);
 			monitorNode.SetCondition(condition);
 		}
-
-		if(Object.keys(this.MonitorNodeMap).length == 1) {   // manager has one monitor
-			this.StartMonitors(5000);
-		}
 	}
 
 	RemoveMonitor(label: string) {
+		if(this.MonitorNodeMap[label].IsActive) {
+			this.ActiveMonitors -= 1;
+
+			if(this.ActiveMonitors == 0) {   // manager has no monitor
+				this.StopMonitors();
+			}
+		}
+
 		delete this.MonitorNodeMap[label];
 		if(Object.keys(this.MonitorNodeMap).length == 0) {
 			this.StopMonitors();
 		}
 	}
 
-	RemoveAllMonitor() {
+	//RemoveAllMonitor() {
+	//	for(var label in this.MonitorNodeMap) {
+	//		this.RemoveMonitor(label);
+	//	}
+	//}
+
+	ActivateMonitor(label: string) {
+		var monitorNode = this.MonitorNodeMap[label];
+
+		if(!monitorNode.IsActive) {
+			monitorNode.IsActive = true;
+			this.ActiveMonitors += 1;
+			if(this.ActiveMonitors == 1) {   // manager has one monitor
+				this.StartMonitors(5000);
+			}
+		}
+	}
+
+	DeactivateMonitor(label: string) {
+		var monitorNode = this.MonitorNodeMap[label];
+
+		if(monitorNode.IsActive) {
+			monitorNode.IsActive = false;
+			this.ActiveMonitors -= 1;
+			if(this.ActiveMonitors == 0) {   // manager has no monitor
+				this.StopMonitors();
+			}
+		}
+	}
+
+	DeactivateAllMonitor() {
 		for(var label in this.MonitorNodeMap) {
 			this.RemoveMonitor(label);
 		}
@@ -323,6 +367,11 @@ class MonitorHTMLRenderPlugIn extends AssureIt.HTMLRenderPlugIn {
 	}
 
 	Delegate(caseViewer: AssureIt.CaseViewer, nodeModel: AssureIt.NodeModel, element: JQuery) : boolean {
+		if(!isMonitorNode(nodeModel)) return;
+		if(!monitorManager.IsRegisteredMonitor(nodeModel.Label)) {
+			monitorManager.SetMonitor(nodeModel);
+		}
+
 		element.children("#monitor-logs").remove();
 
 		var monitorNode = monitorManager.MonitorNodeMap[nodeModel.Label];
@@ -498,26 +547,26 @@ class MonitorMenuBarPlugIn extends AssureIt.MenuBarContentsPlugIn {
 	}
 
 	Delegate(caseViewer: AssureIt.CaseViewer, caseModel: AssureIt.NodeModel, element: JQuery, serverApi: AssureIt.ServerAPI): boolean {
-		if(!isMonitorNode(caseModel)) {
+		if(!monitorManager.IsRegisteredMonitor(caseModel.Label)) {
 			return true;
 		}
 
-		var self = this;
+		var monitorNode = monitorManager.MonitorNodeMap[caseModel.Label];
 
-		if(!monitorManager.IsRegisteredMonitor(caseModel.Label)) {
-			element.append('<a href="#" ><img id="monitor-tgl" src="'+serverApi.basepath+'images/monitor.png" title="Set monitor" alt="monitor-tgl" /></a>');
+		if(!monitorNode.IsActive) {
+			element.append('<a href="#" ><img id="monitor-tgl" src="'+serverApi.basepath+'images/monitor.png" title="Activate monitor" alt="monitor-tgl" /></a>');
 		}
 		else {
-			element.append('<a href="#" ><img id="monitor-tgl" src="'+serverApi.basepath+'images/monitor.png" title="Remove monitor" alt="monitor-tgl" /></a>');
+			element.append('<a href="#" ><img id="monitor-tgl" src="'+serverApi.basepath+'images/monitor.png" title="Deactivate monitor" alt="monitor-tgl" /></a>');
 		}
 
 		$('#monitor-tgl').unbind('click');
 		$('#monitor-tgl').click(function() {
-			if(!monitorManager.IsRegisteredMonitor(caseModel.Label)) {
-				monitorManager.SetMonitor(caseModel);
+			if(!monitorNode.IsActive) {
+				monitorManager.ActivateMonitor(caseModel.Label);
 			}
 			else {
-				monitorManager.RemoveMonitor(caseModel.Label);
+				monitorManager.DeactivateMonitor(caseModel.Label);
 			}
 		});
 

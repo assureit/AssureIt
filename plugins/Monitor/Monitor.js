@@ -118,6 +118,7 @@ var MonitorNode = (function () {
         this.PastData = [];
         this.Status = true;
         this.EvidenceNode = EvidenceNode;
+        this.IsActive = false;
     }
     MonitorNode.prototype.SetLocation = function (location) {
         this.Location = location;
@@ -187,9 +188,11 @@ var MonitorManager = (function () {
         this.HTMLRenderFunctions.push(this.CaseViewer.GetPlugInHTMLRender("monitor"));
         this.SVGRenderFunctions = [];
         this.SVGRenderFunctions.push(this.CaseViewer.GetPlugInSVGRender("monitor"));
+        this.ActiveMonitors = 0;
     };
 
     MonitorManager.prototype.StartMonitors = function (interval) {
+        console.log("start monitoring");
         var self = this;
 
         this.Timer = setInterval(function () {
@@ -205,10 +208,14 @@ var MonitorManager = (function () {
                     console.log("monitor:'" + key + "' is not registered");
                 }
 
+                if (!monitorNode.IsActive) {
+                    continue;
+                }
+
                 try  {
                     monitorNode.UpdateLatestData(self.RECAPI);
                 } catch (e) {
-                    self.RemoveAllMonitor();
+                    self.DeactivateAllMonitor();
                     return;
                 }
 
@@ -224,6 +231,7 @@ var MonitorManager = (function () {
     };
 
     MonitorManager.prototype.StopMonitors = function () {
+        console.log("stop monitoring");
         clearTimeout(this.Timer);
     };
 
@@ -240,20 +248,48 @@ var MonitorManager = (function () {
             monitorNode.SetType(type);
             monitorNode.SetCondition(condition);
         }
-
-        if (Object.keys(this.MonitorNodeMap).length == 1) {
-            this.StartMonitors(5000);
-        }
     };
 
     MonitorManager.prototype.RemoveMonitor = function (label) {
+        if (this.MonitorNodeMap[label].IsActive) {
+            this.ActiveMonitors -= 1;
+
+            if (this.ActiveMonitors == 0) {
+                this.StopMonitors();
+            }
+        }
+
         delete this.MonitorNodeMap[label];
         if (Object.keys(this.MonitorNodeMap).length == 0) {
             this.StopMonitors();
         }
     };
 
-    MonitorManager.prototype.RemoveAllMonitor = function () {
+    MonitorManager.prototype.ActivateMonitor = function (label) {
+        var monitorNode = this.MonitorNodeMap[label];
+
+        if (!monitorNode.IsActive) {
+            monitorNode.IsActive = true;
+            this.ActiveMonitors += 1;
+            if (this.ActiveMonitors == 1) {
+                this.StartMonitors(5000);
+            }
+        }
+    };
+
+    MonitorManager.prototype.DeactivateMonitor = function (label) {
+        var monitorNode = this.MonitorNodeMap[label];
+
+        if (monitorNode.IsActive) {
+            monitorNode.IsActive = false;
+            this.ActiveMonitors -= 1;
+            if (this.ActiveMonitors == 0) {
+                this.StopMonitors();
+            }
+        }
+    };
+
+    MonitorManager.prototype.DeactivateAllMonitor = function () {
         for (var label in this.MonitorNodeMap) {
             this.RemoveMonitor(label);
         }
@@ -293,6 +329,12 @@ var MonitorHTMLRenderPlugIn = (function (_super) {
     };
 
     MonitorHTMLRenderPlugIn.prototype.Delegate = function (caseViewer, nodeModel, element) {
+        if (!isMonitorNode(nodeModel))
+            return;
+        if (!monitorManager.IsRegisteredMonitor(nodeModel.Label)) {
+            monitorManager.SetMonitor(nodeModel);
+        }
+
         element.children("#monitor-logs").remove();
 
         var monitorNode = monitorManager.MonitorNodeMap[nodeModel.Label];
@@ -447,24 +489,24 @@ var MonitorMenuBarPlugIn = (function (_super) {
     };
 
     MonitorMenuBarPlugIn.prototype.Delegate = function (caseViewer, caseModel, element, serverApi) {
-        if (!isMonitorNode(caseModel)) {
+        if (!monitorManager.IsRegisteredMonitor(caseModel.Label)) {
             return true;
         }
 
-        var self = this;
+        var monitorNode = monitorManager.MonitorNodeMap[caseModel.Label];
 
-        if (!monitorManager.IsRegisteredMonitor(caseModel.Label)) {
-            element.append('<a href="#" ><img id="monitor-tgl" src="' + serverApi.basepath + 'images/monitor.png" title="Set monitor" alt="monitor-tgl" /></a>');
+        if (!monitorNode.IsActive) {
+            element.append('<a href="#" ><img id="monitor-tgl" src="' + serverApi.basepath + 'images/monitor.png" title="Activate monitor" alt="monitor-tgl" /></a>');
         } else {
-            element.append('<a href="#" ><img id="monitor-tgl" src="' + serverApi.basepath + 'images/monitor.png" title="Remove monitor" alt="monitor-tgl" /></a>');
+            element.append('<a href="#" ><img id="monitor-tgl" src="' + serverApi.basepath + 'images/monitor.png" title="Deactivate monitor" alt="monitor-tgl" /></a>');
         }
 
         $('#monitor-tgl').unbind('click');
         $('#monitor-tgl').click(function () {
-            if (!monitorManager.IsRegisteredMonitor(caseModel.Label)) {
-                monitorManager.SetMonitor(caseModel);
+            if (!monitorNode.IsActive) {
+                monitorManager.ActivateMonitor(caseModel.Label);
             } else {
-                monitorManager.RemoveMonitor(caseModel.Label);
+                monitorManager.DeactivateMonitor(caseModel.Label);
             }
         });
 
