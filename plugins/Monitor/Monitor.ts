@@ -299,12 +299,6 @@ class MonitorManager {
 		}
 	}
 
-	//RemoveAllMonitor() {
-	//	for(var label in this.MonitorNodeMap) {
-	//		this.RemoveMonitor(label);
-	//	}
-	//}
-
 	ActivateMonitor(label: string) {
 		var monitorNode = this.MonitorNodeMap[label];
 
@@ -314,6 +308,12 @@ class MonitorManager {
 			if(this.ActiveMonitors == 1) {   // manager has one monitor
 				this.StartMonitors(5000);
 			}
+		}
+	}
+
+	ActivateAllMonitor() {
+		for(var label in this.MonitorNodeMap) {
+			this.ActivateMonitor(label);
 		}
 	}
 

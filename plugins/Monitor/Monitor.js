@@ -277,6 +277,12 @@ var MonitorManager = (function () {
         }
     };
 
+    MonitorManager.prototype.ActivateAllMonitor = function () {
+        for (var label in this.MonitorNodeMap) {
+            this.ActivateMonitor(label);
+        }
+    };
+
     MonitorManager.prototype.DeactivateMonitor = function (label) {
         var monitorNode = this.MonitorNodeMap[label];
 
