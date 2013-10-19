@@ -39,7 +39,6 @@ var MonitorManager = (function () {
         this.HTMLRenderFunctions.push(this.CaseViewer.GetPlugInHTMLRender("monitor"));
         this.SVGRenderFunctions = [];
         this.SVGRenderFunctions.push(this.CaseViewer.GetPlugInSVGRender("monitor"));
-        this.ActiveMonitors = 0;
     };
 
     MonitorManager.prototype.StartMonitors = function (interval) {
@@ -59,15 +58,11 @@ var MonitorManager = (function () {
                     console.log("monitor:'" + key + "' is not registered");
                 }
 
-                if (!monitorNode.IsActive) {
-                    continue;
-                }
-
                 try  {
                     monitorNode.UpdateStatus(self.RECAPI);
                     monitorNode.Show(self.CaseViewer, self.HTMLRenderFunctions, self.SVGRenderFunctions);
                 } catch (e) {
-                    self.DeactivateAllMonitor();
+                    self.RemoveAllMonitor();
                     return;
                 }
             }
@@ -94,54 +89,20 @@ var MonitorManager = (function () {
             monitorNode.SetItem(item);
             monitorNode.SetCondition(condition);
         }
+
+        if (Object.keys(this.MonitorNodeMap).length == 1) {
+            this.StartMonitors(5000);
+        }
     };
 
     MonitorManager.prototype.RemoveMonitor = function (label) {
-        if (this.MonitorNodeMap[label].IsActive) {
-            this.ActiveMonitors -= 1;
-
-            if (this.ActiveMonitors == 0) {
-                this.StopMonitors();
-            }
-        }
-
         delete this.MonitorNodeMap[label];
         if (Object.keys(this.MonitorNodeMap).length == 0) {
             this.StopMonitors();
         }
     };
 
-    MonitorManager.prototype.ActivateMonitor = function (label) {
-        var monitorNode = this.MonitorNodeMap[label];
-
-        if (!monitorNode.IsActive) {
-            monitorNode.IsActive = true;
-            this.ActiveMonitors += 1;
-            if (this.ActiveMonitors == 1) {
-                this.StartMonitors(5000);
-            }
-        }
-    };
-
-    MonitorManager.prototype.ActivateAllMonitor = function () {
-        for (var label in this.MonitorNodeMap) {
-            this.ActivateMonitor(label);
-        }
-    };
-
-    MonitorManager.prototype.DeactivateMonitor = function (label) {
-        var monitorNode = this.MonitorNodeMap[label];
-
-        if (monitorNode.IsActive) {
-            monitorNode.IsActive = false;
-            this.ActiveMonitors -= 1;
-            if (this.ActiveMonitors == 0) {
-                this.StopMonitors();
-            }
-        }
-    };
-
-    MonitorManager.prototype.DeactivateAllMonitor = function () {
+    MonitorManager.prototype.RemoveAllMonitor = function () {
         for (var label in this.MonitorNodeMap) {
             this.RemoveMonitor(label);
         }

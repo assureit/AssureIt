@@ -43,7 +43,7 @@ class MonitorPlugIn extends AssureIt.PlugInSet {
 		super(plugInManager);
 		this.HTMLRenderPlugIn = new MonitorHTMLRenderPlugIn(plugInManager);
 		this.SVGRenderPlugIn = new MonitorSVGRenderPlugIn(plugInManager);
-		this.MenuBarContentsPlugIn = new MonitorMenuBarPlugIn(plugInManager);
+		//this.MenuBarContentsPlugIn = new MonitorMenuBarPlugIn(plugInManager);
 		this.SideMenuPlugIn = new MonitorSideMenuPlugIn(plugInManager);
 		monitorManager = new MonitorManager();
 		this.PlugInEnv = { "MonitorManager": monitorManager };
@@ -232,44 +232,44 @@ class MonitorTableWindow {
 }
 
 
-class MonitorMenuBarPlugIn extends AssureIt.MenuBarContentsPlugIn {
-
-	constructor(plugInManager: AssureIt.PlugInManager) {
-		super(plugInManager);
-	}
-
-	IsEnabled(caseViewer: AssureIt.CaseViewer, caseModel: AssureIt.NodeModel): boolean {
-		return true;
-	}
-
-	Delegate(caseViewer: AssureIt.CaseViewer, caseModel: AssureIt.NodeModel, element: JQuery, serverApi: AssureIt.ServerAPI): boolean {
-		if(!monitorManager.IsRegisteredMonitor(caseModel.Label)) {
-			return true;
-		}
-
-		var monitorNode = monitorManager.MonitorNodeMap[caseModel.Label];
-
-		if(!monitorNode.IsActive) {
-			element.append('<a href="#" ><img id="monitor-tgl" src="'+serverApi.basepath+'images/monitor.png" title="Activate monitor" alt="monitor-tgl" /></a>');
-		}
-		else {
-			element.append('<a href="#" ><img id="monitor-tgl" src="'+serverApi.basepath+'images/monitor.png" title="Deactivate monitor" alt="monitor-tgl" /></a>');
-		}
-
-		$('#monitor-tgl').unbind('click');
-		$('#monitor-tgl').click(function() {
-			if(!monitorNode.IsActive) {
-				monitorManager.ActivateMonitor(caseModel.Label);
-			}
-			else {
-				monitorManager.DeactivateMonitor(caseModel.Label);
-			}
-		});
-
-		return true;
-	}
-
-}
+//class MonitorMenuBarPlugIn extends AssureIt.MenuBarContentsPlugIn {
+//
+//	constructor(plugInManager: AssureIt.PlugInManager) {
+//		super(plugInManager);
+//	}
+//
+//	IsEnabled(caseViewer: AssureIt.CaseViewer, caseModel: AssureIt.NodeModel): boolean {
+//		return true;
+//	}
+//
+//	Delegate(caseViewer: AssureIt.CaseViewer, caseModel: AssureIt.NodeModel, element: JQuery, serverApi: AssureIt.ServerAPI): boolean {
+//		if(!monitorManager.IsRegisteredMonitor(caseModel.Label)) {
+//			return true;
+//		}
+//
+//		var monitorNode = monitorManager.MonitorNodeMap[caseModel.Label];
+//
+//		if(!monitorNode.IsActive) {
+//			element.append('<a href="#" ><img id="monitor-tgl" src="'+serverApi.basepath+'images/monitor.png" title="Activate monitor" alt="monitor-tgl" /></a>');
+//		}
+//		else {
+//			element.append('<a href="#" ><img id="monitor-tgl" src="'+serverApi.basepath+'images/monitor.png" title="Deactivate monitor" alt="monitor-tgl" /></a>');
+//		}
+//
+//		$('#monitor-tgl').unbind('click');
+//		$('#monitor-tgl').click(function() {
+//			if(!monitorNode.IsActive) {
+//				monitorManager.ActivateMonitor(caseModel.Label);
+//			}
+//			else {
+//				monitorManager.DeactivateMonitor(caseModel.Label);
+//			}
+//		});
+//
+//		return true;
+//	}
+//
+//}
 
 
 class MonitorSideMenuPlugIn extends AssureIt.SideMenuPlugIn {

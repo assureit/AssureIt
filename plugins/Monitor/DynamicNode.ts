@@ -94,7 +94,6 @@ class MonitorNode extends ActionNode {
 	Condition: string;
 	LatestData: any;
 	PastData: any[];
-	IsActive: boolean;
 
 	constructor(Location: string, Item: string, Condition: string, EvidenceNode: AssureIt.NodeModel) {
 		super(Location, EvidenceNode);
@@ -102,7 +101,6 @@ class MonitorNode extends ActionNode {
 		this.Condition = Condition;
 		this.LatestData = null;
 		this.PastData = [];
-		this.IsActive = false;
 	}
 
 	SetItem(item: string) {

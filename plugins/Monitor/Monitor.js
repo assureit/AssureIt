@@ -45,7 +45,7 @@ var MonitorPlugIn = (function (_super) {
         this.plugInManager = plugInManager;
         this.HTMLRenderPlugIn = new MonitorHTMLRenderPlugIn(plugInManager);
         this.SVGRenderPlugIn = new MonitorSVGRenderPlugIn(plugInManager);
-        this.MenuBarContentsPlugIn = new MonitorMenuBarPlugIn(plugInManager);
+
         this.SideMenuPlugIn = new MonitorSideMenuPlugIn(plugInManager);
         monitorManager = new MonitorManager();
         this.PlugInEnv = { "MonitorManager": monitorManager };
@@ -216,42 +216,6 @@ var MonitorTableWindow = (function () {
     };
     return MonitorTableWindow;
 })();
-
-var MonitorMenuBarPlugIn = (function (_super) {
-    __extends(MonitorMenuBarPlugIn, _super);
-    function MonitorMenuBarPlugIn(plugInManager) {
-        _super.call(this, plugInManager);
-    }
-    MonitorMenuBarPlugIn.prototype.IsEnabled = function (caseViewer, caseModel) {
-        return true;
-    };
-
-    MonitorMenuBarPlugIn.prototype.Delegate = function (caseViewer, caseModel, element, serverApi) {
-        if (!monitorManager.IsRegisteredMonitor(caseModel.Label)) {
-            return true;
-        }
-
-        var monitorNode = monitorManager.MonitorNodeMap[caseModel.Label];
-
-        if (!monitorNode.IsActive) {
-            element.append('<a href="#" ><img id="monitor-tgl" src="' + serverApi.basepath + 'images/monitor.png" title="Activate monitor" alt="monitor-tgl" /></a>');
-        } else {
-            element.append('<a href="#" ><img id="monitor-tgl" src="' + serverApi.basepath + 'images/monitor.png" title="Deactivate monitor" alt="monitor-tgl" /></a>');
-        }
-
-        $('#monitor-tgl').unbind('click');
-        $('#monitor-tgl').click(function () {
-            if (!monitorNode.IsActive) {
-                monitorManager.ActivateMonitor(caseModel.Label);
-            } else {
-                monitorManager.DeactivateMonitor(caseModel.Label);
-            }
-        });
-
-        return true;
-    };
-    return MonitorMenuBarPlugIn;
-})(AssureIt.MenuBarContentsPlugIn);
 
 var MonitorSideMenuPlugIn = (function (_super) {
     __extends(MonitorSideMenuPlugIn, _super);

@@ -91,7 +91,6 @@ var MonitorNode = (function (_super) {
         this.Condition = Condition;
         this.LatestData = null;
         this.PastData = [];
-        this.IsActive = false;
     }
     MonitorNode.prototype.SetItem = function (item) {
         this.Item = item;

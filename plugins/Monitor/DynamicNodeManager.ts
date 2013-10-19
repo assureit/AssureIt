@@ -46,7 +46,6 @@ class MonitorManager {
 	CaseViewer: AssureIt.CaseViewer;
 	HTMLRenderFunctions: Function[];
 	SVGRenderFunctions: Function[];
-	ActiveMonitors: number;
 
 	constructor() {
 		this.MonitorNodeMap = {};
@@ -60,7 +59,6 @@ class MonitorManager {
 		this.HTMLRenderFunctions.push(this.CaseViewer.GetPlugInHTMLRender("monitor"));
 		this.SVGRenderFunctions = [];
 		this.SVGRenderFunctions.push(this.CaseViewer.GetPlugInSVGRender("monitor"));
-		this.ActiveMonitors = 0;
 	}
 
 	StartMonitors(interval: number) {
@@ -80,16 +78,12 @@ class MonitorManager {
 					console.log("monitor:'"+key+"' is not registered");
 				}
 
-				if(!monitorNode.IsActive) {
-					continue;
-				}
-
 				try {
 					monitorNode.UpdateStatus(self.RECAPI);
 					monitorNode.Show(self.CaseViewer, self.HTMLRenderFunctions, self.SVGRenderFunctions);
 				}
 				catch(e) {
-					self.DeactivateAllMonitor();
+					self.RemoveAllMonitor();
 					return;
 				}
 			}
@@ -117,54 +111,20 @@ class MonitorManager {
 			monitorNode.SetItem(item);
 			monitorNode.SetCondition(condition);
 		}
+
+		if(Object.keys(this.MonitorNodeMap).length == 1) {   // manager has one monitor
+			this.StartMonitors(5000);
+		}
 	}
 
 	RemoveMonitor(label: string) {
-		if(this.MonitorNodeMap[label].IsActive) {
-			this.ActiveMonitors -= 1;
-
-			if(this.ActiveMonitors == 0) {   // manager has no monitor
-				this.StopMonitors();
-			}
-		}
-
 		delete this.MonitorNodeMap[label];
-		if(Object.keys(this.MonitorNodeMap).length == 0) {
+		if(Object.keys(this.MonitorNodeMap).length == 0) {   // manager has no moniotr
 			this.StopMonitors();
 		}
 	}
 
-	ActivateMonitor(label: string) {
-		var monitorNode = this.MonitorNodeMap[label];
-
-		if(!monitorNode.IsActive) {
-			monitorNode.IsActive = true;
-			this.ActiveMonitors += 1;
-			if(this.ActiveMonitors == 1) {   // manager has one monitor
-				this.StartMonitors(5000);
-			}
-		}
-	}
-
-	ActivateAllMonitor() {
-		for(var label in this.MonitorNodeMap) {
-			this.ActivateMonitor(label);
-		}
-	}
-
-	DeactivateMonitor(label: string) {
-		var monitorNode = this.MonitorNodeMap[label];
-
-		if(monitorNode.IsActive) {
-			monitorNode.IsActive = false;
-			this.ActiveMonitors -= 1;
-			if(this.ActiveMonitors == 0) {   // manager has no monitor
-				this.StopMonitors();
-			}
-		}
-	}
-
-	DeactivateAllMonitor() {
+	RemoveAllMonitor() {
 		for(var label in this.MonitorNodeMap) {
 			this.RemoveMonitor(label);
 		}
