@@ -27,11 +27,11 @@ function appendNode(caseViewer, nodeModel, type) {
     return newNodeModel;
 }
 
-var MonitorManager = (function () {
-    function MonitorManager() {
-        this.MonitorNodeMap = {};
+var DynamicNodeManager = (function () {
+    function DynamicNodeManager() {
+        this.DynamicNodeMap = {};
     }
-    MonitorManager.prototype.Init = function (caseViewer, recpath) {
+    DynamicNodeManager.prototype.Init = function (caseViewer, recpath) {
         this.RECAPI = new AssureIt.RECAPI(recpath);
         this.CaseViewer = caseViewer;
         this.HTMLRenderFunctions = [];
@@ -41,16 +41,16 @@ var MonitorManager = (function () {
         this.SVGRenderFunctions.push(this.CaseViewer.GetPlugInSVGRender("monitor"));
     };
 
-    MonitorManager.prototype.StartMonitors = function (interval) {
+    DynamicNodeManager.prototype.StartMonitoring = function (interval) {
         console.log("start monitoring");
         var self = this;
 
         this.Timer = setInterval(function () {
-            for (var key in self.MonitorNodeMap) {
-                var monitorNode = self.MonitorNodeMap[key];
+            for (var key in self.DynamicNodeMap) {
+                var monitorNode = self.DynamicNodeMap[key];
 
                 if (self.CaseViewer.Source.ElementMap[key] == null) {
-                    self.RemoveMonitor(key);
+                    self.RemoveDynamicNode(key);
                     continue;
                 }
 
@@ -62,7 +62,7 @@ var MonitorManager = (function () {
                     monitorNode.UpdateStatus(self.RECAPI);
                     monitorNode.Show(self.CaseViewer, self.HTMLRenderFunctions, self.SVGRenderFunctions);
                 } catch (e) {
-                    self.RemoveAllMonitor();
+                    self.RemoveAllMonitorNode();
                     return;
                 }
             }
@@ -71,48 +71,22 @@ var MonitorManager = (function () {
         }, interval);
     };
 
-    MonitorManager.prototype.StopMonitors = function () {
+    DynamicNodeManager.prototype.StopMonitoring = function () {
         console.log("stop monitoring");
         clearTimeout(this.Timer);
     };
 
-    MonitorManager.prototype.SetMonitor = function (evidenceNode) {
-        var location = getContextNode(evidenceNode.Parent).Notes["Location"];
-        var condition = getContextNode(evidenceNode.Parent).Notes["Monitor"];
-        var item = extractItemFromCondition(condition);
-        var monitorNode = this.MonitorNodeMap[evidenceNode.Label];
-
-        if (monitorNode == null) {
-            this.MonitorNodeMap[evidenceNode.Label] = new MonitorNode(location, item, condition, evidenceNode);
-        } else {
-            monitorNode.SetLocation(location);
-            monitorNode.SetItem(item);
-            monitorNode.SetCondition(condition);
-        }
-
-        if (Object.keys(this.MonitorNodeMap).length == 1) {
-            this.StartMonitors(5000);
+    DynamicNodeManager.prototype.RemoveDynamicNode = function (label) {
+        delete this.DynamicNodeMap[label];
+        if (Object.keys(this.DynamicNodeMap).length == 0) {
+            this.StopMonitoring();
         }
     };
 
-    MonitorManager.prototype.RemoveMonitor = function (label) {
-        delete this.MonitorNodeMap[label];
-        if (Object.keys(this.MonitorNodeMap).length == 0) {
-            this.StopMonitors();
+    DynamicNodeManager.prototype.RemoveAllMonitorNode = function () {
+        for (var label in this.DynamicNodeMap) {
+            this.RemoveDynamicNode(label);
         }
     };
-
-    MonitorManager.prototype.RemoveAllMonitor = function () {
-        for (var label in this.MonitorNodeMap) {
-            this.RemoveMonitor(label);
-        }
-    };
-
-    MonitorManager.prototype.IsRegisteredMonitor = function (label) {
-        if (label in this.MonitorNodeMap) {
-            return true;
-        }
-        return false;
-    };
-    return MonitorManager;
+    return DynamicNodeManager;
 })();

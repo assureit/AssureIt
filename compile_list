@@ -9,11 +9,15 @@ plugins/SimplePattern/SimplePattern.ts
 plugins/DScript/DScript.ts
 plugins/DScript/DScriptGenerator.ts
 plugins/DScript/DScriptActionMap.ts
+plugins/DScript/ActionNode.ts
+plugins/DScript/ActionNodeManager.ts
 plugins/FullScreenEditor/FullScreenEditor.ts
 plugins/MenuBar/MenuBar.ts
 plugins/Monitor/Monitor.ts
 plugins/Monitor/DynamicNode.ts
 plugins/Monitor/DynamicNodeManager.ts
+plugins/Monitor/MonitorNode.ts
+plugins/Monitor/MonitorNodeManager.ts
 plugins/CopyPaste/CopyPaste.ts
 plugins/Note/Note.ts
 plugins/LastModified/LastModified.ts

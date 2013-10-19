@@ -4,6 +4,8 @@
 /// <reference path="../../src/EditorUtil.ts" />
 /// <reference path="./DScriptGenerator.ts" />
 /// <reference path="./DScriptActionMap.ts" />
+/// <reference path="./ActionNode.ts" />
+/// <reference path="./ActionNodeManager.ts" />
 
 var __dscript__ = {
 	script : {

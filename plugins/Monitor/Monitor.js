@@ -6,38 +6,6 @@ var __extends = this.__extends || function (d, b) {
 };
 var monitorManager = null;
 
-function isContextNode(nodeModel) {
-    if (nodeModel.Type == AssureIt.NodeType.Context) {
-        return true;
-    }
-
-    return false;
-}
-
-function getContextNode(nodeModel) {
-    for (var i = 0; i < nodeModel.Children.length; i++) {
-        if (isContextNode(nodeModel.Children[i]))
-            return nodeModel.Children[i];
-    }
-
-    return null;
-}
-
-function isMonitorNode(nodeModel) {
-    if (nodeModel.Type != AssureIt.NodeType.Evidence)
-        return false;
-
-    var contextNode = getContextNode(nodeModel.Parent);
-    if (contextNode == null)
-        return false;
-    if (!("Monitor" in contextNode.Notes))
-        return false;
-    if (!("Location" in contextNode.Notes))
-        return false;
-
-    return true;
-}
-
 var MonitorPlugIn = (function (_super) {
     __extends(MonitorPlugIn, _super);
     function MonitorPlugIn(plugInManager) {
@@ -47,8 +15,8 @@ var MonitorPlugIn = (function (_super) {
         this.SVGRenderPlugIn = new MonitorSVGRenderPlugIn(plugInManager);
 
         this.SideMenuPlugIn = new MonitorSideMenuPlugIn(plugInManager);
-        monitorManager = new MonitorManager();
-        this.PlugInEnv = { "MonitorManager": monitorManager };
+        monitorManager = new MonitorNodeManager();
+        this.PlugInEnv = { "DynamicNodeManager": monitorManager };
     }
     return MonitorPlugIn;
 })(AssureIt.PlugInSet);
@@ -65,12 +33,10 @@ var MonitorHTMLRenderPlugIn = (function (_super) {
     MonitorHTMLRenderPlugIn.prototype.Delegate = function (caseViewer, nodeModel, element) {
         if (!isMonitorNode(nodeModel))
             return;
-        if (!monitorManager.IsRegisteredMonitor(nodeModel.Label)) {
-            monitorManager.SetMonitor(nodeModel);
-        }
+        monitorManager.SetMonitorNode(nodeModel);
 
-        var monitorNode = monitorManager.MonitorNodeMap[nodeModel.Label];
-        if (monitorNode == null)
+        var monitorNode = monitorManager.DynamicNodeMap[nodeModel.Label];
+        if (monitorNode == null || !("Item" in monitorNode))
             return;
 
         this.RenderPastMonitoringData(monitorNode, element);
@@ -126,7 +92,7 @@ var MonitorSVGRenderPlugIn = (function (_super) {
 
     MonitorSVGRenderPlugIn.prototype.Delegate = function (caseViewer, nodeView) {
         var nodeModel = nodeView.Source;
-        var monitorNode = monitorManager.MonitorNodeMap[nodeModel.Label];
+        var monitorNode = monitorManager.DynamicNodeMap[nodeModel.Label];
 
         if (!monitorNode)
             return true;
@@ -177,8 +143,11 @@ var MonitorTableWindow = (function () {
         $table.find('tbody').remove();
         var $tbody = $('<tbody></tbody>');
 
-        for (var key in monitorManager.MonitorNodeMap) {
-            var monitorNode = monitorManager.MonitorNodeMap[key];
+        for (var key in monitorManager.DynamicNodeMap) {
+            var monitorNode = monitorManager.DynamicNodeMap[key];
+
+            if (!("Item" in monitorNode))
+                continue;
 
             if (monitorNode.LatestData != null) {
                 var $tr = $('<tr></tr>');
