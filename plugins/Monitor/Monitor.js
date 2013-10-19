@@ -86,10 +86,10 @@ var MonitorHTMLRenderPlugIn = (function (_super) {
 
         var linkColor;
         if (monitorNode.Status == true) {
-            if (monitorNode.TurningPointData == null) {
-                linkColor = 'blue';
-            } else {
+            if (monitorNode.IsRecovered) {
                 linkColor = 'orange';
+            } else {
+                linkColor = 'blue';
             }
         } else {
             linkColor = 'red';
@@ -132,7 +132,7 @@ var MonitorSVGRenderPlugIn = (function (_super) {
             return true;
 
         if (monitorNode.Status) {
-            if (monitorNode.TurningPointData) {
+            if (monitorNode.IsRecovered) {
                 var fill = "#FFFF99";
                 var stroke = "none";
                 monitorNode.BlushAllAncestor(caseViewer, nodeView, fill, stroke);

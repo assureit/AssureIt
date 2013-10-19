@@ -1,19 +1,19 @@
-function extractTypeFromCondition(condition) {
+function extractItemFromCondition(condition) {
     var text = condition.replace(/\{/g, " ").replace(/\}/g, " ").replace(/\(/g, " ").replace(/\)/g, " ").replace(/==/g, " ").replace(/<=/g, " ").replace(/>=/g, " ").replace(/</g, " ").replace(/>/g, " ");
 
     var words = text.split(" ");
-    var types = [];
+    var items = [];
 
     for (var i = 0; i < words.length; i++) {
         if (words[i] != "" && !$.isNumeric(words[i])) {
-            types.push(words[i]);
+            items.push(words[i]);
         }
     }
 
-    if (types.length != 1) {
+    if (items.length != 1) {
     }
 
-    return types[0];
+    return items[0];
 }
 
 function appendNode(caseViewer, nodeModel, type) {
@@ -64,17 +64,12 @@ var MonitorManager = (function () {
                 }
 
                 try  {
-                    monitorNode.UpdateLatestData(self.RECAPI);
+                    monitorNode.UpdateStatus(self.RECAPI);
+                    monitorNode.Show(self.CaseViewer, self.HTMLRenderFunctions, self.SVGRenderFunctions);
                 } catch (e) {
                     self.DeactivateAllMonitor();
                     return;
                 }
-
-                if (monitorNode.LatestData == null)
-                    continue;
-
-                monitorNode.UpdateStatus();
-                monitorNode.Show(self.CaseViewer, self.HTMLRenderFunctions, self.SVGRenderFunctions);
             }
 
             self.CaseViewer.Draw();
@@ -89,14 +84,14 @@ var MonitorManager = (function () {
     MonitorManager.prototype.SetMonitor = function (evidenceNode) {
         var location = getContextNode(evidenceNode.Parent).Notes["Location"];
         var condition = getContextNode(evidenceNode.Parent).Notes["Monitor"];
-        var type = extractTypeFromCondition(condition);
+        var item = extractItemFromCondition(condition);
         var monitorNode = this.MonitorNodeMap[evidenceNode.Label];
 
         if (monitorNode == null) {
-            this.MonitorNodeMap[evidenceNode.Label] = new MonitorNode(location, type, condition, evidenceNode);
+            this.MonitorNodeMap[evidenceNode.Label] = new MonitorNode(location, item, condition, evidenceNode);
         } else {
             monitorNode.SetLocation(location);
-            monitorNode.SetType(type);
+            monitorNode.SetItem(item);
             monitorNode.SetCondition(condition);
         }
     };

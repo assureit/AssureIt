@@ -19,79 +19,45 @@ function showNode(caseViewer: AssureIt.CaseViewer, nodeModel: AssureIt.NodeModel
 }
 
 
-class MonitorNode {
+class ActionNode {
 
 	Location: string;
-	Type: string;
-	Condition: string;
-	LatestData: any;
-	TurningPointData: any;
-	PastData: any[];
-	Status: boolean;
 	EvidenceNode: AssureIt.NodeModel;
-	IsActive: boolean;
+	Fault: number;
+	Status: boolean;
+	IsRecovered: boolean;
 
-	constructor(Location: string, Type: string, Condition: string, EvidenceNode: AssureIt.NodeModel) {
+	constructor(Location: string, EvidenceNode: AssureIt.NodeModel) {
 		this.Location = Location;
-		this.Type = Type;
-		this.Condition = Condition;
-		this.LatestData = null;
-		this.TurningPointData = null;
-		this.PastData = [];
-		this.Status = true;
 		this.EvidenceNode = EvidenceNode;
-		this.IsActive = false;
+		this.Fault = 0;
+		this.Status = true;
+		this.IsRecovered = false;
 	}
 
 	SetLocation(location: string) {
 		this.Location = location;
 	}
 
-	SetType(type: string) {
-		this.Type = type;
-	}
+	UpdateStatus(RECAPI: AssureIt.RECAPI) {
+		var latestFaultData = RECAPI.getLatestData(this.Location, this.EvidenceNode.Label);
 
-	SetCondition(condition: string) {
-		this.Condition = condition;
-	}
-
-	UpdatePastData(latestData: any) {
-		if(this.PastData.length < 10) {
-			this.PastData.unshift(latestData);
+		if(latestFaultData == null) {
+			return;
 		}
-		else {
-			this.PastData.pop();
-			this.PastData.unshift(latestData);
-		}
-	}
 
-	UpdateLatestData(RECAPI: AssureIt.RECAPI) {
-		var latestData = RECAPI.getLatestData(this.Location, this.Type);
+		var fault: number = latestFaultData.data;
 
-		if(latestData == null) {
-			// TODO: alert
-			console.log("latest data is null");
-		}
-		else {
-			if(JSON.stringify(this.LatestData) != JSON.stringify(latestData)) {
-				this.LatestData = latestData;
-				this.UpdatePastData(latestData);
+		if(fault == 0) {
+			if(this.Status == false) {
+				this.IsRecovered = true;
 			}
+			this.Status = true;
 		}
-	}
-
-	UpdateStatus() {
-		var status: boolean;
-		var script: string = "var "+this.Type+"="+this.LatestData.data+";";
-
-		script += this.Condition+";";
-		status = eval(script);   // FIXME: don't use eval()
-
-		if(!status && !this.TurningPointData) {
-			this.TurningPointData = this.LatestData;
+		else {
+			this.Status = false;
 		}
-
-		this.Status = status;
+		this.Fault = fault;
 	}
 
 	BlushAllAncestor(caseViewer: AssureIt.CaseViewer, nodeView: AssureIt.NodeView, fill: string, stroke: string) {
@@ -113,6 +79,90 @@ class MonitorNode {
 		}
 
 		this.BlushAllAncestor(caseViewer, nodeView.ParentShape, fill, stroke);
+	}
+
+	Show(caseViewer: AssureIt.CaseViewer, HTMLRenderFunctions: Function[], SVGRenderFunctions: Function[]) {
+		showNode(caseViewer, this.EvidenceNode, HTMLRenderFunctions, SVGRenderFunctions);
+	}
+
+}
+
+
+class MonitorNode extends ActionNode {
+
+	Item: string;
+	Condition: string;
+	LatestData: any;
+	PastData: any[];
+	IsActive: boolean;
+
+	constructor(Location: string, Item: string, Condition: string, EvidenceNode: AssureIt.NodeModel) {
+		super(Location, EvidenceNode);
+		this.Item = Item;
+		this.Condition = Condition;
+		this.LatestData = null;
+		this.PastData = [];
+		this.IsActive = false;
+	}
+
+	SetItem(item: string) {
+		this.Item = item;
+	}
+
+	SetCondition(condition: string) {
+		this.Condition = condition;
+	}
+
+	UpdatePastData(latestData: any) {
+		if(this.PastData.length < 10) {
+			this.PastData.unshift(latestData);
+		}
+		else {
+			this.PastData.pop();
+			this.PastData.unshift(latestData);
+		}
+	}
+
+	UpdateLatestData(RECAPI: AssureIt.RECAPI) {
+		var latestData = RECAPI.getLatestData(this.Location, this.Item);
+
+		if(latestData == null) {
+			// TODO: alert
+			console.log("latest data is null");
+		}
+		else {
+			if(JSON.stringify(this.LatestData) != JSON.stringify(latestData)) {
+				this.LatestData = latestData;
+				this.UpdatePastData(latestData);
+			}
+		}
+	}
+
+	UpdateStatus(RECAPI: AssureIt.RECAPI) {
+		this.UpdateLatestData(RECAPI);
+
+		if(this.LatestData == null) return;
+
+		var status: boolean;
+		var script: string = "var "+this.Item+"="+this.LatestData.data+";";
+
+		script += this.Condition+";";
+		status = eval(script);   // FIXME: don't use eval()
+
+		if(status == true) {
+			if(this.Status == false) {
+				this.IsRecovered = true;
+			}
+			this.Fault = 0;
+		}
+		else {
+			var latestFaultData = RECAPI.getLatestData(this.Location, this.EvidenceNode.Label);
+			if(latestFaultData) {
+				this.Fault = latestFaultData.data;
+			}
+		}
+
+		this.Status = status;
 	}
 
 	Show(caseViewer: AssureIt.CaseViewer, HTMLRenderFunctions: Function[], SVGRenderFunctions: Function[]) {

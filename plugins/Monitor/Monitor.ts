@@ -80,11 +80,11 @@ class MonitorHTMLRenderPlugIn extends AssureIt.HTMLRenderPlugIn {
 
 		var linkColor: string;
 		if(monitorNode.Status == true) {
-			if(monitorNode.TurningPointData == null) {
-				linkColor = 'blue';
+			if(monitorNode.IsRecovered) {
+				linkColor = 'orange';
 			}
 			else {
-				linkColor = 'orange';
+				linkColor = 'blue';
 			}
 		}
 		else {
@@ -125,7 +125,7 @@ class MonitorSVGRenderPlugIn extends AssureIt.SVGRenderPlugIn {
 		if(!monitorNode) return true;
 
 		if(monitorNode.Status) {
-			if(monitorNode.TurningPointData) {
+			if(monitorNode.IsRecovered) {
 				var fill: string = "#FFFF99";   // FIXME: allow any color
 				var stroke: string = "none";
 				monitorNode.BlushAllAncestor(caseViewer, nodeView, fill, stroke);

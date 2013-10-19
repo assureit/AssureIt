@@ -1,4 +1,4 @@
-function extractTypeFromCondition(condition: string): string {
+function extractItemFromCondition(condition: string): string {
 	var text: string = condition
 						.replace(/\{/g, " ")
 						.replace(/\}/g, " ")
@@ -11,19 +11,19 @@ function extractTypeFromCondition(condition: string): string {
 						.replace(/>/g, " ");
 
 	var words: string[] = text.split(" ");
-	var types: string[] = [];
+	var items: string[] = [];
 
 	for(var i: number = 0; i < words.length; i++) {
 		if(words[i] != "" && !$.isNumeric(words[i])) {
-			types.push(words[i]);
+			items.push(words[i]);
 		}
 	}
 
-	if(types.length != 1) {
+	if(items.length != 1) {
 		// TODO: alert
 	}
 
-	return types[0];
+	return items[0];
 }
 
 function appendNode(caseViewer: AssureIt.CaseViewer, nodeModel: AssureIt.NodeModel, type: AssureIt.NodeType): AssureIt.NodeModel {
@@ -85,17 +85,13 @@ class MonitorManager {
 				}
 
 				try {
-					monitorNode.UpdateLatestData(self.RECAPI);
+					monitorNode.UpdateStatus(self.RECAPI);
+					monitorNode.Show(self.CaseViewer, self.HTMLRenderFunctions, self.SVGRenderFunctions);
 				}
 				catch(e) {
 					self.DeactivateAllMonitor();
 					return;
 				}
-
-				if(monitorNode.LatestData == null) continue;
-
-				monitorNode.UpdateStatus();
-				monitorNode.Show(self.CaseViewer, self.HTMLRenderFunctions, self.SVGRenderFunctions);
 			}
 
 			self.CaseViewer.Draw();
@@ -110,15 +106,15 @@ class MonitorManager {
 	SetMonitor(evidenceNode: AssureIt.NodeModel) {
 		var location: string = getContextNode(evidenceNode.Parent).Notes["Location"];
 		var condition: string = getContextNode(evidenceNode.Parent).Notes["Monitor"];
-		var type: string = extractTypeFromCondition(condition);
+		var item: string = extractItemFromCondition(condition);
 		var monitorNode = this.MonitorNodeMap[evidenceNode.Label];
 
 		if(monitorNode == null) {
-			this.MonitorNodeMap[evidenceNode.Label] = new MonitorNode(location, type, condition, evidenceNode);
+			this.MonitorNodeMap[evidenceNode.Label] = new MonitorNode(location, item, condition, evidenceNode);
 		}
 		else {
 			monitorNode.SetLocation(location);
-			monitorNode.SetType(type);
+			monitorNode.SetItem(item);
 			monitorNode.SetCondition(condition);
 		}
 	}
