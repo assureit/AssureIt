@@ -5,6 +5,8 @@
 /// <reference path="./DScriptGenerator.ts" />
 /// <reference path="./DScriptActionMap.ts" />
 /// <reference path="./DScriptPaneManager.ts" />
+/// <reference path="./ActionNode.ts" />
+/// <reference path="./ActionNodeManager.ts" />
 
 var __dscript__ = {
 	script : {
@@ -366,6 +368,19 @@ return (int)data.replaceAll(\"\\n\", \"\");\n\
 ",
 			};
 
+			var actionNodeManager: ActionNodeManager = caseViewer.pluginManager.GetPlugInEnv("monitor").ActionNodeManager;
+			var ElementMap = caseViewer.Source.ElementMap;
+
+			for(var label in ElementMap) {
+				var nodeModel: AssureIt.NodeModel = ElementMap[label];
+
+				if(isActionNode(nodeModel)) {
+					actionNodeManager.SetActionNode(nodeModel);
+					var actionNode = actionNodeManager.ActionNodeMap[nodeModel.Label];
+					actionNodeManager.RECAPI.pushRawData(actionNode.Location, nodeModel.Label, 0, "test@gmail.com"/* imple me */, ""/* imple me */);
+				}
+			}
+
 			try {
 				this.AssureItAgentAPI.Deploy(__dscript__);
 			}
@@ -373,7 +388,6 @@ return (int)data.replaceAll(\"\\n\", \"\");\n\
 				alert("Assure-It Agent is not active.");
 				console.log(e);
 			}
-			caseViewer.pluginManager.GetPlugInEnv("monitor").MonitorManager.RemoveAllMonitor();
 		});
 	}
 }
