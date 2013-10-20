@@ -6,7 +6,7 @@
 /// <reference path="./MonitorNodeManager.ts" />
 
 
-var monitorManager: MonitorNodeManager = null;
+var monitorNodeManager: MonitorNodeManager = null;
 
 
 class MonitorPlugIn extends AssureIt.PlugInSet {
@@ -17,8 +17,8 @@ class MonitorPlugIn extends AssureIt.PlugInSet {
 		this.SVGRenderPlugIn = new MonitorSVGRenderPlugIn(plugInManager);
 		//this.MenuBarContentsPlugIn = new MonitorMenuBarPlugIn(plugInManager);
 		this.SideMenuPlugIn = new MonitorSideMenuPlugIn(plugInManager);
-		monitorManager = new MonitorNodeManager();
-		this.PlugInEnv = { "DynamicNodeManager": monitorManager };
+		monitorNodeManager = new MonitorNodeManager();
+		this.PlugInEnv = { "ActionNodeManager": monitorNodeManager };
 	}
 
 }
@@ -32,9 +32,9 @@ class MonitorHTMLRenderPlugIn extends AssureIt.HTMLRenderPlugIn {
 
 	Delegate(caseViewer: AssureIt.CaseViewer, nodeModel: AssureIt.NodeModel, element: JQuery) : boolean {
 		if(!isMonitorNode(nodeModel)) return;
-		monitorManager.SetMonitorNode(nodeModel);
+		monitorNodeManager.SetMonitorNode(nodeModel);
 
-		var monitorNode = monitorManager.DynamicNodeMap[nodeModel.Label];
+		var monitorNode = monitorNodeManager.ActionNodeMap[nodeModel.Label];
 		if(monitorNode == null || !("Item" in <any>monitorNode)) return;   // not MonitorNode
 
 		this.RenderPastMonitoringData(<MonitorNode>monitorNode, element);
@@ -90,7 +90,7 @@ class MonitorSVGRenderPlugIn extends AssureIt.SVGRenderPlugIn {
 
 	Delegate(caseViewer: AssureIt.CaseViewer, nodeView: AssureIt.NodeView) : boolean {
 		var nodeModel: AssureIt.NodeModel = nodeView.Source;
-		var monitorNode: MonitorNode = <MonitorNode>monitorManager.DynamicNodeMap[nodeModel.Label];
+		var monitorNode: MonitorNode = <MonitorNode>monitorNodeManager.ActionNodeMap[nodeModel.Label];
 
 		if(!monitorNode) return true;
 
@@ -158,8 +158,8 @@ class MonitorTableWindow {
 		$table.find('tbody').remove();
 		var $tbody = $('<tbody></tbody>');
 
-		for(var key in monitorManager.DynamicNodeMap) {
-			var monitorNode: MonitorNode = <MonitorNode>monitorManager.DynamicNodeMap[key];
+		for(var key in monitorNodeManager.ActionNodeMap) {
+			var monitorNode: MonitorNode = <MonitorNode>monitorNodeManager.ActionNodeMap[key];
 
 			if(!("Item" in <any>monitorNode)) continue;
 
@@ -215,11 +215,11 @@ class MonitorTableWindow {
 //	}
 //
 //	Delegate(caseViewer: AssureIt.CaseViewer, caseModel: AssureIt.NodeModel, element: JQuery, serverApi: AssureIt.ServerAPI): boolean {
-//		if(!monitorManager.IsRegisteredMonitor(caseModel.Label)) {
+//		if(!monitorNodeManager.IsRegisteredMonitor(caseModel.Label)) {
 //			return true;
 //		}
 //
-//		var monitorNode = monitorManager.MonitorNodeMap[caseModel.Label];
+//		var monitorNode = monitorNodeManager.MonitorNodeMap[caseModel.Label];
 //
 //		if(!monitorNode.IsActive) {
 //			element.append('<a href="#" ><img id="monitor-tgl" src="'+serverApi.basepath+'images/monitor.png" title="Activate monitor" alt="monitor-tgl" /></a>');
@@ -231,10 +231,10 @@ class MonitorTableWindow {
 //		$('#monitor-tgl').unbind('click');
 //		$('#monitor-tgl').click(function() {
 //			if(!monitorNode.IsActive) {
-//				monitorManager.ActivateMonitor(caseModel.Label);
+//				monitorNodeManager.ActivateMonitor(caseModel.Label);
 //			}
 //			else {
-//				monitorManager.DeactivateMonitor(caseModel.Label);
+//				monitorNodeManager.DeactivateMonitor(caseModel.Label);
 //			}
 //		});
 //
@@ -255,7 +255,7 @@ class MonitorSideMenuPlugIn extends AssureIt.SideMenuPlugIn {
 	}
 
 	AddMenu(caseViewer: AssureIt.CaseViewer, Case0: AssureIt.Case, serverApi: AssureIt.ServerAPI): AssureIt.SideMenuModel {
-		monitorManager.Init(caseViewer, serverApi.recpath);
+		monitorNodeManager.Init(caseViewer, serverApi.recpath);
 
 		return new AssureIt.SideMenuModel('#', 'Monitors', "monitors", "glyphicon-list-alt", (ev:Event)=>{
 			var monitorTableWindow = new MonitorTableWindow();

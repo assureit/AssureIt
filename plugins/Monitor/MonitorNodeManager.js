@@ -13,19 +13,20 @@ var MonitorNodeManager = (function (_super) {
         var location = getContextNode(evidenceNode.Parent).Notes["Location"];
         var condition = getContextNode(evidenceNode.Parent).Notes["Monitor"];
         var item = extractItemFromCondition(condition);
-        var monitorNode = this.DynamicNodeMap[evidenceNode.Label];
+        var monitorNode = this.ActionNodeMap[evidenceNode.Label];
 
         if (monitorNode == null) {
-            this.DynamicNodeMap[evidenceNode.Label] = new MonitorNode(location, item, condition, evidenceNode);
+            this.ActionNodeMap[evidenceNode.Label] = new MonitorNode(location, item, condition, evidenceNode);
         } else {
             monitorNode.SetLocation(location);
             monitorNode.SetItem(item);
             monitorNode.SetCondition(condition);
+            return;
         }
 
-        if (Object.keys(this.DynamicNodeMap).length == 1) {
+        if (Object.keys(this.ActionNodeMap).length == 1) {
             this.StartMonitoring(5000);
         }
     };
     return MonitorNodeManager;
-})(DynamicNodeManager);
+})(ActionNodeManager);

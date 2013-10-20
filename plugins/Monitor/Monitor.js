@@ -4,7 +4,7 @@ var __extends = this.__extends || function (d, b) {
     __.prototype = b.prototype;
     d.prototype = new __();
 };
-var monitorManager = null;
+var monitorNodeManager = null;
 
 var MonitorPlugIn = (function (_super) {
     __extends(MonitorPlugIn, _super);
@@ -15,8 +15,8 @@ var MonitorPlugIn = (function (_super) {
         this.SVGRenderPlugIn = new MonitorSVGRenderPlugIn(plugInManager);
 
         this.SideMenuPlugIn = new MonitorSideMenuPlugIn(plugInManager);
-        monitorManager = new MonitorNodeManager();
-        this.PlugInEnv = { "DynamicNodeManager": monitorManager };
+        monitorNodeManager = new MonitorNodeManager();
+        this.PlugInEnv = { "ActionNodeManager": monitorNodeManager };
     }
     return MonitorPlugIn;
 })(AssureIt.PlugInSet);
@@ -33,9 +33,9 @@ var MonitorHTMLRenderPlugIn = (function (_super) {
     MonitorHTMLRenderPlugIn.prototype.Delegate = function (caseViewer, nodeModel, element) {
         if (!isMonitorNode(nodeModel))
             return;
-        monitorManager.SetMonitorNode(nodeModel);
+        monitorNodeManager.SetMonitorNode(nodeModel);
 
-        var monitorNode = monitorManager.DynamicNodeMap[nodeModel.Label];
+        var monitorNode = monitorNodeManager.ActionNodeMap[nodeModel.Label];
         if (monitorNode == null || !("Item" in monitorNode))
             return;
 
@@ -92,7 +92,7 @@ var MonitorSVGRenderPlugIn = (function (_super) {
 
     MonitorSVGRenderPlugIn.prototype.Delegate = function (caseViewer, nodeView) {
         var nodeModel = nodeView.Source;
-        var monitorNode = monitorManager.DynamicNodeMap[nodeModel.Label];
+        var monitorNode = monitorNodeManager.ActionNodeMap[nodeModel.Label];
 
         if (!monitorNode)
             return true;
@@ -143,8 +143,8 @@ var MonitorTableWindow = (function () {
         $table.find('tbody').remove();
         var $tbody = $('<tbody></tbody>');
 
-        for (var key in monitorManager.DynamicNodeMap) {
-            var monitorNode = monitorManager.DynamicNodeMap[key];
+        for (var key in monitorNodeManager.ActionNodeMap) {
+            var monitorNode = monitorNodeManager.ActionNodeMap[key];
 
             if (!("Item" in monitorNode))
                 continue;
@@ -196,7 +196,7 @@ var MonitorSideMenuPlugIn = (function (_super) {
     };
 
     MonitorSideMenuPlugIn.prototype.AddMenu = function (caseViewer, Case0, serverApi) {
-        monitorManager.Init(caseViewer, serverApi.recpath);
+        monitorNodeManager.Init(caseViewer, serverApi.recpath);
 
         return new AssureIt.SideMenuModel('#', 'Monitors', "monitors", "glyphicon-list-alt", function (ev) {
             var monitorTableWindow = new MonitorTableWindow();

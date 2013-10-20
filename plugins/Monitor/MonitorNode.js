@@ -4,23 +4,6 @@ var __extends = this.__extends || function (d, b) {
     __.prototype = b.prototype;
     d.prototype = new __();
 };
-function isContextNode(nodeModel) {
-    if (nodeModel.Type == AssureIt.NodeType.Context) {
-        return true;
-    }
-
-    return false;
-}
-
-function getContextNode(nodeModel) {
-    for (var i = 0; i < nodeModel.Children.length; i++) {
-        if (isContextNode(nodeModel.Children[i]))
-            return nodeModel.Children[i];
-    }
-
-    return null;
-}
-
 function isMonitorNode(nodeModel) {
     if (nodeModel.Type != AssureIt.NodeType.Evidence)
         return false;
@@ -108,4 +91,4 @@ var MonitorNode = (function (_super) {
         showNode(caseViewer, this.EvidenceNode, HTMLRenderFunctions, SVGRenderFunctions);
     };
     return MonitorNode;
-})(DynamicNode);
+})(ActionNode);

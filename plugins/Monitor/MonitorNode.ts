@@ -1,21 +1,5 @@
-/// <reference path="./DynamicNode.ts" />
+/// <reference path="../DScript/ActionNode.ts" />
 
-
-function isContextNode(nodeModel: AssureIt.NodeModel): boolean {
-	if(nodeModel.Type == AssureIt.NodeType.Context) {
-		return true;
-	}
-
-	return false;
-}
-
-function getContextNode(nodeModel: AssureIt.NodeModel): AssureIt.NodeModel {
-	for(var i: number = 0; i < nodeModel.Children.length; i++) {
-		if(isContextNode(nodeModel.Children[i])) return nodeModel.Children[i];
-	}
-
-	return null;
-}
 
 function isMonitorNode(nodeModel: AssureIt.NodeModel): boolean {
 	if(nodeModel.Type != AssureIt.NodeType.Evidence) return false;
@@ -29,7 +13,7 @@ function isMonitorNode(nodeModel: AssureIt.NodeModel): boolean {
 }
 
 
-class MonitorNode extends DynamicNode {
+class MonitorNode extends ActionNode {
 
 	Item: string;
 	Condition: string;

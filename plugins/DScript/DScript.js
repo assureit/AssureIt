@@ -307,13 +307,25 @@ int GetDataFromRec(String location, String type) {\n\
 "
             };
 
+            var actionNodeManager = caseViewer.pluginManager.GetPlugInEnv("monitor").ActionNodeManager;
+            var ElementMap = caseViewer.Source.ElementMap;
+
+            for (var label in ElementMap) {
+                var nodeModel = ElementMap[label];
+
+                if (isActionNode(nodeModel)) {
+                    actionNodeManager.SetActionNode(nodeModel);
+                    var actionNode = actionNodeManager.ActionNodeMap[nodeModel.Label];
+                    actionNodeManager.RECAPI.pushRawData(actionNode.Location, nodeModel.Label, 0, "test@gmail.com", "");
+                }
+            }
+
             try  {
                 _this.AssureItAgentAPI.Deploy(__dscript__);
             } catch (e) {
                 alert("Assure-It Agent is not active.");
                 return;
             }
-            caseViewer.pluginManager.GetPlugInEnv("monitor").MonitorManager.RemoveAllMonitor();
         });
     };
     return DScriptSideMenuPlugIn;
