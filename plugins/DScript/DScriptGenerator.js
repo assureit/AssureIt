@@ -82,9 +82,8 @@ var DScriptGenerator = (function () {
                 if (child.Type == AssureIt.NodeType.Context || this.SearchAnnotationByName(child, "OnlyIf") != null) {
                     continue;
                 } else {
-                    if (funcCall != "")
-                        funcCall += " && ";
                     funcCall += child.Label + "()";
+                    break;
                 }
             }
             ret += funcCall;

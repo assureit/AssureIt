@@ -114,8 +114,9 @@ class DScriptGenerator {
 					continue;
 				}
 				else {
-					if (funcCall != "") funcCall += " && ";
-					funcCall += child.Label + "()"
+					//if (funcCall != "") funcCall += " && "; TODO: DFault doesn't support '&&' operator now
+					funcCall += child.Label + "()";
+					break;
 				}
 			}
 			ret += funcCall;
