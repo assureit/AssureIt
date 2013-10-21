@@ -129,6 +129,10 @@ var DScriptActionMap = (function () {
                         delete this.ActionRelation[reactionNode.GetNote("Action")];
                     } else {
                         reactionNode.Case = null;
+                        this.NodeRelation[key] = this.NodeRelation[risk];
+                        this.NodeRelation[key]["action"] = node.Label;
+                        this.NodeRelation[key]["risk"] = risk;
+                        delete this.NodeRelation[risk];
                     }
                 }
             } else {

@@ -43,7 +43,7 @@ class DScriptActionMap {
 		return ret;
 	}
 
-	// gen nodeRelation from the Node which have Reaction::~ 
+	// gen nodeRelation from the Node which have Reaction::~
 	private GenNodeRelation(node: AssureIt.NodeModel): any {
 		var ret = null;
 		var action = node.GetNote("Reaction");
@@ -156,6 +156,10 @@ class DScriptActionMap {
 					}
 					else {
 						reactionNode.Case = null; // used as flag
+						this.NodeRelation[key] = this.NodeRelation[risk];
+						this.NodeRelation[key]["action"] = node.Label;
+						this.NodeRelation[key]["risk"] = risk;
+						delete this.NodeRelation[risk];
 					}
 				}
 			}

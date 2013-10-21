@@ -372,7 +372,7 @@ return (int)data.replaceAll(\"\\n\", \"\");\n\
 
 			var actionNodeManager: ActionNodeManager = caseViewer.pluginManager.GetPlugInEnv("monitor").ActionNodeManager;
 			var ElementMap = caseViewer.Source.ElementMap;
-
+			console.log(__dscript__);
 			for(var label in ElementMap) {
 				var nodeModel: AssureIt.NodeModel = ElementMap[label];
 
