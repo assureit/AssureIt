@@ -15,14 +15,14 @@ var __dscript__ = {
     }
 };
 __dscript__.script.funcdef = {
-    "PortMonitor()": "\n\
-print(\"PortMonitor called...\");\n\
+    "PortScanMonitor()": "\n\
+print(\"PortScanMonitor called...\");\n\
 DFault ret = null;\n\
 if (Monitor) {\n\
 \tret = null;\n\
 }\n\
 else {\n\
-\tret = fault(\"Computer is accessed by someone\");\n\
+\tret = fault(Risk);\n\
 }\n\
 return ret;\n\
 ",

@@ -56,6 +56,7 @@ var DScriptGenerator = (function () {
             ret += this.Indent + this.Indent + "boolean Monitor = " + condStr + ";" + this.LineFeed;
         }
 
+        ret += __dscript__.script.funcdef[funcName].replace(/\n/g, this.LineFeed + this.Indent + this.Indent);
         ret += this.LineFeed;
         ret = ret.replace(/\t\t\n/, "");
         ret += this.Indent + "}" + this.LineFeed;
