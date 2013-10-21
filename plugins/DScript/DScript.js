@@ -29,12 +29,14 @@ return ret;\n\
     "BlockIP()": "\n\
 print(\"BlockIP called...\");\n\
 DFault ret = null;\n\
-//    command iptables;\n\
-//try {\n\
-//    iptables -A INPUT -p tcp -s $ip --dport $port -j DROP\n\
-//}\n\
-//catch (Exception e) {\n\
-//}\n\
+command rec, sleep;\n\
+int i = 0;\n\
+while(i < 10) {\n\
+\tprint(\"        *\");\n\
+\tsleep 1\n\
+\ti += 1;\n\
+}\n\
+rec -m pushRawData -l ServerA -t IsPortScaned -d 0\n\
 return ret;\n\
 "
 };
