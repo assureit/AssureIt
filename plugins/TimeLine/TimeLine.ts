@@ -40,14 +40,14 @@ class TimeLineKeyPlugIn extends AssureIt.ShortcutKeyPlugIn {
 	}
 
 	RegisterKeyEvents(caseViewer: AssureIt.CaseViewer, Case0: AssureIt.Case, serverApi: AssureIt.ServerAPI) : boolean {
-		$("body").keydown((e)=>{
-			if(e.keyCode == 37/*left*/ && e.shiftKey) {
-				this.ShowPreview(Case0, serverApi);
-			}
-			if(e.keyCode == 39/*right*/ && e.shiftKey) {
-				this.ShowNext(Case0, serverApi);
-			}
-		});
+		//$("body").keydown((e)=>{
+		//	if(e.keyCode == 37/*left*/ && e.shiftKey) {
+		//		this.ShowPreview(Case0, serverApi);
+		//	}
+		//	if(e.keyCode == 39/*right*/ && e.shiftKey) {
+		//		this.ShowNext(Case0, serverApi);
+		//	}
+		//});
 		return true;
 	}
 

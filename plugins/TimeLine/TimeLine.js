@@ -43,15 +43,6 @@ var TimeLineKeyPlugIn = (function (_super) {
     };
 
     TimeLineKeyPlugIn.prototype.RegisterKeyEvents = function (caseViewer, Case0, serverApi) {
-        var _this = this;
-        $("body").keydown(function (e) {
-            if (e.keyCode == 37 && e.shiftKey) {
-                _this.ShowPreview(Case0, serverApi);
-            }
-            if (e.keyCode == 39 && e.shiftKey) {
-                _this.ShowNext(Case0, serverApi);
-            }
-        });
         return true;
     };
 
