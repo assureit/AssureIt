@@ -9,7 +9,7 @@ jsonrpc='"2.0"'
 method='"pushRawData"'
 id='0'   # FIXME
 rec_server_url=''   # this data is added by ads server
-default_rec_server_url='http://54.250.206.119/rec/api/2.0/'
+default_rec_server_url='http://localhost:3001/api/2.0/'
 
 
 ## API

@@ -32,6 +32,25 @@ var AssureIt;
             this.uri = path;
             this.basepath = path;
         }
+        RECAPI.prototype.pushRawData = function (location, type, data, authid, context) {
+            var params = {
+                location: location,
+                type: type,
+                data: data,
+                authid: authid,
+                context: context
+            };
+
+            var res = RemoteProcedureCall(this.uri, "pushRawData", params);
+
+            if ('result' in res) {
+                return res.result;
+            } else {
+                console.log(res.error);
+                return null;
+            }
+        };
+
         RECAPI.prototype.getRawData = function (recid) {
             var params = { recid: recid };
 
