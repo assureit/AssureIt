@@ -100,6 +100,7 @@ module AssureIt {
 		Height: number;
 		ShapeGroup: SVGGElement;
 		ArrowPath: SVGPathElement;
+		ColorClassName: string = "assureit-default";
 
 		Render(CaseViewer: CaseViewer, NodeModel: NodeModel, HTMLDoc: HTMLDoc): void {
 			this.ShapeGroup = <SVGGElement>document.createSVGElement("g");
@@ -158,11 +159,7 @@ module AssureIt {
 			}
 		}
 
-		SetColor(fill: string, stroke: string) {
-		}
-
-		GetColor(): {[index: string]: string} {
-			return {};
+		SetColor(key: string) {
 		}
 
 		GetConnectorPosition(Dir: Direction): Point {
@@ -188,6 +185,7 @@ module AssureIt {
 		Render(CaseViewer: CaseViewer, NodeModel: NodeModel, HTMLDoc: HTMLDoc): void {
 			super.Render(CaseViewer, NodeModel, HTMLDoc);
 			this.BodyRect = <SVGRectElement>document.createSVGElement("rect");
+			this.BodyRect.setAttribute("class",this.ColorClassName);
 			this.UndevelopedSymbol = <SVGUseElement>document.createSVGElement("use");
 			this.UndevelopedSymbol.setAttribute("xlink:href", "#UndevelopdSymbol");
 
@@ -201,13 +199,8 @@ module AssureIt {
 			this.BodyRect.setAttribute("height", this.Height.toString());
 		}
 
-		SetColor(fill: string, stroke: string) {
-			this.BodyRect.setAttribute("fill", fill);
-			this.BodyRect.setAttribute("stroke", stroke);
-		}
-
-		GetColor(): {[index: string]: string} {
-			return { "fill": this.BodyRect.getAttribute("fill"), "stroke": this.BodyRect.getAttribute("stroke") };
+		SetColor(key: string) {
+			this.BodyRect.setAttribute("class", key);
 		}
 
 		SetUndevelolpedSymbolPosition(point: Point){
@@ -222,6 +215,7 @@ module AssureIt {
 		Render(CaseViewer: CaseViewer, NodeModel: NodeModel, HTMLDoc: HTMLDoc): void {
 			super.Render(CaseViewer, NodeModel, HTMLDoc);
 			this.BodyRect = <SVGRectElement>document.createSVGElement("rect");
+			this.BodyRect.setAttribute("class",this.ColorClassName);
 			this.ArrowPath.setAttribute("marker-end", "url(#Triangle-white)");
 			this.BodyRect.setAttribute("rx", "10");
 			this.BodyRect.setAttribute("ry", "10");
@@ -235,14 +229,10 @@ module AssureIt {
 			this.BodyRect.setAttribute("height", this.Height.toString());
 		}
 
-		SetColor(fill: string, stroke: string) {
-			this.BodyRect.setAttribute("fill", fill);
-			this.BodyRect.setAttribute("stroke", stroke);
+		SetColor(key: string) {
+			this.BodyRect.setAttribute("class", key);
 		}
 
-		GetColor(): {[index: string]: string} {
-			return { "fill": this.BodyRect.getAttribute("fill"), "stroke": this.BodyRect.getAttribute("stroke") };
-		}
 	}
 
 	export class StrategyShape extends SVGShape {
@@ -252,6 +242,7 @@ module AssureIt {
 		Render(CaseViewer: CaseViewer, NodeModel: NodeModel, HTMLDoc: HTMLDoc): void {
 			super.Render(CaseViewer, NodeModel, HTMLDoc);
 			this.BodyPolygon = <SVGPolygonElement>document.createSVGElement("polygon");
+			this.BodyPolygon.setAttribute("class",this.ColorClassName);
 			this.ShapeGroup.appendChild(this.BodyPolygon);
 			this.Resize(CaseViewer, NodeModel, HTMLDoc);
 		}
@@ -261,13 +252,8 @@ module AssureIt {
 			this.BodyPolygon.setAttribute("points", ""+this.delta+",0 " + this.Width + ",0 " + (this.Width - this.delta) + "," + this.Height + " 0," + this.Height);
 		}
 
-		SetColor(fill: string, stroke: string) {
-			this.BodyPolygon.setAttribute("fill", fill);
-			this.BodyPolygon.setAttribute("stroke", stroke);
-		}
-
-		GetColor(): {[index: string]: string} {
-			return { "fill": this.BodyPolygon.getAttribute("fill"), "stroke": this.BodyPolygon.getAttribute("stroke") };
+		SetColor(key: string) {
+			this.BodyPolygon.setAttribute("class", key);
 		}
 
 		GetConnectorPosition(Dir: Direction): Point {
@@ -290,6 +276,7 @@ module AssureIt {
 		Render(CaseViewer: CaseViewer, NodeModel: NodeModel, HTMLDoc: HTMLDoc): void {
 			super.Render(CaseViewer, NodeModel, HTMLDoc);
 			this.BodyEllipse = <SVGEllipseElement>document.createSVGElement("ellipse");
+			this.BodyEllipse.setAttribute("class",this.ColorClassName);
 			this.ShapeGroup.appendChild(this.BodyEllipse);
 			this.Resize(CaseViewer, NodeModel, HTMLDoc);
 		}
@@ -302,14 +289,10 @@ module AssureIt {
 			this.BodyEllipse.setAttribute("ry", (this.Height / 2).toString());
 		}
 
-		SetColor(fill: string, stroke: string) {
-			this.BodyEllipse.setAttribute("fill", fill);
-			this.BodyEllipse.setAttribute("stroke", stroke);
+		SetColor(key: string) {
+			this.BodyEllipse.setAttribute("class", key);
 		}
 
-		GetColor(): {[index: string]: string} {
-			return { "fill": this.BodyEllipse.getAttribute("fill"), "stroke": this.BodyEllipse.getAttribute("stroke") };
-		}
 	}
 
 	export class SVGShapeFactory {
