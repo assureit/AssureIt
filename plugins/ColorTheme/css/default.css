@@ -1,0 +1,14 @@
+.assureit-danger {
+	fill: none;
+	stroke: #f00;
+}
+
+.assureit-default {
+	fill: #b4d8df;
+	stroke: none;
+}
+
+.assureit-highlight {
+	fill: #b4d8df;
+	stroke: orange;
+}
