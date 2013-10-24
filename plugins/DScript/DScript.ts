@@ -5,8 +5,8 @@
 /// <reference path="./Generator.ts" />
 /// <reference path="./ActionMap.ts" />
 /// <reference path="./PaneManager.ts" />
-/// <reference path="./ActionNode.ts" />
-/// <reference path="./ActionNodeManager.ts" />
+/// <reference path="../ActionNode/ActionNode.ts" />
+/// <reference path="../ActionNode/ActionNodeManager.ts" />
 
 var __dscript__ = {
 	script : {

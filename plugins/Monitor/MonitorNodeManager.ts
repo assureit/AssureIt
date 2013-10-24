@@ -1,4 +1,4 @@
-/// <reference path="../DScript/ActionNodeManager.ts" />
+/// <reference path="../ActionNode/ActionNodeManager.ts" />
 
 
 class MonitorNodeManager extends ActionNodeManager {

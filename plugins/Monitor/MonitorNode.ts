@@ -1,4 +1,4 @@
-/// <reference path="../DScript/ActionNode.ts" />
+/// <reference path="../ActionNode/ActionNode.ts" />
 
 
 function isMonitorNode(nodeModel: AssureIt.NodeModel): boolean {
