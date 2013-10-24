@@ -311,11 +311,12 @@ var DScriptSideMenuPlugIn = (function (_super) {
         return case0.IsEditable();
     };
 
-    DScriptSideMenuPlugIn.prototype.AddMenu = function (caseViewer, case0, serverApi) {
+    DScriptSideMenuPlugIn.prototype.AddMenus = function (caseViewer, case0, serverApi) {
         var _this = this;
-        this.AssureItAgentAPI = new AssureIt.AssureItAgentAPI(serverApi.agentpath);
+        var ret = [];
         var self = this;
-        return new AssureIt.SideMenuModel('#', 'Deploy', "deploy", "glyphicon-list-alt", function (ev) {
+        this.AssureItAgentAPI = new AssureIt.AssureItAgentAPI(serverApi.agentpath);
+        ret.push(new AssureIt.SideMenuModel('#', 'Deploy', "deploy", "glyphicon-list-alt", function (ev) {
             self.editorPlugIn.GenerateCode();
             __dscript__.script.lib = {
                 "GetDataFromRec.ds": "\n\
@@ -346,7 +347,8 @@ return (int)data.replaceAll(\"\\n\", \"\");\n\
                 alert("Assure-It Agent is not active.");
                 console.log(e);
             }
-        });
+        }));
+        return ret;
     };
     return DScriptSideMenuPlugIn;
 })(AssureIt.SideMenuPlugIn);

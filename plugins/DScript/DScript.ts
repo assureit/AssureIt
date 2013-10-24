@@ -355,10 +355,11 @@ class DScriptSideMenuPlugIn extends AssureIt.SideMenuPlugIn {
 		return case0.IsEditable();
 	}
 
-	AddMenu(caseViewer: AssureIt.CaseViewer, case0: AssureIt.Case, serverApi: AssureIt.ServerAPI): AssureIt.SideMenuModel {
-		this.AssureItAgentAPI = new AssureIt.AssureItAgentAPI(serverApi.agentpath);
+	AddMenus(caseViewer: AssureIt.CaseViewer, case0: AssureIt.Case, serverApi: AssureIt.ServerAPI): AssureIt.SideMenuModel[] {
+		var ret: AssureIt.SideMenuModel[] = [];
 		var self = this;
-		return new AssureIt.SideMenuModel('#', 'Deploy', "deploy", "glyphicon-list-alt"/* TODO: change icon */, (ev:Event)=>{
+		this.AssureItAgentAPI = new AssureIt.AssureItAgentAPI(serverApi.agentpath);
+		ret.push(new AssureIt.SideMenuModel('#', 'Deploy', "deploy", "glyphicon-list-alt"/* TODO: change icon */, (ev:Event)=>{
 			self.editorPlugIn.GenerateCode();
 			__dscript__.script.lib = {
 				"GetDataFromRec.ds" : "\n\
@@ -390,6 +391,7 @@ return (int)data.replaceAll(\"\\n\", \"\");\n\
 				alert("Assure-It Agent is not active.");
 				console.log(e);
 			}
-		});
+		}));
+		return ret;
 	}
 }

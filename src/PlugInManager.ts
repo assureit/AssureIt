@@ -195,6 +195,9 @@ module AssureIt {
 		AddMenu(caseViewer: CaseViewer, Case0: Case, serverApi: ServerAPI) : SideMenuModel {
 			return null;
 		}
+		AddMenus(caseViewer: CaseViewer, Case0: Case, serverApi: ServerAPI) : SideMenuModel[] {
+			return null;
+		}
 	}
 
 	export class PlugInManager {
@@ -362,7 +365,10 @@ module AssureIt {
 			for(var key in this.SideMenuPlugInMap) {
 				var plugin: SideMenuPlugIn = this.SideMenuPlugInMap[key];
 				if(plugin.IsEnabled(caseViewer, Case0, serverApi)) {
-					SideMenuContents.push(plugin.AddMenu(caseViewer, Case0, serverApi));
+					var content = plugin.AddMenu(caseViewer, Case0, serverApi);
+					if (content != null) SideMenuContents.push(content);
+					var contents = plugin.AddMenus(caseViewer, Case0, serverApi);
+					if (contents != null) SideMenuContents.push.apply(SideMenuContents, contents);
 				}
 			}
 			SideMenu.Create(SideMenuContents);
