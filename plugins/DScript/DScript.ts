@@ -2,9 +2,9 @@
 /// <reference path="../../src/CaseViewer.ts" />
 /// <reference path="../../src/PlugInManager.ts" />
 /// <reference path="../../src/EditorUtil.ts" />
-/// <reference path="./DScriptGenerator.ts" />
-/// <reference path="./DScriptActionMap.ts" />
-/// <reference path="./DScriptPaneManager.ts" />
+/// <reference path="./Generator.ts" />
+/// <reference path="./ActionMap.ts" />
+/// <reference path="./PaneManager.ts" />
 /// <reference path="./ActionNode.ts" />
 /// <reference path="./ActionNodeManager.ts" />
 

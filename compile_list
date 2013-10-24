@@ -7,8 +7,9 @@ plugins/Editor/Editor.ts
 plugins/SearchNode/SearchNode.ts
 plugins/SimplePattern/SimplePattern.ts
 plugins/DScript/DScript.ts
-plugins/DScript/DScriptGenerator.ts
-plugins/DScript/DScriptActionMap.ts
+plugins/DScript/Generator.ts
+plugins/DScript/ActionMap.ts
+plugins/DScript/PaneManager.ts
 plugins/DScript/ActionNode.ts
 plugins/DScript/ActionNodeManager.ts
 plugins/FullScreenEditor/FullScreenEditor.ts
