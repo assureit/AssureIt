@@ -4,8 +4,8 @@
 class MonitorNodeManager extends ActionNodeManager {
 
 	SetMonitorNode(evidenceNode: AssureIt.NodeModel) {
-		var location: string = getContextNode(evidenceNode.Parent).Notes["Location"];
-		var condition: string = getContextNode(evidenceNode.Parent).Notes["Monitor"];
+		var location: string = evidenceNode.Environment.Location;
+		var condition: string = evidenceNode.Environment.Monitor;
 		var item: string = extractItemFromCondition(condition);
 		var monitorNode: MonitorNode = <MonitorNode>this.ActionNodeMap[evidenceNode.Label];
 

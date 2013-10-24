@@ -17,36 +17,8 @@ function showNode(caseViewer, nodeModel, HTMLRenderFunctions, SVGRenderFunctions
     }
 }
 
-function isContextNode(nodeModel) {
-    if (nodeModel.Type == AssureIt.NodeType.Context) {
-        return true;
-    }
-
-    return false;
-}
-
-function getContextNode(nodeModel) {
-    for (var i = 0; i < nodeModel.Children.length; i++) {
-        if (isContextNode(nodeModel.Children[i]))
-            return nodeModel.Children[i];
-    }
-
-    return null;
-}
-
 function isActionNode(nodeModel) {
-    if (nodeModel.Type != AssureIt.NodeType.Evidence)
-        return false;
-    if (!("Action" in nodeModel.Notes))
-        return false;
-
-    var contextNode = getContextNode(nodeModel.Parent);
-    if (contextNode == null)
-        return false;
-    if (!("Location" in contextNode.Notes))
-        return false;
-
-    return true;
+    return nodeModel.Type != AssureIt.NodeType.Evidence && nodeModel.Environment.Action != null && nodeModel.Environment.Location != null;
 }
 
 var ActionNode = (function () {

@@ -18,33 +18,11 @@ function showNode(caseViewer: AssureIt.CaseViewer, nodeModel: AssureIt.NodeModel
 	}
 }
 
-function isContextNode(nodeModel: AssureIt.NodeModel): boolean {
-	if(nodeModel.Type == AssureIt.NodeType.Context) {
-		return true;
-	}
-
-	return false;
-}
-
-function getContextNode(nodeModel: AssureIt.NodeModel): AssureIt.NodeModel {
-	for(var i: number = 0; i < nodeModel.Children.length; i++) {
-		if(isContextNode(nodeModel.Children[i])) return nodeModel.Children[i];
-	}
-
-	return null;
-}
-
 function isActionNode(nodeModel: AssureIt.NodeModel): boolean {
-	if(nodeModel.Type != AssureIt.NodeType.Evidence) return false;
-	if(!("Action" in nodeModel.Notes)) return false;
-
-	var contextNode = getContextNode(nodeModel.Parent);
-	if(contextNode == null) return false;
-	if(!("Location" in contextNode.Notes)) return false;
-
-	return true;
+	return nodeModel.Type != AssureIt.NodeType.Evidence
+		&& nodeModel.Environment.Action != null
+		&& nodeModel.Environment.Location != null;
 }
-
 
 class ActionNode {
 

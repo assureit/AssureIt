@@ -31,6 +31,8 @@ var MonitorHTMLRenderPlugIn = (function (_super) {
     };
 
     MonitorHTMLRenderPlugIn.prototype.Delegate = function (caseViewer, nodeModel, element) {
+        if (nodeModel.Parent == null)
+            nodeModel.UpdateEnvironment();
         if (!isMonitorNode(nodeModel))
             return;
         monitorNodeManager.SetMonitorNode(nodeModel);
