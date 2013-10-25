@@ -95,9 +95,9 @@ var DScriptEditorPlugIn = (function (_super) {
             placeholder: "Generated DScript code goes here.",
             lineWrapping: true
         });
-        this.NodeRelationTable = this.createTable(["action", "risk", "reaction"], function (nRow, aData, iDisplayIndex, iDisplayIndexFull) {
+        this.NodeRelationTable = this.createTable(["Action", "Risk", "Reaction"], function (nRow, aData, iDisplayIndex, iDisplayIndexFull) {
         });
-        this.ActionRelationTable = this.createTable(["location", "action", "risk", "reaction"], function (nRow, aData, iDisplayIndex, iDisplayIndexFull) {
+        this.ActionRelationTable = this.createTable(["Location", "Evidence", "Risk", "Reaction"], function (nRow, aData, iDisplayIndex, iDisplayIndexFull) {
             if (aData[3].match("Undefined") != null) {
                 var $nRow = $(nRow);
                 if ($nRow.hasClass("odd")) {

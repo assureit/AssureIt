@@ -105,12 +105,12 @@ class DScriptEditorPlugIn extends AssureIt.ActionPlugIn {
 			lineWrapping: true,
 		});
 		this.NodeRelationTable = this.createTable(
-			["action", "risk", "reaction"],
+			["Action", "Risk", "Reaction"],
 			function(nRow, aData, iDisplayIndex, iDisplayIndexFull) {
 			}
 		);
 		this.ActionRelationTable = this.createTable(
-			["location", "action", "risk", "reaction"],
+			["Location", "Evidence", "Risk", "Reaction"],
 			function(nRow, aData, iDisplayIndex, iDisplayIndexFull) {
 				if (aData[3].match("Undefined") != null) {
 					var $nRow = $(nRow);
