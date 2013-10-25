@@ -4,7 +4,7 @@ class DScriptPaneManager {
 	Options: any;
 	RefreshFunc;
 	ButtonUtil;
-	
+
  	constructor(parentWidget: JQuery, widget0: JQuery, keepStyle: boolean = false) {
 		this.ParentWidget = parentWidget;
 		this.Widgets = [widget0.get(0)];
@@ -12,7 +12,7 @@ class DScriptPaneManager {
 		this.RefreshFunc = function(){};
 		this.ButtonUtil = this.CreateButtonUtil();
 
-		var frame: JQuery = this.CreateFrame();;
+		var frame: JQuery = this.CreateFrame();
 		if (widget0 != null) {
 			parentWidget.append(frame.append(widget0.addClass("managed-widget")));
 		}
@@ -180,7 +180,7 @@ class DScriptPaneManager {
 		var ctx = buttonDelete.get(0).getContext("2d");
 		this.ButtonUtil.CanvasRenderDeleteButton(ctx);
 		buttonDelete.bind("click", {frame : newFrame }, this.ButtonUtil.Delete);
-		
+
 		newFrame.append(buttonUp);
 		newFrame.append(buttonLeft);
 		newFrame.append(buttonDelete);
@@ -221,6 +221,21 @@ class DScriptPaneManager {
 		this.RefreshFunc();
 	}
 
+	public ShowWidget(widgetName: string) {
+		var newWidget = this.Options[widgetName];
+		if (newWidget != null) {
+			var topFrame = this.ParentWidget.children(".managed-frame");
+			topFrame.remove();
+			topFrame = this.CreateFrame();
+			this.ParentWidget.append(topFrame.append(newWidget.addClass("managed-widget")));
+			DScriptPaneManager.ExpandWidget(topFrame);
+			this.Widgets = [newWidget.get(0)];
+		}
+		else {
+			console.log("DScriptPaneManager:Error!! cannot show widget, because the widget named " + widgetName + " is not exist");
+		}
+	}
+
 	private AddWidgetCommon(locatedWidget: JQuery, newWidget: JQuery, keepStyle: boolean = false) {
 		var ret: boolean = false;
 		var index: number = this.Widgets.indexOf(locatedWidget.get(0));
@@ -228,7 +243,7 @@ class DScriptPaneManager {
 		if (index != -1 || isDefaultWidget) {
 			ret = true;
 			newWidget.addClass("managed-widget");
-			if (isDefaultWidget) this.Widgets.push(newWidget.get(0));
+			if (!isDefaultWidget) this.Widgets.push(newWidget.get(0));
 			var childFrame1: JQuery = this.CreateFrame();
 			var childFrame2: JQuery = this.CreateFrame();
 			var parentFrame: JQuery = locatedWidget.parent();

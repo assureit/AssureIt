@@ -156,7 +156,7 @@ var DScriptEditorPlugIn = (function (_super) {
         var encoder = new AssureIt.CaseEncoder();
         var encoded = encoder.ConvertToASN(self.RootNodeModel, false);
         self.ASNEditor.setValue(encoded);
-        if (ev.data.nodeModel.Case.IsEditable()) {
+        if (self.RootNodeModel.Case.IsEditable()) {
             self.ASNEditor.setOption("readOnly", false);
         } else {
             self.ASNEditor.setOption("readOnly", true);
@@ -317,6 +317,7 @@ var DScriptSideMenuPlugIn = (function (_super) {
         var self = this;
         this.AssureItAgentAPI = new AssureIt.AssureItAgentAPI(serverApi.agentpath);
         ret.push(new AssureIt.SideMenuModel('#', 'Deploy', "deploy", "glyphicon-list-alt", function (ev) {
+            self.editorPlugIn.RootNodeModel = case0.ElementTop;
             self.editorPlugIn.GenerateCode();
             __dscript__.script.lib = {
                 "GetDataFromRec.ds": "\n\
@@ -347,6 +348,17 @@ return (int)data.replaceAll(\"\\n\", \"\");\n\
                 alert("Assure-It Agent is not active.");
                 console.log(e);
             }
+        }));
+        ret.push(new AssureIt.SideMenuModel('#', 'Actions', "actions", "glyphicon-list-alt", function (ev) {
+            var paneManager = self.editorPlugIn.PaneManager;
+            self.editorPlugIn.ShowEditor({
+                data: {
+                    editorPlugIn: self.editorPlugIn,
+                    nodeModel: case0.ElementTop
+                }
+            });
+            paneManager.ShowWidget("Action Relation Table");
+            paneManager.AddWidgetOnBottom(paneManager.Options["Action Relation Table"], paneManager.Options["Node Relation Table"]);
         }));
         return ret;
     };

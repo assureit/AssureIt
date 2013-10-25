@@ -9,7 +9,6 @@ var DScriptPaneManager = (function () {
         this.ButtonUtil = this.CreateButtonUtil();
 
         var frame = this.CreateFrame();
-        ;
         if (widget0 != null) {
             parentWidget.append(frame.append(widget0.addClass("managed-widget")));
         } else {
@@ -215,6 +214,20 @@ var DScriptPaneManager = (function () {
         this.RefreshFunc();
     };
 
+    DScriptPaneManager.prototype.ShowWidget = function (widgetName) {
+        var newWidget = this.Options[widgetName];
+        if (newWidget != null) {
+            var topFrame = this.ParentWidget.children(".managed-frame");
+            topFrame.remove();
+            topFrame = this.CreateFrame();
+            this.ParentWidget.append(topFrame.append(newWidget.addClass("managed-widget")));
+            DScriptPaneManager.ExpandWidget(topFrame);
+            this.Widgets = [newWidget.get(0)];
+        } else {
+            console.log("DScriptPaneManager:Error!! cannot show widget, because the widget named " + widgetName + " is not exist");
+        }
+    };
+
     DScriptPaneManager.prototype.AddWidgetCommon = function (locatedWidget, newWidget, keepStyle) {
         if (typeof keepStyle === "undefined") { keepStyle = false; }
         var ret = false;
@@ -223,7 +236,7 @@ var DScriptPaneManager = (function () {
         if (index != -1 || isDefaultWidget) {
             ret = true;
             newWidget.addClass("managed-widget");
-            if (isDefaultWidget)
+            if (!isDefaultWidget)
                 this.Widgets.push(newWidget.get(0));
             var childFrame1 = this.CreateFrame();
             var childFrame2 = this.CreateFrame();
