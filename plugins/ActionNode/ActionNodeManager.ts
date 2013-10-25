@@ -1,6 +1,3 @@
-/* This file is needed to move DScript plugin directory */
-
-
 function extractItemFromCondition(condition: string): string {
 	var text: string = condition
 						.replace(/\{/g, " ")
@@ -114,7 +111,7 @@ class ActionNodeManager {
 	}
 
 	SetActionNode(evidenceNode: AssureIt.NodeModel) {
-		var location: string = getContextNode(evidenceNode.Parent).Notes["Location"];
+		var location: string = evidenceNode.Environment.Location;
 		var actionNode = this.ActionNodeMap[evidenceNode.Label];
 
 		if(actionNode == null) {

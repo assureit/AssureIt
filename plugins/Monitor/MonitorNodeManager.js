@@ -10,8 +10,8 @@ var MonitorNodeManager = (function (_super) {
         _super.apply(this, arguments);
     }
     MonitorNodeManager.prototype.SetMonitorNode = function (evidenceNode) {
-        var location = getContextNode(evidenceNode.Parent).Notes["Location"];
-        var condition = getContextNode(evidenceNode.Parent).Notes["Monitor"];
+        var location = evidenceNode.Environment.Location;
+        var condition = evidenceNode.Environment.Monitor;
         var item = extractItemFromCondition(condition);
         var monitorNode = this.ActionNodeMap[evidenceNode.Label];
 

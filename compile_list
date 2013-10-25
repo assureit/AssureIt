@@ -6,11 +6,12 @@ plugins/ColorTheme/ColorTheme.ts
 plugins/Editor/Editor.ts
 plugins/SearchNode/SearchNode.ts
 plugins/SimplePattern/SimplePattern.ts
+plugins/ActionNode/ActionNode.ts
+plugins/ActionNode/ActionNodeManager.ts
 plugins/DScript/DScript.ts
-plugins/DScript/DScriptGenerator.ts
-plugins/DScript/DScriptActionMap.ts
-plugins/DScript/ActionNode.ts
-plugins/DScript/ActionNodeManager.ts
+plugins/DScript/Generator.ts
+plugins/DScript/ActionMap.ts
+plugins/DScript/PaneManager.ts
 plugins/FullScreenEditor/FullScreenEditor.ts
 plugins/MenuBar/MenuBar.ts
 plugins/Monitor/Monitor.ts
