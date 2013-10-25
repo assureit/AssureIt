@@ -79,7 +79,6 @@ var DScriptActionMap = (function () {
                 continue;
             this.AddNodeRelation(nodeRelation);
         }
-        console.log(this.NodeRelation);
 
         var riskRelation = {};
         for (var key in this.NodeRelation) {
@@ -104,7 +103,6 @@ var DScriptActionMap = (function () {
                 }
             }
         }
-        console.log(this.ActionRelation);
 
         for (var key in elementMap) {
             var node = elementMap[key];

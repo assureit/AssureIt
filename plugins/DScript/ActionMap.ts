@@ -106,7 +106,6 @@ class DScriptActionMap {
 			if (nodeRelation == null) continue;
 			this.AddNodeRelation(nodeRelation);
 		}
-		console.log(this.NodeRelation);
 
 		//for ActionRelation
 		var riskRelation = {};
@@ -132,7 +131,6 @@ class DScriptActionMap {
 				}
 			}
 		}
-		console.log(this.ActionRelation);
 
 		for (var key in elementMap) {
 			var node = elementMap[key];

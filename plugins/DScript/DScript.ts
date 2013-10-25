@@ -83,7 +83,7 @@ class DScriptEditorPlugIn extends AssureIt.ActionPlugIn {
 	PaneManager: DScriptPaneManager;
 
 	Widgets: any[]; /*FIXME*/
-	Highlighter: ErrorHighlight;
+//	Highlighter: ErrorHighlight;
 	CaseViewer: AssureIt.CaseViewer;
 	RootNodeModel: AssureIt.NodeModel;
 
@@ -124,7 +124,7 @@ class DScriptEditorPlugIn extends AssureIt.ActionPlugIn {
 				return nRow;
 			}
 		);
-		this.Highlighter = new ErrorHighlight(this.ASNEditor);
+//		this.Highlighter = new ErrorHighlight(this.ASNEditor);
 
 		this.ASNEditor.on("change", function(e: JQueryEventObject) {
 			self.GenerateCode();
@@ -294,7 +294,7 @@ class DScriptEditorPlugIn extends AssureIt.ActionPlugIn {
 		var orig_ElementMap = case0.ReserveElementMap(this.RootNodeModel);
 		var nodeModel = decoder.ParseASN(case0, ASNData, this.RootNodeModel);
 		if (nodeModel == null) {
-			this.Highlighter.Highlight(decoder.GetASNError().line, decoder.GetASNError().toString());
+//			this.Highlighter.Highlight(decoder.GetASNError().line, decoder.GetASNError().toString());
 			case0.IdCounters = orig_IdCounters;
 			case0.ElementMap = orig_ElementMap;
 			nodeModel = case0.ElementTop;
@@ -313,7 +313,7 @@ class DScriptEditorPlugIn extends AssureIt.ActionPlugIn {
 			}
 		}
 		this.RootNodeModel = nodeModel;
-		this.Highlighter.ClearHighlight();
+//		this.Highlighter.ClearHighlight();
 
 		try {
 			nodeModel.UpdateEnvironment();

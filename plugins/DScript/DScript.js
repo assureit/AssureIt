@@ -108,7 +108,6 @@ var DScriptEditorPlugIn = (function (_super) {
             }
             return nRow;
         });
-        this.Highlighter = new ErrorHighlight(this.ASNEditor);
 
         this.ASNEditor.on("change", function (e) {
             self.GenerateCode();
@@ -255,7 +254,6 @@ var DScriptEditorPlugIn = (function (_super) {
         var orig_ElementMap = case0.ReserveElementMap(this.RootNodeModel);
         var nodeModel = decoder.ParseASN(case0, ASNData, this.RootNodeModel);
         if (nodeModel == null) {
-            this.Highlighter.Highlight(decoder.GetASNError().line, decoder.GetASNError().toString());
             case0.IdCounters = orig_IdCounters;
             case0.ElementMap = orig_ElementMap;
             nodeModel = case0.ElementTop;
@@ -274,7 +272,6 @@ var DScriptEditorPlugIn = (function (_super) {
             }
         }
         this.RootNodeModel = nodeModel;
-        this.Highlighter.ClearHighlight();
 
         try  {
             nodeModel.UpdateEnvironment();
