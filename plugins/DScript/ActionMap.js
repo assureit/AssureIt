@@ -64,7 +64,17 @@ var DScriptActionMap = (function () {
         return ret;
     };
     DScriptActionMap.prototype.AddActionRelation = function (actionRelation) {
-        this.ActionRelation[actionRelation["action"]["func"]] = actionRelation;
+        var key = actionRelation["action"]["func"];
+        if (key in this.ActionRelation) {
+            var i = 1;
+            do {
+                var newKey = key + String(i);
+                i++;
+            } while(newKey in this.ActionRelation);
+            this.ActionRelation[newKey] = actionRelation;
+        } else {
+            this.ActionRelation[key] = actionRelation;
+        }
     };
 
     DScriptActionMap.prototype.Extract = function () {
@@ -127,10 +137,9 @@ var DScriptActionMap = (function () {
                         delete this.ActionRelation[reactionNode.GetNote("Action")];
                     } else {
                         reactionNode.Case = null;
-                        this.NodeRelation[key] = this.NodeRelation[risk];
+                        this.NodeRelation[key] = $.extend(true, {}, this.NodeRelation[risk]);
                         this.NodeRelation[key]["action"] = node.Label;
                         this.NodeRelation[key]["risk"] = risk;
-                        delete this.NodeRelation[risk];
                     }
                 }
             } else {
@@ -140,6 +149,11 @@ var DScriptActionMap = (function () {
                 this.AddActionRelation(actionRelation);
             }
         }
+        for (var key in riskRelation) {
+            if (key in this.NodeRelation)
+                delete this.NodeRelation[key];
+        }
+        console.log(this);
     };
 
     DScriptActionMap.prototype.GetNodeRelation = function () {

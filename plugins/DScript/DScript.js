@@ -225,7 +225,7 @@ var DScriptEditorPlugIn = (function (_super) {
             var relationMap = nodeRelation[key];
             var data = [
                 relationMap["action"],
-                "*",
+                relationMap["risk"],
                 relationMap["reaction"]
             ];
             (this.NodeRelationTable).fnAddData(data);

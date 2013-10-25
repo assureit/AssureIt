@@ -84,8 +84,13 @@ class DScriptGenerator {
 			ret += this.Indent + this.Indent + "boolean Monitor = " + condStr + ";" + this.LineFeed;
 		}
 
- 		ret += __dscript__.script.funcdef[funcName]
- 			.replace(/\n/g, this.LineFeed + this.Indent + this.Indent)   // FIXME
+		var funcdef = __dscript__.script.funcdef[funcName];
+		if (funcdef != null) { // FIXME
+ 			ret += funcdef.replace(/\n/g, this.LineFeed + this.Indent + this.Indent)
+		}
+		else {
+			ret += this.Indent + this.Indent + "return null;";
+		}
 		ret += this.LineFeed;
 		ret = ret.replace(/\t\t\n/, "");
 		ret += this.Indent + "}" + this.LineFeed;

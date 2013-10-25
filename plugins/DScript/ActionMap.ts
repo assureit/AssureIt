@@ -58,7 +58,7 @@ class DScriptActionMap {
 		return ret;
 	}
 	private AddNodeRelation(nodeRelation): void {
-		this.NodeRelation[nodeRelation["action"]] = nodeRelation; //FIX ME!! if key is dulicated
+		this.NodeRelation[nodeRelation["action"]] = nodeRelation; //FIX ME!! if key is duplicated
 	}
 
 	private GenActionRelation(actionNode: AssureIt.NodeModel, reactionNode: AssureIt.NodeModel, risk: string, location: string): any {
@@ -92,7 +92,18 @@ class DScriptActionMap {
 		return ret;
 	}
 	private AddActionRelation(actionRelation): void {
-		this.ActionRelation[actionRelation["action"]["func"]] = actionRelation;
+		var key = actionRelation["action"]["func"];
+		if (key in this.ActionRelation) {
+			var i = 1;
+			do {
+				var newKey = key + String(i);
+				i++;
+			} while(newKey in this.ActionRelation);
+			this.ActionRelation[newKey] = actionRelation;
+		}
+		else {
+			this.ActionRelation[key] = actionRelation;
+		}
 	}
 
 	private Extract(): void {
@@ -154,10 +165,9 @@ class DScriptActionMap {
 					}
 					else {
 						reactionNode.Case = null; // used as flag
-						this.NodeRelation[key] = this.NodeRelation[risk];
+						this.NodeRelation[key] = $.extend(true, {}, this.NodeRelation[risk]);
 						this.NodeRelation[key]["action"] = node.Label;
 						this.NodeRelation[key]["risk"] = risk;
-						delete this.NodeRelation[risk];
 					}
 				}
 			}
@@ -167,6 +177,10 @@ class DScriptActionMap {
 				this.AddActionRelation(actionRelation);
 			}
 		}
+		for (var key in riskRelation) {
+			if (key in this.NodeRelation) delete this.NodeRelation[key];
+		}
+		console.log(this);
 	}
 
 	GetNodeRelation(): any {

@@ -31,7 +31,8 @@ class MonitorHTMLRenderPlugIn extends AssureIt.HTMLRenderPlugIn {
 	}
 
 	Delegate(caseViewer: AssureIt.CaseViewer, nodeModel: AssureIt.NodeModel, element: JQuery) : boolean {
-		if(nodeModel.Parent == null) nodeModel.UpdateEnvironment();
+		var proto = (nodeModel.Parent != null ? nodeModel.Parent.Environment : {})
+		nodeModel.UpdateEnvironment(proto);
 		if(!isMonitorNode(nodeModel)) return;
 		monitorNodeManager.SetMonitorNode(nodeModel);
 
