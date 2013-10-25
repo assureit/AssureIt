@@ -25,7 +25,8 @@ var DScriptActionMap = (function () {
             ret = {
                 "action": action,
                 "reaction": reaction,
-                "actiontype": "Monitor"
+                "actiontype": "Monitor",
+                "risk": "*"
             };
         }
         return ret;

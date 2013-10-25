@@ -53,6 +53,7 @@ class DScriptActionMap {
 				"action" : action,
 				"reaction" : reaction,
 				"actiontype" : "Monitor",
+				"risk" : "*",
 			};
 		}
 		return ret;
