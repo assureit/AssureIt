@@ -84,6 +84,10 @@ class MonitorNode extends ActionNode {
 	}
 
 	Show(caseViewer: AssureIt.CaseViewer, HTMLRenderFunctions: Function[], SVGRenderFunctions: Function[]) {
+		if(this.LatestData == null) {
+			return;
+		}
+
 		var data: string =  "{ "+this.LatestData.type+" = "+this.LatestData.data+" }";
 		this.EvidenceNode.Notes["LatestData"] = data;
 		showNode(caseViewer, this.EvidenceNode, HTMLRenderFunctions, SVGRenderFunctions);

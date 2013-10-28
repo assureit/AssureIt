@@ -75,6 +75,10 @@ var MonitorNode = (function (_super) {
     };
 
     MonitorNode.prototype.Show = function (caseViewer, HTMLRenderFunctions, SVGRenderFunctions) {
+        if (this.LatestData == null) {
+            return;
+        }
+
         var data = "{ " + this.LatestData.type + " = " + this.LatestData.data + " }";
         this.EvidenceNode.Notes["LatestData"] = data;
         showNode(caseViewer, this.EvidenceNode, HTMLRenderFunctions, SVGRenderFunctions);

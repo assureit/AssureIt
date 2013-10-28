@@ -61,7 +61,7 @@ class DScriptMenuPlugIn extends AssureIt.MenuBarContentsPlugIn {
 	}
 
 	IsEnabled(caseViewer: AssureIt.CaseViewer, nodeModel: AssureIt.NodeModel): boolean {
-		return true;
+		return false;
 	}
 
 	Delegate(caseViewer: AssureIt.CaseViewer, nodeModel: AssureIt.NodeModel, element: JQuery, serverApi: AssureIt.ServerAPI): boolean {
