@@ -4,6 +4,14 @@ var __extends = this.__extends || function (d, b) {
     __.prototype = b.prototype;
     d.prototype = new __();
 };
+/// <reference path="../../src/CaseModel.ts" />
+/// <reference path="../../src/CaseViewer.ts" />
+/// <reference path="../../src/PlugInManager.ts" />
+/// <reference path="../../src/EditorUtil.ts" />
+/// <reference path="./DScriptGenerator.ts" />
+/// <reference path="./DScriptActionMap.ts" />
+/// <reference path="./ActionNode.ts" />
+/// <reference path="./ActionNodeManager.ts" />
 var __dscript__ = {
     script: {
         main: "",
@@ -41,6 +49,7 @@ return ret;\n\
 
 var DScriptPlugIn = (function (_super) {
     __extends(DScriptPlugIn, _super);
+    //	static Use3Pane : boolean = true;
     function DScriptPlugIn(plugInManager) {
         _super.call(this, plugInManager);
         this.plugInManager = plugInManager;
@@ -152,6 +161,7 @@ var DScriptEditorPlugIn = (function (_super) {
             background: 'rgba(255, 255, 255, 0.85)'
         });
 
+        /* FIXME Replace it with sophisticated style. */
         $(this.editor_left.getWrapperElement()).css({
             width: '100%',
             height: '100%'
@@ -176,6 +186,67 @@ var DScriptEditorPlugIn = (function (_super) {
             display: 'none'
         });
 
+        // 		if (DScriptPlugIn.Use3Pane) {
+        // 			$(this.editor_left.getWrapperElement()).css({
+        // 				width: '100%',
+        // 				height: '100%',
+        // 			});
+        // 			$(this.editor_right.getWrapperElement()).css({
+        // 				width: '100%',
+        // 				height: '100%',
+        // 			});
+        // 			this.action_table.css({
+        // 				width: '100%',
+        // 			});
+        // 			$('#dscript-editor-left').parent()
+        // 				.css({
+        // 					width: '50%',
+        // 					height: '50%',
+        // 					float: 'left',
+        // 					display: 'block',
+        // 				});
+        // 			$('#dscript-editor-right').parent()
+        // 				.css({
+        // 					width: '50%',
+        // 					height: '50%',
+        // 					float: 'right',
+        // 					display: 'block',
+        // 				});
+        // 			$('#dscript-action-table').parent()
+        // 				.css({
+        // 					width: '100%',
+        // 					height: '50%',
+        // 					display: 'block',
+        // 					clear: 'both',
+        // 					borderTop: 'solid 1px',
+        // 				});
+        // 		}
+        // 		else {
+        // 			$(this.editor_right.getWrapperElement()).css({
+        // 				width: '100%',
+        // 				height: '100%',
+        // 			});
+        // 			this.action_table.css({
+        // 				width: '100%',
+        // 			});
+        // 			$('#dscript-editor-left').parent()
+        // 				.css({
+        // 					display: 'none',
+        // 				});
+        // 			$('#dscript-editor-right').parent()
+        // 				.css({
+        // 					width: '50%',
+        // 					height: '100%',
+        // 					float: 'right',
+        // 					display: 'block',
+        // 				});
+        // 			$('#dscript-action-table').parent()
+        // 				.css({
+        // 					width: '50%',
+        // 					display: 'block',
+        // 					float: 'left',
+        // 				});
+        // 		}
         this.highlighter = new ErrorHighlight(this.editor_left);
         var self = this;
         this.editor_left.on("change", function (e) {
@@ -196,6 +267,7 @@ var DScriptEditorPlugIn = (function (_super) {
                 var error = Generator.errorMessage[i];
                 console.log(error);
 
+                //this.highlighter.Highlight(error.LineNumber, error.Message);
                 var msg = document.createElement("div");
                 var icon = msg.appendChild(document.createElement("span"));
                 msg.appendChild(document.createTextNode(error.Message));
@@ -273,6 +345,7 @@ var DScriptEditorPlugIn = (function (_super) {
             this.editor_left.refresh();
             this.editor_right.refresh();
         } catch (e) {
+            // TODO: exception handling
         }
     };
     return DScriptEditorPlugIn;

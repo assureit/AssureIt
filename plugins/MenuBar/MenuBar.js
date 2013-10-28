@@ -1,3 +1,6 @@
+///<reference path="../../src/CaseModel.ts" />
+///<reference path="../../src/CaseEncoder.ts" />
+///<reference path="../../src/PlugInManager.ts" />
 var __extends = this.__extends || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
     function __() { this.constructor = d; }
@@ -67,6 +70,7 @@ var MenuBar = (function () {
         var parentOffSet = $("#" + parentLabel).offset();
         this.caseViewer.Draw();
 
+        //		this.caseViewer.Screen.SetOffset(0, 0);
         var CurrentParentView = this.caseViewer.ViewMap[parentLabel];
         this.caseViewer.Screen.SetOffset(parentOffSet.left - CurrentParentView.AbsX, parentOffSet.top - CurrentParentView.AbsY);
     };
@@ -176,6 +180,7 @@ var MenuBarActionPlugIn = (function (_super) {
 
             var label = node.children('h4').text();
 
+            //console.log(label);
             var model = case0.ElementMap[label];
             var menuBar = new MenuBar(caseViewer, model, case0, node, serverApi, self);
             menuBar.menu.appendTo($('#layer2'));

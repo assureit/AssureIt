@@ -1,3 +1,8 @@
+/// <reference path="../../src/CaseModel.ts" />
+/// <reference path="../../src/CaseEncoder.ts" />
+/// <reference path="../../src/ServerApi.ts" />
+/// <reference path="../../src/PlugInManager.ts" />
+/// <reference path="../Editor/Editor.ts" />
 var __extends = this.__extends || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
     function __() { this.constructor = d; }
@@ -9,6 +14,8 @@ var SearchNodePlugIn = (function (_super) {
     function SearchNodePlugIn(plugInManager) {
         _super.call(this, plugInManager);
 
+        //var plugin: SearchNodeActionPlugIn = new SearchNodeActionPlugIn(plugInManager);
+        //this.ActionPlugIn = plugin;
         this.MenuBarContentsPlugIn = new SearchNodeMenuPlugIn(plugInManager);
     }
     return SearchNodePlugIn;
@@ -35,6 +42,9 @@ var SearchNodeMenuPlugIn = (function (_super) {
             _this.Center();
         });
 
+        //element.append('<a href="#" ><img id="SearchNode-xml" src="' + serverApi.basepath + 'images/icon.png" title="SearchNode XML" alt="XML" /></a>');
+        //$('#SearchNode-xml').unbind('click');
+        //$('#SearchNode-xml').click(this.editorPlugIn.SearchNodeXml);
         return true;
     };
 

@@ -4,6 +4,12 @@ var __extends = this.__extends || function (d, b) {
     __.prototype = b.prototype;
     d.prototype = new __();
 };
+/// <reference path="../../src/CaseModel.ts" />
+/// <reference path="../../src/CaseViewer.ts" />
+/// <reference path="../../src/PlugInManager.ts" />
+/// <reference path="../../src/RecApi.ts" />
+/// <reference path="./MonitorNode.ts" />
+/// <reference path="./MonitorNodeManager.ts" />
 var monitorNodeManager = null;
 
 var MonitorPlugIn = (function (_super) {
@@ -14,6 +20,7 @@ var MonitorPlugIn = (function (_super) {
         this.HTMLRenderPlugIn = new MonitorHTMLRenderPlugIn(plugInManager);
         this.SVGRenderPlugIn = new MonitorSVGRenderPlugIn(plugInManager);
 
+        //this.MenuBarContentsPlugIn = new MonitorMenuBarPlugIn(plugInManager);
         this.SideMenuPlugIn = new MonitorSideMenuPlugIn(plugInManager);
         monitorNodeManager = new MonitorNodeManager();
         this.PlugInEnv = { "ActionNodeManager": monitorNodeManager };
@@ -178,6 +185,7 @@ var MonitorTableWindow = (function () {
             "bInfo": true,
             "bAutoWidth": true
         });
+        //$('.monitor-table-fail').attr('bgcolor', '#FF9999');   // TODO: set color
     };
 
     MonitorTableWindow.prototype.Open = function () {
@@ -186,6 +194,44 @@ var MonitorTableWindow = (function () {
     return MonitorTableWindow;
 })();
 
+//class MonitorMenuBarPlugIn extends AssureIt.MenuBarContentsPlugIn {
+//
+//	constructor(plugInManager: AssureIt.PlugInManager) {
+//		super(plugInManager);
+//	}
+//
+//	IsEnabled(caseViewer: AssureIt.CaseViewer, caseModel: AssureIt.NodeModel): boolean {
+//		return true;
+//	}
+//
+//	Delegate(caseViewer: AssureIt.CaseViewer, caseModel: AssureIt.NodeModel, element: JQuery, serverApi: AssureIt.ServerAPI): boolean {
+//		if(!monitorNodeManager.IsRegisteredMonitor(caseModel.Label)) {
+//			return true;
+//		}
+//
+//		var monitorNode = monitorNodeManager.MonitorNodeMap[caseModel.Label];
+//
+//		if(!monitorNode.IsActive) {
+//			element.append('<a href="#" ><img id="monitor-tgl" src="'+serverApi.basepath+'images/monitor.png" title="Activate monitor" alt="monitor-tgl" /></a>');
+//		}
+//		else {
+//			element.append('<a href="#" ><img id="monitor-tgl" src="'+serverApi.basepath+'images/monitor.png" title="Deactivate monitor" alt="monitor-tgl" /></a>');
+//		}
+//
+//		$('#monitor-tgl').unbind('click');
+//		$('#monitor-tgl').click(function() {
+//			if(!monitorNode.IsActive) {
+//				monitorNodeManager.ActivateMonitor(caseModel.Label);
+//			}
+//			else {
+//				monitorNodeManager.DeactivateMonitor(caseModel.Label);
+//			}
+//		});
+//
+//		return true;
+//	}
+//
+//}
 var MonitorSideMenuPlugIn = (function (_super) {
     __extends(MonitorSideMenuPlugIn, _super);
     function MonitorSideMenuPlugIn(plugInManager) {

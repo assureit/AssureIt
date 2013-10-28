@@ -1,3 +1,4 @@
+/* This file is needed to move DScript plugin directory */
 function extractItemFromCondition(condition) {
     var text = condition.replace(/\{/g, " ").replace(/\}/g, " ").replace(/\(/g, " ").replace(/\)/g, " ").replace(/==/g, " ").replace(/<=/g, " ").replace(/>=/g, " ").replace(/</g, " ").replace(/>/g, " ");
 
@@ -11,6 +12,7 @@ function extractItemFromCondition(condition) {
     }
 
     if (items.length != 1) {
+        // TODO: alert
     }
 
     return items[0];

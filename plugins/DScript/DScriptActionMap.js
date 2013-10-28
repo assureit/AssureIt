@@ -1,3 +1,12 @@
+/// <reference path="../../src/CaseModel.ts" />
+/// <reference path="../../src/PlugInManager.ts" />
+/*
+actionMap : {action: string, reaction : string, actiontype : string}
+DScriptActinMap.body : {
+${label1} : actionMap,
+${label2} : actionMap,
+...}
+*/
 var DScriptActionMap = (function () {
     function DScriptActionMap(rootNode) {
         this.body = {};
@@ -17,6 +26,7 @@ var DScriptActionMap = (function () {
         return ret;
     };
 
+    // gen actionMap from the Node which have Reaction::~
     DScriptActionMap.prototype.GenActionMap = function (node) {
         var ret = null;
         var action = node.GetNote("Reaction");
@@ -44,6 +54,19 @@ var DScriptActionMap = (function () {
             if (actionMap == null)
                 continue;
 
+            // 			var actionNode = elementMap[actionMap["action"]];
+            // 			if (actionNode.GetAnnotation("OnlyIf") != null) {
+            // 				//
+            // 			}
+            // 			else if (actionNode.GetAnnotation("Boot") != null) {
+            // 				//
+            // 			}
+            // 			else {
+            // 				//
+            // 			}
+            // 			if (actionNode.GetAnnotation("Once") != null) {
+            // 				//
+            // 			}
             this.AddActionMap(actionMap);
         }
     };

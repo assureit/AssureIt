@@ -1,3 +1,5 @@
+/// <reference path="../../src/CaseModel.ts" />
+/// <reference path="../../src/PlugInManager.ts" />
 var Edge = (function () {
     function Edge(src, dst) {
         this.src = src;
@@ -257,6 +259,9 @@ var DScriptGenerator = (function () {
                 var parentgoallabel = context.Parent.Label;
                 program += this.indent + "DFault ret = " + goallabel + "(ctx);" + this.linefeed;
 
+                //program += this.indent + "if (ret.getLocation() == \"" + reaction + "\") {" + this.linefeed;
+                //program += this.indent + this.indent + "ret = " + parentgoallabel + "(ctx);" + this.linefeed;
+                //program += this.indent + "}" + this.linefeed;
                 program += this.indent + "return ret;" + this.linefeed;
                 return program;
             }
@@ -309,6 +314,7 @@ var DScriptGenerator = (function () {
             var operand = monitor[1];
             var RHS = monitor[2];
 
+            //program += this.indent + "let Monitor = GetDataFromRec(Location, \"" + LHS + "\") " + operand + " " + RHS + ";" + this.linefeed;
             program += this.indent + "\tboolean Monitor = GetDataFromRec(Location, Type) " + operand + " " + RHS + ";" + this.linefeed;
         }
         return program;
@@ -334,6 +340,7 @@ var DScriptGenerator = (function () {
         }
 
         if (types.length != 1) {
+            // TODO: alert
         }
 
         return types[0];
@@ -348,6 +355,7 @@ var DScriptGenerator = (function () {
             if (DeclKey == "Monitor") {
                 program += this.indent + "let Type = \"" + this.ExtractMonitorTypeFromCondition(DeclValue) + "\";" + this.linefeed;
             } else if (DeclKey == "Reaction") {
+                // do nothing
             } else if (DeclKey == "Location") {
                 program += this.indent + "let " + DeclKey + " = \"" + DeclValue + "\";" + this.linefeed;
             } else {
@@ -373,6 +381,7 @@ var DScriptGenerator = (function () {
         program += this.indent + "if(Location == LOCATION) {" + this.linefeed;
         program += this.indent + this.indent + "ret = dlog " + Function + ";" + this.linefeed;
 
+        //		program += this.indent + this.indent + "dexec " + Function.replace("()", "") + this.linefeed;
         program += this.indent + "}" + this.linefeed;
         program += this.indent + "return ret;" + this.linefeed;
         return program;
@@ -556,6 +565,8 @@ var DScriptGenerator = (function () {
             }
         }
 
+        //res += this.GenerateDShellDecl();
+        //res += this.GenerateImportStatement(ViewMap, flow); //now, not generate import
         res += this.GenerateMainFunction(rootNode, flow, GenFlag);
         return res;
     };

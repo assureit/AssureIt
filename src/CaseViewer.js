@@ -1,3 +1,11 @@
+/// <reference path="CaseModel.ts" />
+/// <reference path="CaseDecoder.ts" />
+/// <reference path="CaseEncoder.ts" />
+/// <reference path="ServerApi.ts" />
+/// <reference path="Layout.ts" />
+/// <reference path="PlugInManager.ts" />
+/// <reference path="../d.ts/jquery.d.ts" />
+/// <reference path="../d.ts/pointer.d.ts" />
 var __extends = this.__extends || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
     function __() { this.constructor = d; }
@@ -8,6 +16,7 @@ document.createSVGElement = function (name) {
     return document.createElementNS('http://www.w3.org/2000/svg', name);
 };
 
+/* VIEW (MVC) */
 var AssureIt;
 (function (AssureIt) {
     var HTMLDoc = (function () {
@@ -21,6 +30,7 @@ var AssureIt;
             }
             this.DocBase = $('<div class="node">').css("position", "absolute").attr('id', NodeModel.Label);
             this.DocBase.append($('<h4>' + NodeModel.Label + '</h4>'));
+            this.RawDocBase = this.DocBase[0];
 
             this.InvokePlugInHTMLRender(Viewer, NodeModel, this.DocBase);
             this.UpdateWidth(Viewer, NodeModel);
@@ -28,23 +38,31 @@ var AssureIt;
         };
 
         HTMLDoc.prototype.UpdateWidth = function (Viewer, Source) {
-            this.DocBase.width(CaseViewer.ElementWidth);
+            var px = 0;
+            var py = 0;
             switch (Source.Type) {
                 case AssureIt.NodeType.Goal:
-                    this.DocBase.css("padding", "5px 10px");
+                    px = 5;
+                    py = 10;
                     break;
                 case AssureIt.NodeType.Context:
-                    this.DocBase.css("padding", "10px 10px");
+                    px = 10;
+                    py = 10;
                     break;
                 case AssureIt.NodeType.Strategy:
-                    this.DocBase.css("padding", "5px 20px");
+                    px = 5;
+                    py = 20;
                     break;
                 case AssureIt.NodeType.Evidence:
                 default:
-                    this.DocBase.css("padding", "20px 20px");
+                    px = 20;
+                    py = 20;
                     break;
             }
-            this.DocBase.width(CaseViewer.ElementWidth * 2 - this.DocBase.outerWidth());
+            var style = this.RawDocBase.style;
+            style.paddingRight = style.paddingLeft = px + "px";
+            style.paddingTop = style.paddingBottom = py + "px";
+            style.width = (CaseViewer.ElementWidth - px * 2) + "px";
         };
 
         HTMLDoc.prototype.InvokePlugInHTMLRender = function (caseViewer, caseModel, DocBase) {
@@ -56,12 +74,13 @@ var AssureIt;
         };
 
         HTMLDoc.prototype.Resize = function (Viewer, Source) {
-            this.Width = this.DocBase ? this.DocBase.outerWidth() : 0;
-            this.Height = this.DocBase ? this.DocBase.outerHeight() : 0;
+            this.Width = CaseViewer.ElementWidth;
+            this.Height = this.RawDocBase ? this.RawDocBase.clientHeight : 0;
         };
 
         HTMLDoc.prototype.SetPosition = function (x, y) {
-            this.DocBase.css({ left: x + "px", top: y + "px" });
+            this.RawDocBase.style.left = x + "px";
+            this.RawDocBase.style.top = y + "px";
         };
         return HTMLDoc;
     })();
@@ -527,6 +546,7 @@ var AssureIt;
             var screenlayer = $(this.Screen.ContentLayer);
             this.UpdateViewMap();
 
+            //this.ViewMap[this.ElementTop.Label].DeleteHTMLElementRecursive(null, null);   // FIXME
             this.ViewMap[this.ElementTop.Label].AppendHTMLElementRecursive(shapelayer, screenlayer, this);
             this.pluginManager.RegisterActionEventListeners(this, this.Source, this.serverApi);
             this.Update();
@@ -615,6 +635,7 @@ var AssureIt;
             var width = Screen.ContentLayer.clientWidth;
             var height = Screen.ContentLayer.clientHeight;
             var pointer = this.Pointers[0];
+            //Screen.SetOffset(width / 2 - pointer.pageX, height / 2 - pointer.pageY);
         };
         return ScrollManager;
     })();
@@ -659,6 +680,7 @@ var AssureIt;
             ContentLayer.addEventListener("gesturedoubletap", function (e) {
                 _this.ScrollManager.OnDoubleTap(e, _this);
             }, false);
+            //BackGroundLayer.addEventListener("gesturescale", OnPointer, false);
         }
         ScreenManager.translateA = function (x, y) {
             return "translate(" + x + " " + y + ") ";

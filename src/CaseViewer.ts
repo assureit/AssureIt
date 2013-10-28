@@ -25,44 +25,53 @@ document.createSVGElement = function (name: string): Element {
 module AssureIt {
 
 	export class HTMLDoc {
-		DocBase: JQuery;
+        DocBase: JQuery;
+        RawDocBase: HTMLDivElement;
 		Width: number = 0;
 		Height: number = 0;
 
 		Render(Viewer: CaseViewer, NodeModel: NodeModel): void {
 			if (this.DocBase != null) {
-				//var parent = this.DocBase.parent();
-				//if (parent != null) parent.remove(this.DocBase);
 				this.DocBase.remove();
 			}
 			this.DocBase = $('<div class="node">').css("position", "absolute")
-				.attr('id', NodeModel.Label);
-			this.DocBase.append($('<h4>' + NodeModel.Label + '</h4>'));
-			//this.DocBase.append($('<p>' + NodeModel.Statement + '</p>'));
+                .attr('id', NodeModel.Label);
+            this.DocBase.append($('<h4>' + NodeModel.Label + '</h4>'));
+            this.RawDocBase = <HTMLDivElement>this.DocBase[0];
 
 			this.InvokePlugInHTMLRender(Viewer, NodeModel, this.DocBase);
 			this.UpdateWidth(Viewer, NodeModel);
 			this.Resize(Viewer, NodeModel);
-		}
+        }
+
+
 
 		UpdateWidth(Viewer: CaseViewer, Source: NodeModel) {
-			this.DocBase.width(CaseViewer.ElementWidth);
+            var px = 0;
+            var py = 0;
 			switch (Source.Type) {
-				case NodeType.Goal:
-					this.DocBase.css("padding", "5px 10px");
+                case NodeType.Goal:
+                    px = 5;
+                    py = 10;
 					break;
 				case NodeType.Context:
-					this.DocBase.css("padding", "10px 10px");
+                    px = 10;
+                    py = 10;
 					break;
 				case NodeType.Strategy:
-					this.DocBase.css("padding", "5px 20px");
+                    px = 5;
+                    py = 20;
 					break;
 				case NodeType.Evidence:
 				default:
-					this.DocBase.css("padding", "20px 20px");
+                    px = 20;
+                    py = 20;
 					break;
-			}
-			this.DocBase.width(CaseViewer.ElementWidth * 2 - this.DocBase.outerWidth());
+            }
+            var style = this.RawDocBase.style;
+            style.paddingRight = style.paddingLeft = px + "px";
+            style.paddingTop = style.paddingBottom = py + "px";
+            style.width = (CaseViewer.ElementWidth - px * 2) + "px";
 		}
 
 		InvokePlugInHTMLRender(caseViewer: CaseViewer, caseModel: NodeModel, DocBase: JQuery): void {
@@ -74,12 +83,13 @@ module AssureIt {
 		}
 
 		Resize(Viewer: CaseViewer, Source: NodeModel): void {
-			this.Width = this.DocBase ? this.DocBase.outerWidth() : 0;
-			this.Height = this.DocBase ? this.DocBase.outerHeight() : 0;
+            this.Width = CaseViewer.ElementWidth;
+            this.Height = this.RawDocBase ? this.RawDocBase.clientHeight : 0;
 		}
 
-		SetPosition(x: number, y: number) {
-			this.DocBase.css({ left: x + "px", top: y + "px" });
+        SetPosition(x: number, y: number) {
+            this.RawDocBase.style.left = x + "px";
+            this.RawDocBase.style.top  = y + "px";
 		}
 	}
 
