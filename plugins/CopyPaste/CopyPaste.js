@@ -1,6 +1,3 @@
-///<reference path="../../src/CaseModel.ts" />
-///<reference path="../../src/CaseViewer.ts" />
-///<reference path="../../src/PlugInManager.ts" />
 var __extends = this.__extends || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
     function __() { this.constructor = d; }

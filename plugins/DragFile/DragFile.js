@@ -1,6 +1,3 @@
-///<reference path='../../d.ts/jquery.d.ts'/>
-///<reference path='../../src/CaseModel.ts'/>
-///<reference path='../../src/CaseViewer.ts'/>
 var __extends = this.__extends || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
     function __() { this.constructor = d; }
@@ -119,13 +116,6 @@ var ImageFileHTMLPlugIn = (function (_super) {
                 caseViewer.Draw();
             });
             img.attr('src', basepath + '/' + note);
-            //$('<a href="' + basepath + '/' + body.URL+'"><img id="img-'+ nodeModel.Label + '-' + i + '" src="'+basepath+'/'+body.URL+'" /></a>')
-            //.appendTo(element);
-            //$('#img-'+ nodeModel.Label + '-' + i + '')
-            //.bind('load', function(){
-            //	console.log("redraw");
-            //	caseViewer.Draw();
-            //})
         }
         return true;
     };

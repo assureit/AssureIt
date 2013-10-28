@@ -1,5 +1,3 @@
-/// <reference path="../d.ts/jquery.d.ts" />
-/// <reference path='ServerApi.ts'/>
 var __extends = this.__extends || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
     function __() { this.constructor = d; }
@@ -108,7 +106,6 @@ var AssureIt;
         function TableView() {
         }
         TableView.toTable = function (id, name, user, lastDate, lastUser, isLogin) {
-            //FIXME
             var Config = { BASEPATH: "FIXME" };
             var html = '<td><a href="' + Config.BASEPATH + '/dcase/' + id + '">' + name + "</a><td>" + lastUser + "</td>";
             if (isLogin) {

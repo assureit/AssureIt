@@ -1,7 +1,3 @@
-/// <reference path="../../src/CaseModel.ts" />
-/// <reference path="../../src/ServerApi.ts" />
-/// <reference path="../../src/PlugInManager.ts" />
-/// <reference path="../../src/SideMenuModel.ts" />
 var __extends = this.__extends || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
     function __() { this.constructor = d; }
@@ -47,14 +43,6 @@ var TimeLineKeyPlugIn = (function (_super) {
     };
 
     TimeLineKeyPlugIn.prototype.RegisterKeyEvents = function (caseViewer, Case0, serverApi) {
-        //$("body").keydown((e)=>{
-        //	if(e.keyCode == 37/*left*/ && e.shiftKey) {
-        //		this.ShowPreview(Case0, serverApi);
-        //	}
-        //	if(e.keyCode == 39/*right*/ && e.shiftKey) {
-        //		this.ShowNext(Case0, serverApi);
-        //	}
-        //});
         return true;
     };
 
