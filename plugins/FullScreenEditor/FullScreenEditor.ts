@@ -211,7 +211,7 @@ class FullScreenEditorActionPlugIn extends AssureIt.ActionPlugIn {
 						}
 						caseViewer.Draw();
 						/* TODO We need to Draw twice for some unknown reason */ 
-						//caseViewer.Draw();
+						caseViewer.Draw();
 
 					})
 					.on("keydown", function(e: JQueryEventObject) {
