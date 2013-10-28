@@ -2,23 +2,25 @@
 /// <reference path="../../src/CaseViewer.ts" />
 /// <reference path="../../src/PlugInManager.ts" />
 
-class ToDOPlugIn extends AssureIt.PlugInSet {
+class ToDoPlugIn extends AssureIt.PlugInSet {
 
 	constructor(public plugInManager: AssureIt.PlugInManager) {
 		super(plugInManager);
-		this.HTMLRenderPlugIn = new ToDoSVGRenderPlugIn(plugInManager);
+		this.SVGRenderPlugIn = new ToDoSVGRenderPlugIn(plugInManager);
 	}
 }
 
 
-class ToDoSVGRenderPlugIn extends SVGRenderPlugIn {
-	constructor(public plugInManager: PlugInManager) {
+class ToDoSVGRenderPlugIn extends AssureIt.SVGRenderPlugIn {
+	constructor(public plugInManager: AssureIt.PlugInManager) {
 		super(plugInManager);
 	}
-	IsEnabled(caseViewer: CaseViewer, elementShape: NodeView): boolean {
+
+	IsEnabled(caseViewer: AssureIt.CaseViewer, elementShape: AssureIt.NodeView): boolean {
 		return true;
 	}
-	Delegate(caseViewer: CaseViewer, elementShape: NodeView): boolean {
+
+	Delegate(caseViewer: AssureIt.CaseViewer, elementShape: AssureIt.NodeView): boolean {
 		console.log("hi");
 		return true;
 	}

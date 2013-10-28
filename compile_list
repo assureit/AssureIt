@@ -19,6 +19,7 @@ plugins/Monitor/MonitorNode.ts
 plugins/Monitor/MonitorNodeManager.ts
 plugins/CopyPaste/CopyPaste.ts
 plugins/Note/Note.ts
+plugins/ToDo/ToDo.ts
 plugins/LastModified/LastModified.ts
 plugins/DragFile/DragFile.ts
 plugins/BeforeUnload/BeforeUnload.ts

@@ -4,44 +4,29 @@ var __extends = this.__extends || function (d, b) {
     __.prototype = b.prototype;
     d.prototype = new __();
 };
-var NotePlugIn = (function (_super) {
-    __extends(NotePlugIn, _super);
-    function NotePlugIn(plugInManager) {
+var ToDoPlugIn = (function (_super) {
+    __extends(ToDoPlugIn, _super);
+    function ToDoPlugIn(plugInManager) {
         _super.call(this, plugInManager);
         this.plugInManager = plugInManager;
-        this.HTMLRenderPlugIn = new NoteHTMLRenderPlugIn(plugInManager);
+        this.SVGRenderPlugIn = new ToDoSVGRenderPlugIn(plugInManager);
     }
-    return NotePlugIn;
+    return ToDoPlugIn;
 })(AssureIt.PlugInSet);
 
-var NoteHTMLRenderPlugIn = (function (_super) {
-    __extends(NoteHTMLRenderPlugIn, _super);
-    function NoteHTMLRenderPlugIn() {
-        _super.apply(this, arguments);
+var ToDoSVGRenderPlugIn = (function (_super) {
+    __extends(ToDoSVGRenderPlugIn, _super);
+    function ToDoSVGRenderPlugIn(plugInManager) {
+        _super.call(this, plugInManager);
+        this.plugInManager = plugInManager;
     }
-    NoteHTMLRenderPlugIn.prototype.IsEnabled = function (caseViewer, nodeModel) {
+    ToDoSVGRenderPlugIn.prototype.IsEnabled = function (caseViewer, elementShape) {
         return true;
     };
 
-    NoteHTMLRenderPlugIn.prototype.Delegate = function (caseViewer, nodeModel, element) {
-        element.children("#note").remove();
-        var $note = $('<div id="note"></div>');
-
-        for (var key in nodeModel.Notes) {
-            switch (key) {
-                case 'TranslatedTextEn':
-                    var note = nodeModel.Notes[key];
-                    $('<p style="color: DarkOliveGreen">' + note + '</p>').appendTo($note);
-                    $note.appendTo(element);
-                    break;
-                default:
-                    var note = nodeModel.Notes[key];
-                    $('<p style="color: DarkOliveGreen">' + key + ":: " + note + '</p>').appendTo($note);
-                    $note.appendTo(element);
-            }
-        }
-
+    ToDoSVGRenderPlugIn.prototype.Delegate = function (caseViewer, elementShape) {
+        console.log("hi");
         return true;
     };
-    return NoteHTMLRenderPlugIn;
-})(AssureIt.HTMLRenderPlugIn);
+    return ToDoSVGRenderPlugIn;
+})(AssureIt.SVGRenderPlugIn);
