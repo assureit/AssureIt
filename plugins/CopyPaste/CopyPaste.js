@@ -27,9 +27,9 @@ var CopyPasteMenuPlugIn = (function (_super) {
     CopyPasteMenuPlugIn.prototype.Delegate = function (caseViewer, caseModel, element, serverApi) {
         console.log(this.CopiedNode);
         var self = this;
-        element.append('<a href="#" ><img id="copy" src="' + serverApi.basepath + 'images/icon.png" title="Copy" alt="copy" /></a>');
+        element.append('<a href="#" ><img id="copy" src="' + serverApi.basepath + 'images/copy.png" title="Copy" alt="copy" /></a>');
         if (self.CopiedNode != null && this.IsPastable(caseModel)) {
-            element.append('<a href="#" ><img id="paste" src="' + serverApi.basepath + 'images/icon.png" title="Paste" alt="paste" /></a>');
+            element.append('<a href="#" ><img id="paste" src="' + serverApi.basepath + 'images/paste.png" title="Paste" alt="paste" /></a>');
         }
 
         var copy = function (ev) {
