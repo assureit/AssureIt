@@ -4,6 +4,7 @@
 /// <reference path="ServerApi.ts" />
 /// <reference path="Layout.ts" />
 /// <reference path="PlugInManager.ts" />
+/// <reference path="ColorMap.ts" />
 /// <reference path="../d.ts/jquery.d.ts" />
 /// <reference path="../d.ts/pointer.d.ts" />
 
@@ -110,7 +111,7 @@ module AssureIt {
 		Height: number;
 		ShapeGroup: SVGGElement;
 		ArrowPath: SVGPathElement;
-		ColorClassName: string = "assureit-default";
+		ColorClassName: string = Color.Default;
 
 		Render(CaseViewer: CaseViewer, NodeModel: NodeModel, HTMLDoc: HTMLDoc): void {
 			this.ShapeGroup = <SVGGElement>document.createSVGElement("g");
