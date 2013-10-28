@@ -181,6 +181,22 @@ var AssureIt;
             return null;
         };
 
+        //InvokePlugInModifier(EventType : string, EventBody : any) : boolean {
+        //	var recall = false;
+        //	for(var a in this.Annotations) {
+        //		var f = this.Case.GetPlugInModifier(a.Name);
+        //		if(f != null) {
+        //			recall = f(Case, this, EventType, EventBody) || recall;
+        //		}
+        //	}
+        //	for(var a in this.Notes) {
+        //		var f = this.Case.GetPlugInModifier(a.Name);
+        //		if(f != null) {
+        //			recall = f(Case, this, EventType, EventBody) || recall;
+        //		}
+        //	}
+        //	return recall;
+        //}
         NodeModel.prototype.UpdateEnvironment = function (proto) {
             if (typeof proto === "undefined") { proto = {}; }
             var env = null;

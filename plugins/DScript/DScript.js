@@ -8,10 +8,13 @@ var __extends = this.__extends || function (d, b) {
 /// <reference path="../../src/CaseViewer.ts" />
 /// <reference path="../../src/PlugInManager.ts" />
 /// <reference path="../../src/EditorUtil.ts" />
-/// <reference path="./DScriptGenerator.ts" />
-/// <reference path="./DScriptActionMap.ts" />
-/// <reference path="./ActionNode.ts" />
-/// <reference path="./ActionNodeManager.ts" />
+/// <reference path="../../src/RecApi.ts" />
+/// <reference path="../../src/AssureItAgentApi.ts" />
+/// <reference path="./Generator.ts" />
+/// <reference path="./ActionMap.ts" />
+/// <reference path="./PaneManager.ts" />
+/// <reference path="../ActionNode/ActionNode.ts" />
+/// <reference path="../ActionNode/ActionNodeManager.ts" />
 var __dscript__ = {
     script: {
         main: "",
@@ -23,29 +26,6 @@ var __dscript__ = {
     }
 };
 __dscript__.script.funcdef = {
-<<<<<<< HEAD
-    "PortMonitor()": "\n\
-print(\"PortMonitor called...\");\n\
-DFault ret = null;\n\
-if (Monitor) {\n\
-\tret = null;\n\
-}\n\
-else {\n\
-\tret = fault(\"Computer is accessed by someone\");\n\
-}\n\
-return ret;\n\
-",
-    "BlockIP()": "\n\
-print(\"BlockIP called...\");\n\
-DFault ret = null;\n\
-//    command iptables;\n\
-//try {\n\
-//    iptables -A INPUT -p tcp -s $ip --dport $port -j DROP\n\
-//}\n\
-//catch (Exception e) {\n\
-//}\n\
-return ret;\n\
-=======
     "PortScanMonitor()": "\n\
 print(\"PortScanMonitor called...\");\n\
 DFault ret = null;\n\
@@ -69,13 +49,11 @@ while(i < 10) {\n\
 }\n\
 rec -m pushRawData -l ServerA -t IsPortScaned -d 0\n\
 return ret;\n\
->>>>>>> 1a4cdca1209c9203b18cd03b6f7aef7d2a074ff0
 "
 };
 
 var DScriptPlugIn = (function (_super) {
     __extends(DScriptPlugIn, _super);
-    //	static Use3Pane : boolean = true;
     function DScriptPlugIn(plugInManager) {
         _super.call(this, plugInManager);
         this.plugInManager = plugInManager;
@@ -142,6 +120,7 @@ var DScriptEditorPlugIn = (function (_super) {
             return nRow;
         });
 
+        //		this.Highlighter = new ErrorHighlight(this.ASNEditor);
         this.ASNEditor.on("change", function (e) {
             self.GenerateCode();
         });
@@ -157,98 +136,6 @@ var DScriptEditorPlugIn = (function (_super) {
             background: 'rgba(255, 255, 255, 0.85)'
         });
 
-<<<<<<< HEAD
-        /* FIXME Replace it with sophisticated style. */
-        $(this.editor_left.getWrapperElement()).css({
-            width: '100%',
-            height: '100%'
-        });
-        $(this.editor_right.getWrapperElement()).css({
-            width: '100%',
-            height: '100%'
-        });
-        $('#dscript-editor-left').parent().css({
-            width: '50%',
-            height: '100%',
-            float: 'left',
-            display: 'block'
-        });
-        $('#dscript-editor-right').parent().css({
-            width: '50%',
-            height: '100%',
-            float: 'right',
-            display: 'block'
-        });
-        $('#dscript-action-table').parent().css({
-            display: 'none'
-        });
-
-        // 		if (DScriptPlugIn.Use3Pane) {
-        // 			$(this.editor_left.getWrapperElement()).css({
-        // 				width: '100%',
-        // 				height: '100%',
-        // 			});
-        // 			$(this.editor_right.getWrapperElement()).css({
-        // 				width: '100%',
-        // 				height: '100%',
-        // 			});
-        // 			this.action_table.css({
-        // 				width: '100%',
-        // 			});
-        // 			$('#dscript-editor-left').parent()
-        // 				.css({
-        // 					width: '50%',
-        // 					height: '50%',
-        // 					float: 'left',
-        // 					display: 'block',
-        // 				});
-        // 			$('#dscript-editor-right').parent()
-        // 				.css({
-        // 					width: '50%',
-        // 					height: '50%',
-        // 					float: 'right',
-        // 					display: 'block',
-        // 				});
-        // 			$('#dscript-action-table').parent()
-        // 				.css({
-        // 					width: '100%',
-        // 					height: '50%',
-        // 					display: 'block',
-        // 					clear: 'both',
-        // 					borderTop: 'solid 1px',
-        // 				});
-        // 		}
-        // 		else {
-        // 			$(this.editor_right.getWrapperElement()).css({
-        // 				width: '100%',
-        // 				height: '100%',
-        // 			});
-        // 			this.action_table.css({
-        // 				width: '100%',
-        // 			});
-        // 			$('#dscript-editor-left').parent()
-        // 				.css({
-        // 					display: 'none',
-        // 				});
-        // 			$('#dscript-editor-right').parent()
-        // 				.css({
-        // 					width: '50%',
-        // 					height: '100%',
-        // 					float: 'right',
-        // 					display: 'block',
-        // 				});
-        // 			$('#dscript-action-table').parent()
-        // 				.css({
-        // 					width: '50%',
-        // 					display: 'block',
-        // 					float: 'left',
-        // 				});
-        // 		}
-        this.highlighter = new ErrorHighlight(this.editor_left);
-        var self = this;
-        this.editor_left.on("change", function (e) {
-            self.GenerateCode();
-=======
         var paneManager = new DScriptPaneManager(wrapper, $(this.ASNEditor.getWrapperElement()));
         paneManager.AddToOptionsList($(this.ASNEditor.getWrapperElement()), "ASN Editor", false);
         paneManager.AddToOptionsList($(this.DScriptEditor.getWrapperElement()), "DScript Viewer", false);
@@ -265,7 +152,6 @@ var DScriptEditorPlugIn = (function (_super) {
         paneManager.SetRefreshFunc(function () {
             self.ASNEditor.refresh();
             self.DScriptEditor.refresh();
->>>>>>> 1a4cdca1209c9203b18cd03b6f7aef7d2a074ff0
         });
         this.PaneManager = paneManager;
     }
@@ -287,14 +173,6 @@ var DScriptEditorPlugIn = (function (_super) {
             self.ASNEditor.setOption("readOnly", true);
         }
 
-<<<<<<< HEAD
-                //this.highlighter.Highlight(error.LineNumber, error.Message);
-                var msg = document.createElement("div");
-                var icon = msg.appendChild(document.createElement("span"));
-                msg.appendChild(document.createTextNode(error.Message));
-                $(msg).css("background", "none repeat scroll 0 0 #FFAAAA");
-                widgets.push(editor.addLineWidget(error.LineNumber, msg, { coverGutter: false, noHScroll: true }));
-=======
         var wrapper = $("#dscript-editor-wrapper");
         wrapper.css("display", "block").addClass("animated fadeInDown").focus().one("blur", function (e, node) {
             e.stopPropagation();
@@ -320,7 +198,6 @@ var DScriptEditorPlugIn = (function (_super) {
                 e.stopPropagation();
                 wrapper.blur();
                 wrapper.unbind('keydown');
->>>>>>> 1a4cdca1209c9203b18cd03b6f7aef7d2a074ff0
             }
         });
         $('#CodeMirror').focus();
@@ -354,6 +231,24 @@ var DScriptEditorPlugIn = (function (_super) {
         });
     };
 
+    // 	UpdateLineComment(editor: any, widgets: any[], generator: DScriptGenerator): void {
+    // 		editor.operation(function() {
+    // 			for (var i: number = 0; i < widgets.length; ++i) {
+    // 				editor.removeLineWidget(widgets[i]);
+    // 			}
+    // 			widgets.length = 0;
+    // 			for (var i: number = 0; i < generator.errorMessage.length; ++i) {
+    // 				var error: DScriptError = generator.errorMessage[i];
+    // 				console.log(error);
+    // 				//this.highlighter.Highlight(error.LineNumber, error.Message);
+    // 				var msg = document.createElement("div");
+    // 				var icon = msg.appendChild(document.createElement("span"));
+    // 				msg.appendChild(document.createTextNode(error.Message));
+    // 				$(msg).css("background", "none repeat scroll 0 0 #FFAAAA");
+    // 				widgets.push(editor.addLineWidget(error.LineNumber, msg, {coverGutter: false, noHScroll: true}));
+    // 			}
+    // 		});
+    // 	}
     DScriptEditorPlugIn.prototype.UpdateNodeRelationTable = function (nodeRelation) {
         (this.NodeRelationTable).fnClearTable();
         for (var key in nodeRelation) {
@@ -389,6 +284,7 @@ var DScriptEditorPlugIn = (function (_super) {
         var orig_ElementMap = case0.ReserveElementMap(this.RootNodeModel);
         var nodeModel = decoder.ParseASN(case0, ASNData, this.RootNodeModel);
         if (nodeModel == null) {
+            //			this.Highlighter.Highlight(decoder.GetASNError().line, decoder.GetASNError().toString());
             case0.IdCounters = orig_IdCounters;
             case0.ElementMap = orig_ElementMap;
             nodeModel = case0.ElementTop;
@@ -420,14 +316,12 @@ var DScriptEditorPlugIn = (function (_super) {
             this.UpdateNodeRelationTable(nodeRelation);
             this.UpdateActionRelationTable(actionRelation);
 
+            //			this.UpdateLineComment(this.ASNEditor, this.Widgets, generator);
             this.DScriptEditor.setValue(script);
         } catch (e) {
-<<<<<<< HEAD
-            // TODO: exception handling
-=======
+            //TODO:
             console.log("error occured in DScript Generation");
             console.log(e);
->>>>>>> 1a4cdca1209c9203b18cd03b6f7aef7d2a074ff0
         }
 
         this.ASNEditor.refresh();
@@ -456,21 +350,12 @@ var DScriptSideMenuPlugIn = (function (_super) {
             self.editorPlugIn.RootNodeModel = case0.ElementTop;
             self.editorPlugIn.GenerateCode();
             __dscript__.script.lib = {
-<<<<<<< HEAD
-                "GetDataFromRec.ds": "\n\
-int GetDataFromRec(String location, String type) {\n\
-    command rec;\n\
-    String data = rec -m getLatestData -t $type -l $location\n\
-    return (int)data.replaceAll(\"\\n\", \"\");\n\
-}\n\
-=======
                 "GetDataFromRec.ds": "\n\
 int GetDataFromRec(String location, String type) {\n\
 command rec;\n\
 String data = rec -m getLatestData -t $type -l $location\n\
 return (int)data.replaceAll(\"\\n\", \"\");\n\
 }\n\
->>>>>>> 1a4cdca1209c9203b18cd03b6f7aef7d2a074ff0
 "
             };
 

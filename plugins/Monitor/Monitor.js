@@ -186,9 +186,6 @@ var MonitorWindow = (function () {
             "bInfo": true,
             "bAutoWidth": true
         });
-<<<<<<< HEAD
-        //$('.monitor-table-fail').attr('bgcolor', '#FF9999');   // TODO: set color
-=======
 
         self.Open();
     };
@@ -224,7 +221,6 @@ var MonitorWindow = (function () {
         });
 
         this.Open();
->>>>>>> 1a4cdca1209c9203b18cd03b6f7aef7d2a074ff0
     };
 
     MonitorWindow.prototype.Open = function () {
@@ -233,44 +229,6 @@ var MonitorWindow = (function () {
     return MonitorWindow;
 })();
 
-//class MonitorMenuBarPlugIn extends AssureIt.MenuBarContentsPlugIn {
-//
-//	constructor(plugInManager: AssureIt.PlugInManager) {
-//		super(plugInManager);
-//	}
-//
-//	IsEnabled(caseViewer: AssureIt.CaseViewer, caseModel: AssureIt.NodeModel): boolean {
-//		return true;
-//	}
-//
-//	Delegate(caseViewer: AssureIt.CaseViewer, caseModel: AssureIt.NodeModel, element: JQuery, serverApi: AssureIt.ServerAPI): boolean {
-//		if(!monitorNodeManager.IsRegisteredMonitor(caseModel.Label)) {
-//			return true;
-//		}
-//
-//		var monitorNode = monitorNodeManager.MonitorNodeMap[caseModel.Label];
-//
-//		if(!monitorNode.IsActive) {
-//			element.append('<a href="#" ><img id="monitor-tgl" src="'+serverApi.basepath+'images/monitor.png" title="Activate monitor" alt="monitor-tgl" /></a>');
-//		}
-//		else {
-//			element.append('<a href="#" ><img id="monitor-tgl" src="'+serverApi.basepath+'images/monitor.png" title="Deactivate monitor" alt="monitor-tgl" /></a>');
-//		}
-//
-//		$('#monitor-tgl').unbind('click');
-//		$('#monitor-tgl').click(function() {
-//			if(!monitorNode.IsActive) {
-//				monitorNodeManager.ActivateMonitor(caseModel.Label);
-//			}
-//			else {
-//				monitorNodeManager.DeactivateMonitor(caseModel.Label);
-//			}
-//		});
-//
-//		return true;
-//	}
-//
-//}
 var MonitorSideMenuPlugIn = (function (_super) {
     __extends(MonitorSideMenuPlugIn, _super);
     function MonitorSideMenuPlugIn(plugInManager) {
