@@ -109,6 +109,7 @@ var AssureIt;
 
     var SVGShape = (function () {
         function SVGShape() {
+            this.ColorClassName = "assureit-default";
         }
         SVGShape.prototype.Render = function (CaseViewer, NodeModel, HTMLDoc) {
             this.ShapeGroup = document.createSVGElement("g");
@@ -167,11 +168,7 @@ var AssureIt;
             }
         };
 
-        SVGShape.prototype.SetColor = function (fill, stroke) {
-        };
-
-        SVGShape.prototype.GetColor = function () {
-            return {};
+        SVGShape.prototype.SetColor = function (key) {
         };
 
         SVGShape.prototype.GetConnectorPosition = function (Dir) {
@@ -200,6 +197,7 @@ var AssureIt;
         GoalShape.prototype.Render = function (CaseViewer, NodeModel, HTMLDoc) {
             _super.prototype.Render.call(this, CaseViewer, NodeModel, HTMLDoc);
             this.BodyRect = document.createSVGElement("rect");
+            this.BodyRect.setAttribute("class", this.ColorClassName);
             this.UndevelopedSymbol = document.createSVGElement("use");
             this.UndevelopedSymbol.setAttribute("xlink:href", "#UndevelopdSymbol");
 
@@ -213,13 +211,8 @@ var AssureIt;
             this.BodyRect.setAttribute("height", this.Height.toString());
         };
 
-        GoalShape.prototype.SetColor = function (fill, stroke) {
-            this.BodyRect.setAttribute("fill", fill);
-            this.BodyRect.setAttribute("stroke", stroke);
-        };
-
-        GoalShape.prototype.GetColor = function () {
-            return { "fill": this.BodyRect.getAttribute("fill"), "stroke": this.BodyRect.getAttribute("stroke") };
+        GoalShape.prototype.SetColor = function (key) {
+            this.BodyRect.setAttribute("class", key);
         };
 
         GoalShape.prototype.SetUndevelolpedSymbolPosition = function (point) {
@@ -238,6 +231,7 @@ var AssureIt;
         ContextShape.prototype.Render = function (CaseViewer, NodeModel, HTMLDoc) {
             _super.prototype.Render.call(this, CaseViewer, NodeModel, HTMLDoc);
             this.BodyRect = document.createSVGElement("rect");
+            this.BodyRect.setAttribute("class", this.ColorClassName);
             this.ArrowPath.setAttribute("marker-end", "url(#Triangle-white)");
             this.BodyRect.setAttribute("rx", "10");
             this.BodyRect.setAttribute("ry", "10");
@@ -251,13 +245,8 @@ var AssureIt;
             this.BodyRect.setAttribute("height", this.Height.toString());
         };
 
-        ContextShape.prototype.SetColor = function (fill, stroke) {
-            this.BodyRect.setAttribute("fill", fill);
-            this.BodyRect.setAttribute("stroke", stroke);
-        };
-
-        ContextShape.prototype.GetColor = function () {
-            return { "fill": this.BodyRect.getAttribute("fill"), "stroke": this.BodyRect.getAttribute("stroke") };
+        ContextShape.prototype.SetColor = function (key) {
+            this.BodyRect.setAttribute("class", key);
         };
         return ContextShape;
     })(SVGShape);
@@ -272,6 +261,7 @@ var AssureIt;
         StrategyShape.prototype.Render = function (CaseViewer, NodeModel, HTMLDoc) {
             _super.prototype.Render.call(this, CaseViewer, NodeModel, HTMLDoc);
             this.BodyPolygon = document.createSVGElement("polygon");
+            this.BodyPolygon.setAttribute("class", this.ColorClassName);
             this.ShapeGroup.appendChild(this.BodyPolygon);
             this.Resize(CaseViewer, NodeModel, HTMLDoc);
         };
@@ -281,13 +271,8 @@ var AssureIt;
             this.BodyPolygon.setAttribute("points", "" + this.delta + ",0 " + this.Width + ",0 " + (this.Width - this.delta) + "," + this.Height + " 0," + this.Height);
         };
 
-        StrategyShape.prototype.SetColor = function (fill, stroke) {
-            this.BodyPolygon.setAttribute("fill", fill);
-            this.BodyPolygon.setAttribute("stroke", stroke);
-        };
-
-        StrategyShape.prototype.GetColor = function () {
-            return { "fill": this.BodyPolygon.getAttribute("fill"), "stroke": this.BodyPolygon.getAttribute("stroke") };
+        StrategyShape.prototype.SetColor = function (key) {
+            this.BodyPolygon.setAttribute("class", key);
         };
 
         StrategyShape.prototype.GetConnectorPosition = function (Dir) {
@@ -314,6 +299,7 @@ var AssureIt;
         EvidenceShape.prototype.Render = function (CaseViewer, NodeModel, HTMLDoc) {
             _super.prototype.Render.call(this, CaseViewer, NodeModel, HTMLDoc);
             this.BodyEllipse = document.createSVGElement("ellipse");
+            this.BodyEllipse.setAttribute("class", this.ColorClassName);
             this.ShapeGroup.appendChild(this.BodyEllipse);
             this.Resize(CaseViewer, NodeModel, HTMLDoc);
         };
@@ -326,13 +312,8 @@ var AssureIt;
             this.BodyEllipse.setAttribute("ry", (this.Height / 2).toString());
         };
 
-        EvidenceShape.prototype.SetColor = function (fill, stroke) {
-            this.BodyEllipse.setAttribute("fill", fill);
-            this.BodyEllipse.setAttribute("stroke", stroke);
-        };
-
-        EvidenceShape.prototype.GetColor = function () {
-            return { "fill": this.BodyEllipse.getAttribute("fill"), "stroke": this.BodyEllipse.getAttribute("stroke") };
+        EvidenceShape.prototype.SetColor = function (key) {
+            this.BodyEllipse.setAttribute("class", key);
         };
         return EvidenceShape;
     })(SVGShape);
