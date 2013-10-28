@@ -51,8 +51,8 @@ module AssureIt {
             var py = 0;
 			switch (Source.Type) {
                 case NodeType.Goal:
-                    px = 5;
-                    py = 10;
+                    px = 10;
+                    py = 5;
 					break;
 				case NodeType.Context:
                     px = 10;
