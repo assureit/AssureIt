@@ -211,9 +211,8 @@ var FullScreenEditorActionPlugIn = (function (_super) {
                         case0.IdCounters = orig_idCounters;
                     }
                     caseViewer.Draw();
-
-                    /* TODO We need to Draw twice for some unknown reason */ caseViewer.Draw();
-                }).on("keydown", function (e) {
+                    /* TODO We need to Draw twice for some unknown reason */ //caseViewer.Draw();
+                                    }).on("keydown", function (e) {
                     if (e.keyCode == 27) {
                         e.stopPropagation();
                         $('#fullscreen-editor-wrapper').blur();
