@@ -196,6 +196,8 @@ var FullScreenEditorActionPlugIn = (function (_super) {
                         case0.IdCounters = orig_idCounters;
                     }
                     caseViewer.Draw();
+
+                    caseViewer.Draw();
                 }).on("keydown", function (e) {
                     if (e.keyCode == 27) {
                         e.stopPropagation();
