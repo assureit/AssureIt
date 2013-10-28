@@ -4,8 +4,22 @@
 class MonitorNodeManager extends ActionNodeManager {
 
 	SetMonitorNode(evidenceNode: AssureIt.NodeModel) {
-		var location: string = evidenceNode.Environment.Location;
-		var condition: string = evidenceNode.Environment.Monitor;
+		var location: string = "";
+		if("Location" in evidenceNode.Notes) {
+			location = evidenceNode.Notes["Location"];
+		}
+		else if("Location" in evidenceNode.Environment) {
+			location = evidenceNode.Environment["Location"];
+		}
+
+		var condition: string = "";
+		if("Monitor" in evidenceNode.Notes) {
+			condition = evidenceNode.Notes["Monitor"];
+		}
+		else if("Monitor" in evidenceNode.Environment) {
+			condition = evidenceNode.Environment["Monitor"];
+		}
+
 		var item: string = extractItemFromCondition(condition);
 		var monitorNode: MonitorNode = <MonitorNode>this.ActionNodeMap[evidenceNode.Label];
 
