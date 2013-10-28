@@ -1,15 +1,10 @@
-/// <reference path="../DScript/ActionNode.ts" />
+/// <reference path="../ActionNode/ActionNode.ts" />
 
 
 function isMonitorNode(nodeModel: AssureIt.NodeModel): boolean {
-	if(nodeModel.Type != AssureIt.NodeType.Evidence) return false;
-
-	var contextNode = getContextNode(nodeModel.Parent);
-	if(contextNode == null) return false;
-	if(!("Monitor" in contextNode.Notes)) return false
-	if(!("Location" in contextNode.Notes)) return false;
-
-	return true;
+	return nodeModel.Type == AssureIt.NodeType.Evidence
+		&& nodeModel.Environment.Monitor != null
+		&& nodeModel.Environment.Location != null;
 }
 
 
@@ -89,6 +84,10 @@ class MonitorNode extends ActionNode {
 	}
 
 	Show(caseViewer: AssureIt.CaseViewer, HTMLRenderFunctions: Function[], SVGRenderFunctions: Function[]) {
+		if(this.LatestData == null) {
+			return;
+		}
+
 		var data: string =  "{ "+this.LatestData.type+" = "+this.LatestData.data+" }";
 		this.EvidenceNode.Notes["LatestData"] = data;
 		showNode(caseViewer, this.EvidenceNode, HTMLRenderFunctions, SVGRenderFunctions);

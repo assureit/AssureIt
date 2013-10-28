@@ -1,11 +1,25 @@
-/// <reference path="../DScript/ActionNodeManager.ts" />
+/// <reference path="../ActionNode/ActionNodeManager.ts" />
 
 
 class MonitorNodeManager extends ActionNodeManager {
 
 	SetMonitorNode(evidenceNode: AssureIt.NodeModel) {
-		var location: string = getContextNode(evidenceNode.Parent).Notes["Location"];
-		var condition: string = getContextNode(evidenceNode.Parent).Notes["Monitor"];
+		var location: string = "";
+		if("Location" in evidenceNode.Notes) {
+			location = evidenceNode.Notes["Location"];
+		}
+		else if("Location" in evidenceNode.Environment) {
+			location = evidenceNode.Environment["Location"];
+		}
+
+		var condition: string = "";
+		if("Monitor" in evidenceNode.Notes) {
+			condition = evidenceNode.Notes["Monitor"];
+		}
+		else if("Monitor" in evidenceNode.Environment) {
+			condition = evidenceNode.Environment["Monitor"];
+		}
+
 		var item: string = extractItemFromCondition(condition);
 		var monitorNode: MonitorNode = <MonitorNode>this.ActionNodeMap[evidenceNode.Label];
 
