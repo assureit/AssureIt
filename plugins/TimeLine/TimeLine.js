@@ -31,7 +31,6 @@ var TimeLineSideMenuPlugIn = (function (_super) {
     };
     return TimeLineSideMenuPlugIn;
 })(AssureIt.SideMenuPlugIn);
-
 var TimeLineKeyPlugIn = (function (_super) {
     __extends(TimeLineKeyPlugIn, _super);
     function TimeLineKeyPlugIn(plugInManager) {
@@ -42,7 +41,7 @@ var TimeLineKeyPlugIn = (function (_super) {
         return true;
     };
 
-    TimeLineKeyPlugIn.prototype.RegisterKeyEvents = function (caseViewer, Case0, serverApi) {
+    TimeLineKeyPlugIn.prototype.RegisterKeyEvents = function (Case0, caseViewer, serverApi) {
         return true;
     };
 

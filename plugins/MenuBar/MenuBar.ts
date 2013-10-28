@@ -34,6 +34,8 @@ class MenuBar {
 			this.menu.append('<a href="#" ><img id="remove" src="'+this.serverApi.basepath+'images/remove.png" title="Remove" alt="remove" /></a>');
 		}
 		var hasContext: boolean = false;
+		this.menu.append('<a href="#" ><img id="search" src="'+this.serverApi.basepath+'images/scale.png" title="Search" alt="search" /></a>');
+		}
 
 		for(var i: number = 0; i < this.model.Children.length; i++) {
 			if(this.model.Children[i].Type == AssureIt.NodeType.Context) {
@@ -62,7 +64,7 @@ class MenuBar {
 			default:
 				break;
 		}
-		}
+
 	}
 
 	AddNode(nodeType: AssureIt.NodeType): void {
@@ -146,9 +148,7 @@ class MenuBar {
 			this.RemoveNode();
 			$('#menu').remove();
 		});
-
 	}
-
 }
 
 
