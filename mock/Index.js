@@ -1,25 +1,3 @@
-/// <reference path="../src/CaseModel.ts" />
-/// <reference path="../src/CaseDecoder.ts" />
-/// <reference path="../src/CaseEncoder.ts" />
-/// <reference path="../src/CaseViewer.ts" />
-/// <reference path="../src/Converter.ts" />
-/// <reference path="../src/ServerApi.ts" />
-/// <reference path="../plugins/MenuBar/MenuBar.ts" />
-/// <reference path="../plugins/Scale/Scale.ts" />
-/// <reference path="../plugins/Editor/Editor.ts" />
-/// <reference path="../plugins/SearchNode/SearchNode.ts" />
-/// <reference path="../plugins/SimplePattern/SimplePattern.ts" />
-/// <reference path="../plugins/DScript/DScript.ts" />
-/// <reference path="../plugins/FullScreenEditor/FullScreenEditor.ts" />
-/// <reference path="../plugins/DefaultStatementRender/DefaultStatementRender.ts" />
-/// <reference path="../plugins/LayoutPortrait/LayoutPortrait.ts" />
-/// <reference path="../plugins/Annotation/Annotation.ts" />
-/// <reference path="../plugins/Monitor/Monitor.ts" />
-/// <reference path="../plugins/Note/Note.ts" />
-/// <reference path="../plugins/ColorTheme/ColorTheme.ts" />
-/// <reference path="../plugins/Export/Export.ts" />
-/// <reference path="../plugins/SearchNode/SearchNode.ts" />
-/// <reference path="../d.ts/jquery.d.ts" />
 $(function () {
     var serverApi = new AssureIt.ServerAPI('', 'http://54.250.206.119/rec/api/2.0/', 'http://localhost:8081');
     var pluginManager = new AssureIt.PlugInManager('');
@@ -38,11 +16,6 @@ $(function () {
     pluginManager.SetPlugIn("portraitlayout", new LayoutPortraitPlugIn(pluginManager));
     pluginManager.SetUseLayoutEngine("portraitlayout");
 
-    /*
-    var oldJsonData = serverApi.GetCase("",96);
-    var converter = new AssureIt.Converter();
-    var JsonData = converter.GenNewJson(oldJsonData);
-    */
     var JsonData = {
         "DCaseName": "test",
         "NodeCount": 25,

@@ -1,6 +1,3 @@
-///<reference path="../../src/CaseModel.ts" />
-///<reference path="../../src/CaseEncoder.ts" />
-///<reference path="../../src/PlugInManager.ts" />
 var __extends = this.__extends || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
     function __() { this.constructor = d; }
@@ -43,7 +40,6 @@ var CommitWindow = (function () {
         oldcase.SetElementTop(root);
         var res = {};
 
-        /* Compare case0.ElementMap and oldcase.ElementMap */
         var added = [], deleted = [], modified = [];
         for (var i in case0.ElementMap) {
             var node = case0.ElementMap[i];
@@ -81,7 +77,6 @@ var CommitWindow = (function () {
 
         summary.count = Object.keys(case0.ElementMap).length;
 
-        /* TODO update summary.lastModified */
         this.UpdateLastModified(summary, case0, oldsummary.lastModified);
 
         return summary;

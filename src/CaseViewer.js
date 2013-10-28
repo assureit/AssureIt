@@ -1,12 +1,3 @@
-/// <reference path="CaseModel.ts" />
-/// <reference path="CaseDecoder.ts" />
-/// <reference path="CaseEncoder.ts" />
-/// <reference path="ServerApi.ts" />
-/// <reference path="Layout.ts" />
-/// <reference path="PlugInManager.ts" />
-/// <reference path="ColorMap.ts" />
-/// <reference path="../d.ts/jquery.d.ts" />
-/// <reference path="../d.ts/pointer.d.ts" />
 var __extends = this.__extends || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
     function __() { this.constructor = d; }
@@ -17,7 +8,6 @@ document.createSVGElement = function (name) {
     return document.createElementNS('http://www.w3.org/2000/svg', name);
 };
 
-/* VIEW (MVC) */
 var AssureIt;
 (function (AssureIt) {
     var HTMLDoc = (function () {
@@ -607,7 +597,6 @@ var AssureIt;
             var width = Screen.ContentLayer.clientWidth;
             var height = Screen.ContentLayer.clientHeight;
             var pointer = this.Pointers[0];
-            //Screen.SetOffset(width / 2 - pointer.pageX, height / 2 - pointer.pageY);
         };
         return ScrollManager;
     })();
@@ -652,7 +641,6 @@ var AssureIt;
             ContentLayer.addEventListener("gesturedoubletap", function (e) {
                 _this.ScrollManager.OnDoubleTap(e, _this);
             }, false);
-            //BackGroundLayer.addEventListener("gesturescale", OnPointer, false);
         }
         ScreenManager.translateA = function (x, y) {
             return "translate(" + x + " " + y + ") ";
