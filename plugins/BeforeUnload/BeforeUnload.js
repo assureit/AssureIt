@@ -1,3 +1,6 @@
+///<reference path='../../d.ts/jquery.d.ts'/>
+///<reference path='../../src/CaseModel.ts'/>
+///<reference path='../../src/CaseViewer.ts'/>
 var __extends = this.__extends || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
     function __() { this.constructor = d; }

@@ -1,3 +1,4 @@
+/// <reference path="../ActionNode/ActionNode.ts" />
 var __extends = this.__extends || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
     function __() { this.constructor = d; }
@@ -38,6 +39,7 @@ var MonitorNode = (function (_super) {
         var latestData = RECAPI.getLatestData(this.Location, this.Item);
 
         if (latestData == null) {
+            // TODO: alert
             console.log("latest data is null");
         } else {
             if (JSON.stringify(this.LatestData) != JSON.stringify(latestData)) {

@@ -1,9 +1,14 @@
+/// <reference path="../../src/CaseModel.ts" />
+/// <reference path="../../src/ServerApi.ts" />
+/// <reference path="../../src/PlugInManager.ts" />
+/// <reference path="../../src/EditorUtil.ts" />
 var __extends = this.__extends || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
     function __() { this.constructor = d; }
     __.prototype = b.prototype;
     d.prototype = new __();
 };
+//--- CodeMirror
 var FullScreenEditorPlugIn = (function (_super) {
     __extends(FullScreenEditorPlugIn, _super);
     function FullScreenEditorPlugIn(plugInManager) {
@@ -49,6 +54,9 @@ var FullScreenEditorLayoutPlugIn = (function (_super) {
     };
 
     FullScreenEditorLayoutPlugIn.prototype.Delegate = function (caseViewer, caseModel, element) {
+        //if (caseModel.IsEditing) {
+        //	element.height(ExpandedNodeHeight);
+        //}
         return true;
     };
     return FullScreenEditorLayoutPlugIn;
@@ -149,6 +157,7 @@ var FullScreenEditorActionPlugIn = (function (_super) {
                     var orig_model = case0.ElementMap[label];
                     var orig_view = caseViewer.ViewMap[label];
 
+                    /* In order to keep labels the same as much as possible */
                     var orig_idCounters = case0.ReserveIdCounters(orig_model);
                     var orig_ElementMap = case0.ReserveElementMap(orig_model);
 
@@ -182,6 +191,7 @@ var FullScreenEditorActionPlugIn = (function (_super) {
                         })(new_model, new_view);
                         new_model.EnableEditFlag();
 
+                        /* Close the editor */
                         var $this = $(this);
                         self.isDisplayed = false;
                         $this.addClass("animated fadeOutUp");
@@ -191,12 +201,14 @@ var FullScreenEditorActionPlugIn = (function (_super) {
                         }, 1300);
                         $('#fullscreen-editor-wrapper').unbind();
                     } else {
+                        /* Show an error */
                         self.ErrorHighlight.Highlight(decoder.GetASNError().line, "");
                         case0.ElementMap = orig_ElementMap;
                         case0.IdCounters = orig_idCounters;
                     }
                     caseViewer.Draw();
-                }).on("keydown", function (e) {
+                    /* TODO We need to Draw twice for some unknown reason */ //caseViewer.Draw();
+                                    }).on("keydown", function (e) {
                     if (e.keyCode == 27) {
                         e.stopPropagation();
                         $('#fullscreen-editor-wrapper').blur();
@@ -222,6 +234,12 @@ var FullScreenEditorActionPlugIn = (function (_super) {
         return true;
     };
 
+    //ShowAnError(decoder: AssureIt.CaseDecoder) {
+    //	var error = decoder.GetASNError();
+    //	this.Blink(error.line);
+    //	this.editor.scrollIntoView({line:error.line, ch: error.column});
+    //	this.editor.setCursor({line:error.line-1});
+    //}
     FullScreenEditorActionPlugIn.prototype.DeleteFromDOM = function () {
         $('#fullscreen-editor-wrapper').blur();
     };

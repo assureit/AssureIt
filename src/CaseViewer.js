@@ -1,3 +1,12 @@
+/// <reference path="CaseModel.ts" />
+/// <reference path="CaseDecoder.ts" />
+/// <reference path="CaseEncoder.ts" />
+/// <reference path="ServerApi.ts" />
+/// <reference path="Layout.ts" />
+/// <reference path="PlugInManager.ts" />
+/// <reference path="ColorMap.ts" />
+/// <reference path="../d.ts/jquery.d.ts" />
+/// <reference path="../d.ts/pointer.d.ts" />
 var __extends = this.__extends || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
     function __() { this.constructor = d; }
@@ -8,6 +17,7 @@ document.createSVGElement = function (name) {
     return document.createElementNS('http://www.w3.org/2000/svg', name);
 };
 
+/* VIEW (MVC) */
 var AssureIt;
 (function (AssureIt) {
     var HTMLDoc = (function () {
@@ -19,7 +29,7 @@ var AssureIt;
             if (this.DocBase != null) {
                 this.DocBase.remove();
             }
-            this.DocBase = $('<div class="node">').css("position", "absolute").attr('id', NodeModel.Label);
+            this.DocBase = $('<div>').css("position", "absolute").attr('id', NodeModel.Label);
             this.DocBase.append($('<h4>' + NodeModel.Label + '</h4>'));
             this.RawDocBase = this.DocBase[0];
 
@@ -29,31 +39,21 @@ var AssureIt;
         };
 
         HTMLDoc.prototype.UpdateWidth = function (Viewer, Source) {
-            var px = 0;
-            var py = 0;
             switch (Source.Type) {
                 case AssureIt.NodeType.Goal:
-                    px = 10;
-                    py = 5;
+                    this.RawDocBase.className = "node node-goal";
                     break;
                 case AssureIt.NodeType.Context:
-                    px = 10;
-                    py = 10;
+                    this.RawDocBase.className = "node node-context";
                     break;
                 case AssureIt.NodeType.Strategy:
-                    px = 5;
-                    py = 20;
+                    this.RawDocBase.className = "node node-strategy";
                     break;
                 case AssureIt.NodeType.Evidence:
                 default:
-                    px = 20;
-                    py = 20;
+                    this.RawDocBase.className = "node node-evidence";
                     break;
             }
-            var style = this.RawDocBase.style;
-            style.paddingRight = style.paddingLeft = px + "px";
-            style.paddingTop = style.paddingBottom = py + "px";
-            style.width = (CaseViewer.ElementWidth - px * 2) + "px";
         };
 
         HTMLDoc.prototype.InvokePlugInHTMLRender = function (caseViewer, caseModel, DocBase) {
@@ -359,15 +359,15 @@ var AssureIt;
         };
 
         NodeView.prototype.AppendHTMLElement = function (svgroot, divroot, caseViewer) {
-            divroot.append(this.HTMLDoc.DocBase);
-            svgroot.append(this.SVGShape.ShapeGroup);
+            divroot.appendChild(this.HTMLDoc.RawDocBase);
+            svgroot.appendChild(this.SVGShape.ShapeGroup);
             this.InvokePlugInSVGRender(caseViewer);
 
             if (this.ParentShape != null) {
-                svgroot.append(this.SVGShape.ArrowPath);
+                svgroot.appendChild(this.SVGShape.ArrowPath);
             }
             if (this.Source.Type == AssureIt.NodeType.Goal && this.Source.Children.length == 0) {
-                svgroot.append((this.SVGShape).UndevelopedSymbol);
+                svgroot.appendChild((this.SVGShape).UndevelopedSymbol);
             }
             this.Update();
         };
@@ -514,11 +514,12 @@ var AssureIt;
         };
 
         CaseViewer.prototype.Draw = function () {
-            var shapelayer = $(this.Screen.ShapeLayer);
-            var screenlayer = $(this.Screen.ContentLayer);
             this.UpdateViewMap();
-
-            this.ViewMap[this.ElementTop.Label].AppendHTMLElementRecursive(shapelayer, screenlayer, this);
+            var divfrag = document.createDocumentFragment();
+            var svgfrag = document.createDocumentFragment();
+            this.ViewMap[this.ElementTop.Label].AppendHTMLElementRecursive(svgfrag, divfrag, this);
+            this.Screen.ShapeLayer.appendChild(svgfrag);
+            this.Screen.ContentLayer.appendChild(divfrag);
             this.pluginManager.RegisterActionEventListeners(this, this.Source, this.serverApi);
             this.Update();
         };
@@ -606,6 +607,7 @@ var AssureIt;
             var width = Screen.ContentLayer.clientWidth;
             var height = Screen.ContentLayer.clientHeight;
             var pointer = this.Pointers[0];
+            //Screen.SetOffset(width / 2 - pointer.pageX, height / 2 - pointer.pageY);
         };
         return ScrollManager;
     })();
@@ -650,6 +652,7 @@ var AssureIt;
             ContentLayer.addEventListener("gesturedoubletap", function (e) {
                 _this.ScrollManager.OnDoubleTap(e, _this);
             }, false);
+            //BackGroundLayer.addEventListener("gesturescale", OnPointer, false);
         }
         ScreenManager.translateA = function (x, y) {
             return "translate(" + x + " " + y + ") ";

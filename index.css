@@ -4,21 +4,21 @@
 }
 
 .node-goal {
-	padding: 5px, 10px;
+	padding: 5px 10px;
 	width : 230px;
 }
 
 .node-context {
-	padding: 10px, 10px;
+	padding: 10px 10px;
 	width : 230px;
 }
 
 .node-strategy {
-	padding: 20px, 5px;
-	width : 240px;
+	padding: 5px 20px;
+	width : 210px;
 }
 
 .node-evidence {
-	padding: 20px, 20px;
+	padding: 20px 20px;
 	width : 210px;
 }

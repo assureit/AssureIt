@@ -32,9 +32,7 @@ module AssureIt {
 		Height: number = 0;
 
 		Render(Viewer: CaseViewer, NodeModel: NodeModel): void {
-            var textBefore = null;
             if (this.DocBase != null) {
-                textBefore = this.RawDocBase.innerHTML;
 				this.DocBase.remove();
 			}
             this.DocBase = $('<div>')
@@ -45,9 +43,7 @@ module AssureIt {
 
 			this.InvokePlugInHTMLRender(Viewer, NodeModel, this.DocBase);
             this.UpdateWidth(Viewer, NodeModel);
-            if (textBefore != this.RawDocBase.innerHTML) {
-                this.Resize(Viewer, NodeModel);
-            }
+            this.Resize(Viewer, NodeModel);
         }
 
 		UpdateWidth(Viewer: CaseViewer, Source: NodeModel) {
@@ -353,22 +349,22 @@ module AssureIt {
 			}
 		}
 
-		private AppendHTMLElement(svgroot: JQuery, divroot: JQuery, caseViewer : CaseViewer): void {
-			divroot.append(this.HTMLDoc.DocBase);
-			svgroot.append(this.SVGShape.ShapeGroup);
+        private AppendHTMLElement(svgroot: DocumentFragment, divroot: DocumentFragment, caseViewer : CaseViewer): void {
+			divroot.appendChild(this.HTMLDoc.RawDocBase);
+            svgroot.appendChild(this.SVGShape.ShapeGroup);
 			this.InvokePlugInSVGRender(caseViewer);
 
 			// if it has an parent, add an arrow element.
 			if (this.ParentShape != null) {
-				svgroot.append(this.SVGShape.ArrowPath);
+                svgroot.appendChild(this.SVGShape.ArrowPath);
 			}
 			if (this.Source.Type == NodeType.Goal && this.Source.Children.length == 0){
-				svgroot.append((<GoalShape>this.SVGShape).UndevelopedSymbol);
+                svgroot.appendChild((<GoalShape>this.SVGShape).UndevelopedSymbol);
 			}
 			this.Update();
 		}
 
-		AppendHTMLElementRecursive(svgroot: JQuery, divroot: JQuery, caseViewer : CaseViewer): void {
+        AppendHTMLElementRecursive(svgroot: DocumentFragment, divroot: DocumentFragment, caseViewer : CaseViewer): void {
 			var Children = this.Source.Children;
 			var ViewMap = this.CaseViewer.ViewMap;
 			for (var i = 0; i < Children.length; i++) {
@@ -507,11 +503,12 @@ module AssureIt {
 		}
 
 		Draw(): void {
-			var shapelayer = $(this.Screen.ShapeLayer);
-			var screenlayer = $(this.Screen.ContentLayer);
 			this.UpdateViewMap();
-			//this.ViewMap[this.ElementTop.Label].DeleteHTMLElementRecursive(null, null);   // FIXME
-			this.ViewMap[this.ElementTop.Label].AppendHTMLElementRecursive(shapelayer, screenlayer, this);
+            var divfrag = document.createDocumentFragment();
+            var svgfrag = document.createDocumentFragment();
+            this.ViewMap[this.ElementTop.Label].AppendHTMLElementRecursive(svgfrag, divfrag, this);
+            this.Screen.ShapeLayer.appendChild(svgfrag);
+            this.Screen.ContentLayer.appendChild(divfrag);
 			this.pluginManager.RegisterActionEventListeners(this, this.Source, this.serverApi);
 			this.Update();
 		}

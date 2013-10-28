@@ -1,3 +1,4 @@
+///<reference path="./Pattern.ts" />
 var AssureIt;
 (function (AssureIt) {
     var CaseAnnotation = (function () {
@@ -9,6 +10,11 @@ var AssureIt;
     })();
     AssureIt.CaseAnnotation = CaseAnnotation;
 
+    /* obsolete */
+    //export class CaseNote {
+    //	constructor(public Name: string, public Body: any) {
+    //	}
+    //}
     (function (NodeType) {
         NodeType[NodeType["Goal"] = 0] = "Goal";
         NodeType[NodeType["Context"] = 1] = "Context";
@@ -145,6 +151,7 @@ var AssureIt;
             return true;
         };
 
+        /* plug-In */
         NodeModel.prototype.InvokePatternPlugInRecursive = function (model) {
             var pluginMap = this.Case.pluginManager.PatternPlugInMap;
             for (var key in pluginMap) {
@@ -174,6 +181,22 @@ var AssureIt;
             return null;
         };
 
+        //InvokePlugInModifier(EventType : string, EventBody : any) : boolean {
+        //	var recall = false;
+        //	for(var a in this.Annotations) {
+        //		var f = this.Case.GetPlugInModifier(a.Name);
+        //		if(f != null) {
+        //			recall = f(Case, this, EventType, EventBody) || recall;
+        //		}
+        //	}
+        //	for(var a in this.Notes) {
+        //		var f = this.Case.GetPlugInModifier(a.Name);
+        //		if(f != null) {
+        //			recall = f(Case, this, EventType, EventBody) || recall;
+        //		}
+        //	}
+        //	return recall;
+        //}
         NodeModel.prototype.UpdateEnvironment = function (proto) {
             if (typeof proto === "undefined") { proto = {}; }
             var env = null;
@@ -227,6 +250,7 @@ var AssureIt;
             this.ElementMap = {};
         };
 
+        /* Deprecated */
         Case.prototype.SetElementTop = function (ElementTop) {
             this.ElementTop = ElementTop;
             this.SaveIdCounterMax(ElementTop);
