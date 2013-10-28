@@ -121,6 +121,12 @@ var AssureIt;
                 projectId: projectId
             });
         };
+
+        ServerAPI.prototype.GetDScript = function (funcName) {
+            return this.RemoteCall("getDScript", {
+                funcName: funcName
+            });
+        };
         return ServerAPI;
     })();
     AssureIt.ServerAPI = ServerAPI;
