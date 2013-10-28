@@ -40,6 +40,6 @@ $(function () {
     var Screen = new AssureIt.ScreenManager(shapelayer, contentlayer, controllayer, backgroundlayer);
 
     var Viewer = new AssureIt.CaseViewer(Case0, pluginManager, serverApi, Screen);
-    pluginManager.RegisterKeyEvents(Case0, Viewer, serverApi);
+    pluginManager.RegisterKeyEvents(Viewer, Case0, serverApi);
     Viewer.Draw();
 });

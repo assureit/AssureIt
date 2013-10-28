@@ -41,7 +41,7 @@ var TimeLineKeyPlugIn = (function (_super) {
         return true;
     };
 
-    TimeLineKeyPlugIn.prototype.RegisterKeyEvents = function (Case0, caseViewer, serverApi) {
+    TimeLineKeyPlugIn.prototype.RegisterKeyEvents = function (caseViewer, Case0, serverApi) {
         return true;
     };
 

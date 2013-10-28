@@ -177,7 +177,7 @@ var AssureIt;
             return true;
         };
 
-        ShortcutKeyPlugIn.prototype.RegisterKeyEvents = function (Case0, caseViewer, serverApi) {
+        ShortcutKeyPlugIn.prototype.RegisterKeyEvents = function (caseViewer, Case0, serverApi) {
             return true;
         };
         return ShortcutKeyPlugIn;
@@ -336,11 +336,11 @@ var AssureIt;
             }
         };
 
-        PlugInManager.prototype.RegisterKeyEvents = function (Case0, caseViewer, serverApi) {
+        PlugInManager.prototype.RegisterKeyEvents = function (caseViewer, Case0, serverApi) {
             for (var key in this.ShortcutKeyPlugInMap) {
                 var plugin = this.ShortcutKeyPlugInMap[key];
                 if (plugin.IsEnabled(Case0, serverApi)) {
-                    plugin.RegisterKeyEvents(Case0, caseViewer, serverApi);
+                    plugin.RegisterKeyEvents(caseViewer, Case0, serverApi);
                 }
             }
         };

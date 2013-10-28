@@ -177,7 +177,7 @@ module AssureIt {
 			return true;
 		}
 
-		RegisterKeyEvents(Case0: Case, caseViewer: CaseViewer, serverApi: ServerAPI) : boolean {
+		RegisterKeyEvents(caseViewer: CaseViewer, Case0: Case, serverApi: ServerAPI) : boolean {
 			return true;
 		}
 	}
@@ -351,11 +351,11 @@ module AssureIt {
 			}
 		}
 
-		RegisterKeyEvents(Case0: Case, caseViewer: CaseViewer, serverApi: ServerAPI): void {
+		RegisterKeyEvents(caseViewer: CaseViewer, Case0: Case, serverApi: ServerAPI): void {
 			for(var key in this.ShortcutKeyPlugInMap) {
 				var plugin: ShortcutKeyPlugIn = this.ShortcutKeyPlugInMap[key];
 				if(plugin.IsEnabled(Case0, serverApi)) {
-					plugin.RegisterKeyEvents(Case0, caseViewer, serverApi);
+					plugin.RegisterKeyEvents(caseViewer, Case0, serverApi);
 					}
 			}
 		}

@@ -23,7 +23,7 @@ var ReloadKeyPlugIn = (function (_super) {
         return true;
     };
 
-    ReloadKeyPlugIn.prototype.RegisterKeyEvents = function (Case0, caseViewer, serverApi) {
+    ReloadKeyPlugIn.prototype.RegisterKeyEvents = function (caseViewer, Case0, serverApi) {
         $("body").keydown(function (e) {
             if (e.keyCode == 82 && e.shiftKey) {
                 caseViewer.DeleteHTMLElementAll();
