@@ -33,8 +33,8 @@ var AssureIt;
             var py = 0;
             switch (Source.Type) {
                 case AssureIt.NodeType.Goal:
-                    px = 5;
-                    py = 10;
+                    px = 10;
+                    py = 5;
                     break;
                 case AssureIt.NodeType.Context:
                     px = 10;
