@@ -4,6 +4,17 @@ var __extends = this.__extends || function (d, b) {
     __.prototype = b.prototype;
     d.prototype = new __();
 };
+/// <reference path="../../src/CaseModel.ts" />
+/// <reference path="../../src/CaseViewer.ts" />
+/// <reference path="../../src/PlugInManager.ts" />
+/// <reference path="../../src/EditorUtil.ts" />
+/// <reference path="../../src/RecApi.ts" />
+/// <reference path="../../src/AssureItAgentApi.ts" />
+/// <reference path="./Generator.ts" />
+/// <reference path="./ActionMap.ts" />
+/// <reference path="./PaneManager.ts" />
+/// <reference path="../ActionNode/ActionNode.ts" />
+/// <reference path="../ActionNode/ActionNodeManager.ts" />
 var __dscript__ = {
     script: {
         main: "",
@@ -109,6 +120,7 @@ var DScriptEditorPlugIn = (function (_super) {
             return nRow;
         });
 
+        //		this.Highlighter = new ErrorHighlight(this.ASNEditor);
         this.ASNEditor.on("change", function (e) {
             self.GenerateCode();
         });
@@ -219,6 +231,24 @@ var DScriptEditorPlugIn = (function (_super) {
         });
     };
 
+    // 	UpdateLineComment(editor: any, widgets: any[], generator: DScriptGenerator): void {
+    // 		editor.operation(function() {
+    // 			for (var i: number = 0; i < widgets.length; ++i) {
+    // 				editor.removeLineWidget(widgets[i]);
+    // 			}
+    // 			widgets.length = 0;
+    // 			for (var i: number = 0; i < generator.errorMessage.length; ++i) {
+    // 				var error: DScriptError = generator.errorMessage[i];
+    // 				console.log(error);
+    // 				//this.highlighter.Highlight(error.LineNumber, error.Message);
+    // 				var msg = document.createElement("div");
+    // 				var icon = msg.appendChild(document.createElement("span"));
+    // 				msg.appendChild(document.createTextNode(error.Message));
+    // 				$(msg).css("background", "none repeat scroll 0 0 #FFAAAA");
+    // 				widgets.push(editor.addLineWidget(error.LineNumber, msg, {coverGutter: false, noHScroll: true}));
+    // 			}
+    // 		});
+    // 	}
     DScriptEditorPlugIn.prototype.UpdateNodeRelationTable = function (nodeRelation) {
         (this.NodeRelationTable).fnClearTable();
         for (var key in nodeRelation) {
@@ -254,6 +284,7 @@ var DScriptEditorPlugIn = (function (_super) {
         var orig_ElementMap = case0.ReserveElementMap(this.RootNodeModel);
         var nodeModel = decoder.ParseASN(case0, ASNData, this.RootNodeModel);
         if (nodeModel == null) {
+            //			this.Highlighter.Highlight(decoder.GetASNError().line, decoder.GetASNError().toString());
             case0.IdCounters = orig_IdCounters;
             case0.ElementMap = orig_ElementMap;
             nodeModel = case0.ElementTop;
@@ -285,8 +316,10 @@ var DScriptEditorPlugIn = (function (_super) {
             this.UpdateNodeRelationTable(nodeRelation);
             this.UpdateActionRelationTable(actionRelation);
 
+            //			this.UpdateLineComment(this.ASNEditor, this.Widgets, generator);
             this.DScriptEditor.setValue(script);
         } catch (e) {
+            //TODO:
             console.log("error occured in DScript Generation");
             console.log(e);
         }

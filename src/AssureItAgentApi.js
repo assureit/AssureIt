@@ -1,7 +1,9 @@
+///<reference path='../d.ts/jquery.d.ts'/>
 var AssureIt;
 (function (AssureIt) {
     function RemoteProcedureCall(uri, method, params) {
         var defaultSuccessCallback = function (res) {
+            // do nothing
         };
 
         var defaultErrorCallback = function (req, stat, err) {
@@ -20,11 +22,22 @@ var AssureIt;
             url: uri,
             async: false,
             data: JSON.stringify(cmd),
+            //dataType: "json",   // FIXME
+            //contentType: "application/json; charset=utf-8",   // FIXME
             success: defaultSuccessCallback,
             error: defaultErrorCallback
         });
     }
 
+    // 	export interface DScript {
+    // 		script : {
+    // 			main : string;
+    // 			lib : any;
+    // 		}
+    // 		meta : {
+    // 			entry : any;
+    // 		}
+    // 	}
     var AssureItAgentAPI = (function () {
         function AssureItAgentAPI(path) {
             this.uri = path;

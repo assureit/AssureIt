@@ -1,3 +1,5 @@
+/// <reference path="../../src/CaseModel.ts" />
+/// <reference path="../../src/PlugInManager.ts" />
 var DScriptGenerator = (function () {
     function DScriptGenerator(genMainFunctionFlag) {
         if (typeof genMainFunctionFlag === "undefined") { genMainFunctionFlag = false; }
@@ -5,6 +7,18 @@ var DScriptGenerator = (function () {
         this.LineFeed = "\n";
         this.GenMainFunctionFlag = genMainFunctionFlag;
     }
+    // 	GenerateMainFunction(): string {
+    // 		var ret: string = "";
+    // 		ret += "@Export int main() {" + this.LineFeed;
+    // 		ret += this.indent + "RuntimeContext ctx = new RuntimeContext();" + this.LineFeed;
+    // 		ret += this.indent + "while(true) {" + this.LineFeed;
+    // 		ret += this.indent + this.indent + this.GenerateFunctionCall(rootNode) + ";" + this.LineFeed;
+    // 		ret += this.indent + this.indent + "sleep 30" + this.LineFeed;
+    // 		ret += this.indent + "}" + this.LineFeed;
+    // 		ret += this.indent + "return 0;" + this.LineFeed;
+    // 		ret += "}" + this.LineFeed;
+    // 		return ret;
+    // 	}
     DScriptGenerator.prototype.SearchChildrenByType = function (node, type) {
         return node.Children.filter(function (child) {
             return child.Type == type;
@@ -13,6 +27,7 @@ var DScriptGenerator = (function () {
     DScriptGenerator.prototype.SearchAnnotationByName = function (node, name) {
         var ret = node.GetAnnotation(name);
         if (ret != null) {
+            //pass
         } else {
             var contexts = this.SearchChildrenByType(node, AssureIt.NodeType.Context);
             for (var i = 0; i < contexts.length; i++) {
@@ -37,6 +52,7 @@ var DScriptGenerator = (function () {
             if (key == "prototype" || key == "Reaction") {
                 continue;
             } else if (key == "Monitor") {
+                // lazy generation
             } else {
                 ret += this.Indent + "let " + key + " = \"" + env[key] + "\";" + this.LineFeed;
             }
@@ -47,6 +63,7 @@ var DScriptGenerator = (function () {
         var ret = "";
         ret += this.GenerateLocalVariable(env);
 
+        /* Define Action Function */
         ret += this.Indent + "DFault " + funcName + " {" + this.LineFeed;
 
         if ("Monitor" in env) {
@@ -66,6 +83,7 @@ var DScriptGenerator = (function () {
         ret = ret.replace(/\t\t\n/, "");
         ret += this.Indent + "}" + this.LineFeed;
 
+        /* Call Action Function */
         ret += this.Indent + "DFault ret = null;" + this.LineFeed;
         ret += this.Indent + "if(Location == LOCATION) {" + this.LineFeed;
         ret += this.Indent + this.Indent + "ret = dlog " + funcName + ";" + this.LineFeed;
@@ -87,6 +105,7 @@ var DScriptGenerator = (function () {
                 if (child.Type == AssureIt.NodeType.Context || this.SearchAnnotationByName(child, "OnlyIf") != null) {
                     continue;
                 } else {
+                    //if (funcCall != "") funcCall += " && "; TODO: DFault doesn't support '&&' operator now
                     funcCall += child.Label + "()";
                     break;
                 }
@@ -139,8 +158,14 @@ var DScriptGenerator = (function () {
     DScriptGenerator.prototype.CodeGen = function (rootNode) {
         var ret = "";
         if (rootNode == null) {
+            //pass
         } else {
+            //res += this.GenerateDShellDecl();
+            //res += this.GenerateRuntimeContextDecl();
             ret += this.GenerateNodeFunction(rootNode);
+            // 			if (this.genMainFunctionFlag) {
+            // 				ret += GenerateMainFunction();
+            // 			}
         }
         return ret;
     };

@@ -1,3 +1,8 @@
+/// <reference path="../../src/CaseModel.ts" />
+/// <reference path="../../src/CaseEncoder.ts" />
+/// <reference path="../../src/ServerApi.ts" />
+/// <reference path="../../src/PlugInManager.ts" />
+/// <reference path="../Editor/Editor.ts" />
 var __extends = this.__extends || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
     function __() { this.constructor = d; }
@@ -27,6 +32,15 @@ var ExportMenuPlugIn = (function (_super) {
 
     ExportMenuPlugIn.prototype.AddMenu = function (caseViewer, Case0, serverApi) {
         var _this = this;
+        //element.append('<a href="#" ><img id="export-xml" src="' + serverApi.basepath + 'images/icon.png" title="Export XML" alt="XML" /></a>');
+        //element.append('<a href="#" ><img id="export-pdf" src="' + serverApi.basepath + 'images/icon.png" title="Export PDF" alt="XML" /></a>');
+        //element.append('<a href="#" ><img id="export-png" src="' + serverApi.basepath + 'images/icon.png" title="Export PNG" alt="XML" /></a>');
+        //$('#export-pdf').unbind('click');
+        //$('#export-xml').unbind('click');
+        //$('#export-png').unbind('click');
+        //$('#export-pdf').click(this.editorPlugIn.ExportPdf);
+        //$('#export-xml').click(this.editorPlugIn.ExportXml);
+        //$('#export-png').click(this.editorPlugIn.ExportPng);
         return new AssureIt.SideMenuModel('#', "Export to XML", "export-xml", "glyphicon-export", function (ev) {
             _this.editorPlugIn.ExportXml(ev);
         });

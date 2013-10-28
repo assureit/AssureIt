@@ -4,6 +4,12 @@ var __extends = this.__extends || function (d, b) {
     __.prototype = b.prototype;
     d.prototype = new __();
 };
+/// <reference path="../../src/CaseModel.ts" />
+/// <reference path="../../src/ServerApi.ts" />
+/// <reference path="../../src/PlugInManager.ts" />
+/// <reference path="../../src/EditorUtil.ts" />
+//--- CodeMirror
+/* const */
 var ExpandedNodeHeight = 200;
 var InplaceEditorHeight = ExpandedNodeHeight - 50;
 
@@ -27,6 +33,9 @@ var EditorLayoutPlugIn = (function (_super) {
     };
 
     EditorLayoutPlugIn.prototype.Delegate = function (caseViewer, caseModel, element) {
+        //if (caseModel.IsEditing) {
+        //	element.height(ExpandedNodeHeight);
+        //}
         return true;
     };
     return EditorLayoutPlugIn;
@@ -70,6 +79,7 @@ var EditorActionPlugIn = (function (_super) {
             var orig_model = case0.ElementMap[label];
             var orig_shape = caseViewer.ViewMap[label];
 
+            //orig_model.EnableEditFlag();
             orig_shape.HTMLDoc.Render(caseViewer, orig_model);
 
             caseViewer.Draw();
@@ -90,6 +100,8 @@ var EditorActionPlugIn = (function (_super) {
                 var decoder = new AssureIt.CaseDecoder();
                 var new_model = decoder.ParseASN(case0, editor.getValue().trim(), orig_model);
                 if (new_model != null) {
+                    /*update orig_model and redraw html*/
+                    //orig_model.IsEditing = false;
                     orig_model.Statement = new_model.Statement == null ? "" : new_model.Statement;
                     orig_model.Annotations = new_model.Annotations;
                     orig_model.Notes = new_model.Notes;
