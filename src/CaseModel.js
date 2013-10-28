@@ -45,6 +45,7 @@ var AssureIt;
 
             Case.ElementMap[this.Label] = this;
             this.LineNumber = 1;
+            this.Environment = null;
         }
         NodeModel.prototype.EnableEditFlag = function () {
             this.InvokePatternPlugIn();
@@ -171,6 +172,34 @@ var AssureIt;
                     return true;
             }
             return false;
+        };
+        NodeModel.prototype.GetContext = function () {
+            for (var i = 0; i < this.Children.length; i++) {
+                if (this.Children[i].Type == NodeType.Context)
+                    return this.Children[i];
+            }
+            return null;
+        };
+
+        NodeModel.prototype.UpdateEnvironment = function (proto) {
+            if (typeof proto === "undefined") { proto = {}; }
+            var env = null;
+            var context = this.GetContext();
+            if (context == null) {
+                env = proto;
+            } else {
+                var envConstructor = function () {
+                    for (var key in context.Notes) {
+                        this[key] = context.Notes[key];
+                    }
+                };
+                envConstructor.prototype = proto;
+                env = new envConstructor();
+            }
+            this.Environment = env;
+            for (var i = 0; i < this.Children.length; i++) {
+                this.Children[i].UpdateEnvironment(env);
+            }
         };
         return NodeModel;
     })();

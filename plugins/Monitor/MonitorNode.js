@@ -6,18 +6,7 @@ var __extends = this.__extends || function (d, b) {
     d.prototype = new __();
 };
 function isMonitorNode(nodeModel) {
-    if (nodeModel.Type != AssureIt.NodeType.Evidence)
-        return false;
-
-    var contextNode = getContextNode(nodeModel.Parent);
-    if (contextNode == null)
-        return false;
-    if (!("Monitor" in contextNode.Notes))
-        return false;
-    if (!("Location" in contextNode.Notes))
-        return false;
-
-    return true;
+    return nodeModel.Type == AssureIt.NodeType.Evidence && nodeModel.Environment.Monitor != null && nodeModel.Environment.Location != null;
 }
 
 var MonitorNode = (function (_super) {
@@ -88,6 +77,10 @@ var MonitorNode = (function (_super) {
     };
 
     MonitorNode.prototype.Show = function (caseViewer, HTMLRenderFunctions, SVGRenderFunctions) {
+        if (this.LatestData == null) {
+            return;
+        }
+
         var data = "{ " + this.LatestData.type + " = " + this.LatestData.data + " }";
         this.EvidenceNode.Notes["LatestData"] = data;
         showNode(caseViewer, this.EvidenceNode, HTMLRenderFunctions, SVGRenderFunctions);

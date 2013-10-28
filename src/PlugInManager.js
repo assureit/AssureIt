@@ -201,6 +201,9 @@ var AssureIt;
         SideMenuPlugIn.prototype.AddMenu = function (caseViewer, Case0, serverApi) {
             return null;
         };
+        SideMenuPlugIn.prototype.AddMenus = function (caseViewer, Case0, serverApi) {
+            return null;
+        };
         return SideMenuPlugIn;
     })(AbstractPlugIn);
     AssureIt.SideMenuPlugIn = SideMenuPlugIn;
@@ -351,7 +354,12 @@ var AssureIt;
             for (var key in this.SideMenuPlugInMap) {
                 var plugin = this.SideMenuPlugInMap[key];
                 if (plugin.IsEnabled(caseViewer, Case0, serverApi)) {
-                    SideMenuContents.push(plugin.AddMenu(caseViewer, Case0, serverApi));
+                    var content = plugin.AddMenu(caseViewer, Case0, serverApi);
+                    if (content != null)
+                        SideMenuContents.push(content);
+                    var contents = plugin.AddMenus(caseViewer, Case0, serverApi);
+                    if (contents != null)
+                        SideMenuContents.push.apply(SideMenuContents, contents);
                 }
             }
             AssureIt.SideMenu.Create(SideMenuContents);

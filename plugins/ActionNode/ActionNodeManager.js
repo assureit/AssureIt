@@ -92,7 +92,7 @@ var ActionNodeManager = (function () {
     };
 
     ActionNodeManager.prototype.SetActionNode = function (evidenceNode) {
-        var location = getContextNode(evidenceNode.Parent).Notes["Location"];
+        var location = evidenceNode.Environment.Location;
         var actionNode = this.ActionNodeMap[evidenceNode.Label];
 
         if (actionNode == null) {

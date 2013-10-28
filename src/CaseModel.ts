@@ -27,9 +27,9 @@ module AssureIt {
 		Parent : NodeModel;
 		Children: NodeModel[];
 		LineNumber : number;
+		Environment;
 
 		HasDiff: boolean = false;
-
 
 		constructor(Case: Case, Parent: NodeModel, Type: NodeType, Label: string, Statement: string,Notes: {[index: string]: string}) {
 			this.Case = Case;
@@ -51,6 +51,7 @@ module AssureIt {
 
 			Case.ElementMap[this.Label] = this; // TODO: ensure consistensy of labels
 			this.LineNumber = 1; /*FIXME*/
+			this.Environment = null;
 		}
 
 		EnableEditFlag(): void {
@@ -174,6 +175,12 @@ module AssureIt {
 			}
 			return false;
 		}
+		GetContext() : NodeModel {
+			for (var i: number = 0; i < this.Children.length; i++) {
+				if (this.Children[i].Type == NodeType.Context) return this.Children[i];
+			}
+			return null;
+		}
 
 		//InvokePlugInModifier(EventType : string, EventBody : any) : boolean {
 		//	var recall = false;
@@ -191,6 +198,28 @@ module AssureIt {
 		//	}
 		//	return recall;
 		//}
+
+		UpdateEnvironment(proto = {}): void {
+			var env = null;
+			var context = this.GetContext();
+			if (context == null) {
+				env = proto;
+			}
+			else {
+				var envConstructor = function() {
+					for (var key in context.Notes) {
+						this[key] = context.Notes[key];
+					}
+				}
+				envConstructor.prototype = proto;
+				env = new envConstructor();
+			}
+			this.Environment = env;
+			for (var i: number = 0; i < this.Children.length; i++) {
+				this.Children[i].UpdateEnvironment(env);
+			}
+		}
+
 	}
 
 	export class Case {

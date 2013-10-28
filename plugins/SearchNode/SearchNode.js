@@ -13,6 +13,7 @@ var SearchNodePlugIn = (function (_super) {
     __extends(SearchNodePlugIn, _super);
     function SearchNodePlugIn(plugInManager) {
         _super.call(this, plugInManager);
+<<<<<<< HEAD
 
         //var plugin: SearchNodeActionPlugIn = new SearchNodeActionPlugIn(plugInManager);
         //this.ActionPlugIn = plugin;
@@ -55,3 +56,8 @@ var SearchNodeMenuPlugIn = (function (_super) {
     };
     return SearchNodeMenuPlugIn;
 })(AssureIt.MenuBarContentsPlugIn);
+=======
+    }
+    return SearchNodePlugIn;
+})(AssureIt.PlugInSet);
+>>>>>>> 1a4cdca1209c9203b18cd03b6f7aef7d2a074ff0
