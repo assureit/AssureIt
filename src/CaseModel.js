@@ -39,6 +39,7 @@ var AssureIt;
 
             Case.ElementMap[this.Label] = this;
             this.LineNumber = 1;
+            this.Environment = null;
         }
         NodeModel.prototype.EnableEditFlag = function () {
             this.InvokePatternPlugIn();
@@ -156,6 +157,42 @@ var AssureIt;
         };
         NodeModel.prototype.InvokePatternPlugIn = function () {
             this.InvokePatternPlugInRecursive(this);
+        };
+
+        NodeModel.prototype.HasContext = function () {
+            for (var i in this.Children) {
+                if (this.Children[i].Type == NodeType.Context)
+                    return true;
+            }
+            return false;
+        };
+        NodeModel.prototype.GetContext = function () {
+            for (var i = 0; i < this.Children.length; i++) {
+                if (this.Children[i].Type == NodeType.Context)
+                    return this.Children[i];
+            }
+            return null;
+        };
+
+        NodeModel.prototype.UpdateEnvironment = function (proto) {
+            if (typeof proto === "undefined") { proto = {}; }
+            var env = null;
+            var context = this.GetContext();
+            if (context == null) {
+                env = proto;
+            } else {
+                var envConstructor = function () {
+                    for (var key in context.Notes) {
+                        this[key] = context.Notes[key];
+                    }
+                };
+                envConstructor.prototype = proto;
+                env = new envConstructor();
+            }
+            this.Environment = env;
+            for (var i = 0; i < this.Children.length; i++) {
+                this.Children[i].UpdateEnvironment(env);
+            }
         };
         return NodeModel;
     })();
@@ -334,6 +371,8 @@ var AssureIt;
             var keys = Object.keys(this.ElementMap);
             for (var i = 0; i < keys.length; i++) {
                 if (!(keys[i] in that.ElementMap)) {
+                    this.ElementMap[keys[i]].HasDiff = true;
+                } else if (!this.ElementMap[keys[i]].Equals(that.ElementMap[keys[i]])) {
                     this.ElementMap[keys[i]].HasDiff = true;
                 }
             }

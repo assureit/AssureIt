@@ -21,6 +21,8 @@ var AssureIt;
             this.MenuBarContentsPlugIn = null;
             this.ShortcutKeyPlugIn = null;
             this.SideMenuPlugIn = null;
+
+            this.PlugInEnv = null;
         }
         return PlugInSet;
     })();
@@ -195,6 +197,9 @@ var AssureIt;
         SideMenuPlugIn.prototype.AddMenu = function (caseViewer, Case0, serverApi) {
             return null;
         };
+        SideMenuPlugIn.prototype.AddMenus = function (caseViewer, Case0, serverApi) {
+            return null;
+        };
         return SideMenuPlugIn;
     })(AbstractPlugIn);
     AssureIt.SideMenuPlugIn = SideMenuPlugIn;
@@ -214,6 +219,8 @@ var AssureIt;
             this.MenuBarContentsPlugInMap = {};
             this.ShortcutKeyPlugInMap = {};
             this.SideMenuPlugInMap = {};
+
+            this.PlugInEnvMap = {};
 
             this.UILayer = [];
         }
@@ -241,6 +248,9 @@ var AssureIt;
             }
             if (plugIn.SideMenuPlugIn) {
                 this.SetSideMenuPlugIn(key, plugIn.SideMenuPlugIn);
+            }
+            if (plugIn.PlugInEnv) {
+                this.SetPlugInEnv(key, plugIn.PlugInEnv);
             }
         };
 
@@ -294,6 +304,14 @@ var AssureIt;
             this.SideMenuPlugInMap[key] = SideMenuPlugIn;
         };
 
+        PlugInManager.prototype.SetPlugInEnv = function (key, PlugInEnv) {
+            this.PlugInEnvMap[key] = PlugInEnv;
+        };
+
+        PlugInManager.prototype.GetPlugInEnv = function (key) {
+            return this.PlugInEnvMap[key];
+        };
+
         PlugInManager.prototype.UseUILayer = function (plugin) {
             var beforePlugin = this.UILayer.pop();
             if (beforePlugin != plugin && beforePlugin) {
@@ -332,7 +350,12 @@ var AssureIt;
             for (var key in this.SideMenuPlugInMap) {
                 var plugin = this.SideMenuPlugInMap[key];
                 if (plugin.IsEnabled(caseViewer, Case0, serverApi)) {
-                    SideMenuContents.push(plugin.AddMenu(caseViewer, Case0, serverApi));
+                    var content = plugin.AddMenu(caseViewer, Case0, serverApi);
+                    if (content != null)
+                        SideMenuContents.push(content);
+                    var contents = plugin.AddMenus(caseViewer, Case0, serverApi);
+                    if (contents != null)
+                        SideMenuContents.push.apply(SideMenuContents, contents);
                 }
             }
             AssureIt.SideMenu.Create(SideMenuContents);

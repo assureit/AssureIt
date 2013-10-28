@@ -42,6 +42,26 @@ module AssureIt {
 			this.basepath = path;
 		}
 
+		pushRawData(location: string, type: string, data: number, authid: string, context: string): any {
+			var params = {
+				location: location,
+				type: type,
+				data: data,
+				authid: authid,
+				context: context
+			};
+
+			var res = RemoteProcedureCall(this.uri, "pushRawData", params);
+
+			if('result' in res) {
+				return res.result;
+			}
+			else {
+				console.log(res.error)
+				return null;
+			}
+		}
+
 		getRawData(recid: string): any {
 			var params = { recid: recid };
 

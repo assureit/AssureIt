@@ -37,7 +37,7 @@ class CommitWindow {
 	UpdateLastModified(summary: any, case0: AssureIt.Case, lastModified: any) : void{
 		if (lastModified == null) lastModified = {};
 		var userName = $.cookie('userName');
-		var oldcase = new AssureIt.Case('oldCase', case0.oldsummary, case0.oldasn, case0.CaseId, case0.CommitId, null);
+		var oldcase = new AssureIt.Case('oldCase', JSON.stringify(case0.oldsummary), case0.oldasn, case0.CaseId, case0.CommitId, null);
 		var caseDecoder = new AssureIt.CaseDecoder();
 		var root = caseDecoder.ParseASN(oldcase, case0.oldasn, null);
 		oldcase.SetElementTop(root);
@@ -54,8 +54,6 @@ class CommitWindow {
 			} else if (node.Equals(oldnode)) {
 				if (lastModified[i] != null) {
 					res[i] = lastModified[i];
-				} else {
-					res[i] = {userName: $.cookie('userName'), role: 'admin'};
 				}
 			} else {
 				modified.push(i);

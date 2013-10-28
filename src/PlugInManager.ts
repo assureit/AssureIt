@@ -20,6 +20,8 @@ module AssureIt {
 		MenuBarContentsPlugIn: MenuBarContentsPlugIn;
 		SideMenuPlugIn: SideMenuPlugIn;
 
+		PlugInEnv: any;
+
 		constructor(public plugInManager: PlugInManager) {
 			this.ActionPlugIn = null;
 			this.CheckerPlugIn = null;
@@ -33,6 +35,8 @@ module AssureIt {
 			this.MenuBarContentsPlugIn = null;
 			this.ShortcutKeyPlugIn = null;
 			this.SideMenuPlugIn = null;
+
+			this.PlugInEnv = null;
 		}
 	}
 
@@ -191,6 +195,9 @@ module AssureIt {
 		AddMenu(caseViewer: CaseViewer, Case0: Case, serverApi: ServerAPI) : SideMenuModel {
 			return null;
 		}
+		AddMenus(caseViewer: CaseViewer, Case0: Case, serverApi: ServerAPI) : SideMenuModel[] {
+			return null;
+		}
 	}
 
 	export class PlugInManager {
@@ -205,10 +212,13 @@ module AssureIt {
 
 		MenuBarContentsPlugInMap  : { [index: string]: MenuBarContentsPlugIn };
 		ShortcutKeyPlugInMap      : { [index: string]: ShortcutKeyPlugIn };
-		SideMenuPlugInMap : { [index: string]: SideMenuPlugIn };
+		SideMenuPlugInMap         : { [index: string]: SideMenuPlugIn };
+
+		PlugInEnvMap              : { [index: string]: any };
 
 		UILayer: AbstractPlugIn[];
 		UsingLayoutEngine: string;
+
 
 		constructor(public basepath: string) {
 			this.ActionPlugInMap = {};
@@ -223,6 +233,8 @@ module AssureIt {
 			this.MenuBarContentsPlugInMap = {};
 			this.ShortcutKeyPlugInMap = {};
 			this.SideMenuPlugInMap = {};
+
+			this.PlugInEnvMap = {};
 
 			this.UILayer = [];
 		}
@@ -251,6 +263,9 @@ module AssureIt {
 			}
 			if(plugIn.SideMenuPlugIn) {
 				this.SetSideMenuPlugIn(key, plugIn.SideMenuPlugIn);
+			}
+			if(plugIn.PlugInEnv) {
+				this.SetPlugInEnv(key, plugIn.PlugInEnv);
 			}
 		}
 
@@ -304,6 +319,14 @@ module AssureIt {
 			this.SideMenuPlugInMap[key] = SideMenuPlugIn;
 		}
 
+		private SetPlugInEnv(key: string, PlugInEnv: any): void {
+			this.PlugInEnvMap[key] = PlugInEnv;
+		}
+
+		GetPlugInEnv(key: string): any {
+			return this.PlugInEnvMap[key];
+		}
+
 		UseUILayer(plugin :AbstractPlugIn): void {
 			var beforePlugin = this.UILayer.pop();
 			if(beforePlugin != plugin && beforePlugin) {
@@ -333,7 +356,7 @@ module AssureIt {
 				var plugin: ShortcutKeyPlugIn = this.ShortcutKeyPlugInMap[key];
 				if(plugin.IsEnabled(Case0, serverApi)) {
 					plugin.RegisterKeyEvents(Case0, caseViewer, serverApi);
-				}
+					}
 			}
 		}
 
@@ -342,7 +365,10 @@ module AssureIt {
 			for(var key in this.SideMenuPlugInMap) {
 				var plugin: SideMenuPlugIn = this.SideMenuPlugInMap[key];
 				if(plugin.IsEnabled(caseViewer, Case0, serverApi)) {
-					SideMenuContents.push(plugin.AddMenu(caseViewer, Case0, serverApi));
+					var content = plugin.AddMenu(caseViewer, Case0, serverApi);
+					if (content != null) SideMenuContents.push(content);
+					var contents = plugin.AddMenus(caseViewer, Case0, serverApi);
+					if (contents != null) SideMenuContents.push.apply(SideMenuContents, contents);
 				}
 			}
 			SideMenu.Create(SideMenuContents);
