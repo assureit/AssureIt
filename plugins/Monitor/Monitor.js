@@ -5,6 +5,7 @@ var __extends = this.__extends || function (d, b) {
     d.prototype = new __();
 };
 var monitorNodeManager = null;
+var monitorWindow = null;
 
 var MonitorPlugIn = (function (_super) {
     __extends(MonitorPlugIn, _super);
@@ -63,18 +64,10 @@ var MonitorHTMLRenderPlugIn = (function (_super) {
             linkColor = 'red';
         }
 
-        var $link = $('<a href="#"><p align="right" style="color: ' + linkColor + '">past data</p></a>');
+        var $link = $('<a href="#"><p align="right" style="color: ' + linkColor + '">Monitor Log</p></a>');
         $link.click(function (ev) {
             ev.stopPropagation();
-            if (monitorNode.PastData.length < 1) {
-                return;
-            }
-
-            var childWindow = window.open();
-            for (var i = 0; i < monitorNode.PastData.length; i++) {
-                var log = JSON.stringify(monitorNode.PastData[i]);
-                $(childWindow.document.body).append($('<p>' + log + '</p>'));
-            }
+            monitorWindow.ShowMonitorLogTable(monitorNode.EvidenceNode.Label);
         });
 
         $link.appendTo($logs);
@@ -116,13 +109,12 @@ var MonitorSVGRenderPlugIn = (function (_super) {
     return MonitorSVGRenderPlugIn;
 })(AssureIt.SVGRenderPlugIn);
 
-var MonitorTableWindow = (function () {
-    function MonitorTableWindow() {
-        this.InitTable();
+var MonitorWindow = (function () {
+    function MonitorWindow() {
     }
-    MonitorTableWindow.prototype.InitTable = function () {
+    MonitorWindow.prototype.InitWindow = function (tableTitle) {
         $('#modal-monitors').remove();
-        var $modal = $('<div id="modal-monitors" title="Monitors" />');
+        var $modal = $('<div id="modal-monitors" title="' + tableTitle + '"/>');
 
         ($modal).dialog({
             autoOpen: false,
@@ -135,16 +127,16 @@ var MonitorTableWindow = (function () {
             height: 500
         });
 
-        var $table = $('<table id="monitor-table" bgcolor="#999999">' + '<thead>' + '<tr>' + '<th>Monitor Node</th>' + '<th>Type</th>' + '<th>Location</th>' + '<th>Latest Data</th>' + '<th>Auth ID</th>' + '<th>Timestamp</th>' + '<th>Status</th>' + '</tr>' + '</thead>' + '<tbody>' + '</tbody>' + '</table>');
-        $modal.append($table);
-        $modal.appendTo('layer2');
+        return $modal;
     };
 
-    MonitorTableWindow.prototype.UpdateTable = function () {
-        var $table = $('#monitor-table');
-        $table.find('tbody').remove();
-        var $tbody = $('<tbody></tbody>');
+    MonitorWindow.prototype.ShowMonitorTable = function () {
+        var self = this;
+        var $modal = this.InitWindow("Monitors");
 
+        var $table = $('<table id="monitor-table" bgcolor="#999999">' + '<thead>' + '<tr>' + '<th>Monitor Node</th>' + '<th>Type</th>' + '<th>Location</th>' + '<th>Latest Data</th>' + '<th>Auth ID</th>' + '<th>Timestamp</th>' + '<th>Status</th>' + '</tr>' + '</thead>' + '</table>');
+
+        var $tbody = $('<tbody></tbody>');
         for (var key in monitorNodeManager.ActionNodeMap) {
             var monitorNode = monitorNodeManager.ActionNodeMap[key];
 
@@ -152,7 +144,9 @@ var MonitorTableWindow = (function () {
                 continue;
 
             if (monitorNode.LatestData != null) {
-                var $tr = $('<tr></tr>');
+                var $tr = $('<tr id="monitorlog-' + monitorNode.EvidenceNode.Label + '"></tr>');
+                $tr.unbind('click');
+
                 $tr.append('<td>' + key + '</td>');
                 $tr.append('<td>' + monitorNode.LatestData['type'] + '</td>');
                 $tr.append('<td>' + monitorNode.LatestData['location'] + '</td>');
@@ -163,14 +157,19 @@ var MonitorTableWindow = (function () {
                     $tr.append('<td>Success</td>');
                 } else {
                     $tr.append('<td>Fail</td>');
-                    $tr.attr('class', 'monitor-table-fail');
                 }
+
+                $tr.click(function () {
+                    self.ShowMonitorLogTable(monitorNode.EvidenceNode.Label);
+                });
+
                 $tr.appendTo($tbody);
             }
         }
 
         $tbody.appendTo($table);
-        $table.appendTo('#modal-monitors');
+        $table.appendTo($modal);
+        $modal.appendTo('layer2');
 
         ($('#monitor-table')).dataTable({
             "bPaginate": true,
@@ -180,12 +179,47 @@ var MonitorTableWindow = (function () {
             "bInfo": true,
             "bAutoWidth": true
         });
+
+        self.Open();
     };
 
-    MonitorTableWindow.prototype.Open = function () {
+    MonitorWindow.prototype.ShowMonitorLogTable = function (label) {
+        var $modal = this.InitWindow(label + " Logs");
+
+        var $table = $('<table id="monitor-table" bgcolor="#999999">' + '<thead>' + '<tr>' + '<th>Timestamp</th>' + '<th>Type</th>' + '<th>Location</th>' + '<th>Latest Data</th>' + '<th>Auth ID</th>' + '</tr>' + '</thead>' + '</table>');
+
+        var $tbody = $('<tbody></tbody>');
+        var pastData = (monitorNodeManager.ActionNodeMap[label]).PastData;
+        for (var i = 0; i < pastData.length; i++) {
+            var $tr = $('<tr></tr>');
+            $tr.append('<td>' + pastData[i]['timestamp'] + '</td>');
+            $tr.append('<td>' + pastData[i]['type'] + '</td>');
+            $tr.append('<td>' + pastData[i]['location'] + '</td>');
+            $tr.append('<td>' + pastData[i]['data'] + '</td>');
+            $tr.append('<td>' + pastData[i]['authid'] + '</td>');
+            $tr.appendTo($tbody);
+        }
+
+        $tbody.appendTo($table);
+        $table.appendTo($modal);
+        $modal.appendTo('layer2');
+
+        ($('#monitor-table')).dataTable({
+            "bPaginate": true,
+            "bLengthChange": true,
+            "bFilter": true,
+            "bSort": true,
+            "bInfo": true,
+            "bAutoWidth": true
+        });
+
+        this.Open();
+    };
+
+    MonitorWindow.prototype.Open = function () {
         ($('#modal-monitors')).dialog('open');
     };
-    return MonitorTableWindow;
+    return MonitorWindow;
 })();
 
 var MonitorSideMenuPlugIn = (function (_super) {
@@ -199,11 +233,10 @@ var MonitorSideMenuPlugIn = (function (_super) {
 
     MonitorSideMenuPlugIn.prototype.AddMenu = function (caseViewer, Case0, serverApi) {
         monitorNodeManager.Init(caseViewer, serverApi.recpath);
+        monitorWindow = new MonitorWindow();
 
         return new AssureIt.SideMenuModel('#', 'Monitors', "monitors", "glyphicon-list-alt", function (ev) {
-            var monitorTableWindow = new MonitorTableWindow();
-            monitorTableWindow.UpdateTable();
-            monitorTableWindow.Open();
+            monitorWindow.ShowMonitorTable();
         });
     };
     return MonitorSideMenuPlugIn;
