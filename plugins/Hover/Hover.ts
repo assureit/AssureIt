@@ -2,6 +2,36 @@
 /// <reference path="../../src/CaseViewer.ts" />
 /// <reference path="../../src/PlugInManager.ts" />
 
+class HoverPlugIn extends AssureIt.PlugInSet {
+
+	constructor(public plugInManager: AssureIt.PlugInManager) {
+		super(plugInManager);
+		this.ActionPlugIn = new HoverActionPlugIn(plugInManager);
+	}
+
+}
+
+class HoverActionPlugIn extends AssureIt.ActionPlugIn {
+
+	IsEnabled(caseViewer: AssureIt.CaseViewer, case0: AssureIt.Case): boolean {
+		return true;
+	}
+
+	Delegate(caseViewer: AssureIt.CaseViewer, case0: AssureIt.Case, serverApi: AssureIt.ServerAPI): boolean {
+
+		$('.node').hover(function () {
+			var thisNodeLabel: string = $(this).children('h4').text();
+			caseViewer.ViewMap[thisNodeLabel].SVGShape.SetColor(AssureIt.Color.HighLight);
+		}, function() {
+			var thisNodeLabel: string = $(this).children('h4').text();
+			caseViewer.ViewMap[thisNodeLabel].SVGShape.SetColor(AssureIt.Color.Default);
+		});
+
+		return true;
+	}
+
+}
+
 //class DefaultColorThemePlugIn extends AssureIt.PlugInSet {
 //
 //	constructor(public plugInManager: AssureIt.PlugInManager) {
@@ -11,15 +41,6 @@
 //	}
 //
 //}
-
-class TiffanyBlueThemePlugIn extends AssureIt.PlugInSet {
-
-	constructor(public plugInManager: AssureIt.PlugInManager) {
-		super(plugInManager);
-		this.ActionPlugIn = new HoverActionPlugIn(plugInManager);
-	}
-
-}
 
 //class SimpleColorThemePlugIn extends AssureIt.PlugInSet {
 //
@@ -144,23 +165,3 @@ class TiffanyBlueThemePlugIn extends AssureIt.PlugInSet {
 //
 //}
 
-class HoverActionPlugIn extends AssureIt.ActionPlugIn {
-
-	IsEnabled(caseViewer: AssureIt.CaseViewer, case0: AssureIt.Case): boolean {
-		return true;
-	}
-
-	Delegate(caseViewer: AssureIt.CaseViewer, case0: AssureIt.Case, serverApi: AssureIt.ServerAPI): boolean {
-
-		$('.node').hover(function () {
-			var thisNodeLabel: string = $(this).children('h4').text();
-			caseViewer.ViewMap[thisNodeLabel].SVGShape.SetColor(AssureIt.Color.HighLight);
-		}, function() {
-			var thisNodeLabel: string = $(this).children('h4').text();
-			caseViewer.ViewMap[thisNodeLabel].SVGShape.SetColor(AssureIt.Color.Default);
-		});
-
-		return true;
-	}
-
-}

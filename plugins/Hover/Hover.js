@@ -4,14 +4,14 @@ var __extends = this.__extends || function (d, b) {
     __.prototype = b.prototype;
     d.prototype = new __();
 };
-var TiffanyBlueThemePlugIn = (function (_super) {
-    __extends(TiffanyBlueThemePlugIn, _super);
-    function TiffanyBlueThemePlugIn(plugInManager) {
+var HoverPlugIn = (function (_super) {
+    __extends(HoverPlugIn, _super);
+    function HoverPlugIn(plugInManager) {
         _super.call(this, plugInManager);
         this.plugInManager = plugInManager;
         this.ActionPlugIn = new HoverActionPlugIn(plugInManager);
     }
-    return TiffanyBlueThemePlugIn;
+    return HoverPlugIn;
 })(AssureIt.PlugInSet);
 
 var HoverActionPlugIn = (function (_super) {
