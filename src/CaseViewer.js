@@ -16,9 +16,7 @@ var AssureIt;
             this.Height = 0;
         }
         HTMLDoc.prototype.Render = function (Viewer, NodeModel) {
-            var textBefore = null;
             if (this.DocBase != null) {
-                textBefore = this.RawDocBase.innerHTML;
                 this.DocBase.remove();
             }
             this.DocBase = $('<div>').css("position", "absolute").attr('id', NodeModel.Label);
@@ -27,9 +25,7 @@ var AssureIt;
 
             this.InvokePlugInHTMLRender(Viewer, NodeModel, this.DocBase);
             this.UpdateWidth(Viewer, NodeModel);
-            if (textBefore != this.RawDocBase.innerHTML) {
-                this.Resize(Viewer, NodeModel);
-            }
+            this.Resize(Viewer, NodeModel);
         };
 
         HTMLDoc.prototype.UpdateWidth = function (Viewer, Source) {

@@ -21,7 +21,16 @@ class ToDoSVGRenderPlugIn extends AssureIt.SVGRenderPlugIn {
 	}
 
 	Delegate(caseViewer: AssureIt.CaseViewer, elementShape: AssureIt.NodeView): boolean {
-		console.log("hi");
+		var model = elementShape.Source;
+		var found: boolean = false;
+		for (var key in model.Notes) {
+			if (key == 'TODO') {
+				found = true;
+			}
+		}
+		if (found) {
+			elementShape.SVGShape.SetColor(AssureIt.Color.Danger);
+		}
 		return true;
 	}
 }

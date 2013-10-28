@@ -25,7 +25,16 @@ var ToDoSVGRenderPlugIn = (function (_super) {
     };
 
     ToDoSVGRenderPlugIn.prototype.Delegate = function (caseViewer, elementShape) {
-        console.log("hi");
+        var model = elementShape.Source;
+        var found = false;
+        for (var key in model.Notes) {
+            if (key == 'TODO') {
+                found = true;
+            }
+        }
+        if (found) {
+            elementShape.SVGShape.SetColor(AssureIt.Color.Danger);
+        }
         return true;
     };
     return ToDoSVGRenderPlugIn;
