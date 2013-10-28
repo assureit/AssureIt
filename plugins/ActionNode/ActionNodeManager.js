@@ -11,7 +11,6 @@ function extractItemFromCondition(condition) {
     }
 
     if (items.length != 1) {
-        // TODO: alert
     }
 
     return items[0];

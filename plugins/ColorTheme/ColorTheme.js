@@ -1,6 +1,3 @@
-/// <reference path="../../src/CaseModel.ts" />
-/// <reference path="../../src/CaseViewer.ts" />
-/// <reference path="../../src/PlugInManager.ts" />
 var __extends = this.__extends || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
     function __() { this.constructor = d; }
@@ -29,11 +26,10 @@ var HoverActionPlugIn = (function (_super) {
     HoverActionPlugIn.prototype.Delegate = function (caseViewer, case0, serverApi) {
         $('.node').hover(function () {
             var thisNodeLabel = $(this).children('h4').text();
-
-            caseViewer.ViewMap[thisNodeLabel].SVGShape.SetColor("assureit-highlight");
+            caseViewer.ViewMap[thisNodeLabel].SVGShape.SetColor(AssureIt.Color.HighLight);
         }, function () {
             var thisNodeLabel = $(this).children('h4').text();
-            caseViewer.ViewMap[thisNodeLabel].SVGShape.SetColor("assureit-default");
+            caseViewer.ViewMap[thisNodeLabel].SVGShape.SetColor(AssureIt.Color.Default);
         });
 
         return true;

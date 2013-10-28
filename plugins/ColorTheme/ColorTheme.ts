@@ -146,22 +146,18 @@ class TiffanyBlueThemePlugIn extends AssureIt.PlugInSet {
 
 class HoverActionPlugIn extends AssureIt.ActionPlugIn {
 
-//	currentNodeColor: {[index: string]: string} = {};
-
 	IsEnabled(caseViewer: AssureIt.CaseViewer, case0: AssureIt.Case): boolean {
 		return true;
 	}
 
 	Delegate(caseViewer: AssureIt.CaseViewer, case0: AssureIt.Case, serverApi: AssureIt.ServerAPI): boolean {
-//		var self = this;
 
 		$('.node').hover(function () {
 			var thisNodeLabel: string = $(this).children('h4').text();
-//			self.currentNodeColor = caseViewer.ViewMap[thisNodeLabel].SVGShape.GetColor();
-			caseViewer.ViewMap[thisNodeLabel].SVGShape.SetColor("assureit-highlight");//self.currentNodeColor["fill"], "orange");
+			caseViewer.ViewMap[thisNodeLabel].SVGShape.SetColor(AssureIt.Color.HighLight);
 		}, function() {
 			var thisNodeLabel: string = $(this).children('h4').text();
-			caseViewer.ViewMap[thisNodeLabel].SVGShape.SetColor("assureit-default");//self.currentNodeColor["fill"], self.currentNodeColor["stroke"]);
+			caseViewer.ViewMap[thisNodeLabel].SVGShape.SetColor(AssureIt.Color.Default);
 		});
 
 		return true;

@@ -1,22 +1,3 @@
-/// <reference path="../../src/CaseModel.ts" />
-/// <reference path="../../src/PlugInManager.ts" />
-/*
-nodeRelation: {action: string, reaction: string, actiontype: string}
-DScriptActionMap.NodeRelation: {
-${label1}: nodeRelation,
-${label2}: nodeRelation,
-...}
-
-actionRelation: {
-action: {node: string, func: string},
-reaction: {node: string, func: string},
-risk: string,
-}
-DScriptActionMap.ActionRelation: {
-${actionFunc1}: actionRelation[],
-${actionFunc2}: actionRelation[],
-...}
-*/
 var DScriptActionMap = (function () {
     function DScriptActionMap(RootNode) {
         this.NodeRelation = {};
@@ -36,7 +17,6 @@ var DScriptActionMap = (function () {
         return ret;
     };
 
-    // gen nodeRelation from the Node which have Reaction::~
     DScriptActionMap.prototype.GenNodeRelation = function (node) {
         var ret = null;
         var action = node.GetNote("Reaction");
@@ -99,7 +79,6 @@ var DScriptActionMap = (function () {
     };
 
     DScriptActionMap.prototype.Extract = function () {
-        //for NodeRelation
         var case0 = this.RootNode.Case;
         var elementMap = case0.ElementMap;
         for (var key in elementMap) {
@@ -112,7 +91,6 @@ var DScriptActionMap = (function () {
             this.AddNodeRelation(nodeRelation);
         }
 
-        //for ActionRelation
         var riskRelation = {};
         for (var key in this.NodeRelation) {
             if (!(key in elementMap)) {

@@ -4,12 +4,6 @@ var __extends = this.__extends || function (d, b) {
     __.prototype = b.prototype;
     d.prototype = new __();
 };
-/// <reference path="../../src/CaseModel.ts" />
-/// <reference path="../../src/CaseViewer.ts" />
-/// <reference path="../../src/PlugInManager.ts" />
-/// <reference path="../../src/RecApi.ts" />
-/// <reference path="./MonitorNode.ts" />
-/// <reference path="./MonitorNodeManager.ts" />
 var monitorNodeManager = null;
 var monitorWindow = null;
 
@@ -21,7 +15,6 @@ var MonitorPlugIn = (function (_super) {
         this.HTMLRenderPlugIn = new MonitorHTMLRenderPlugIn(plugInManager);
         this.SVGRenderPlugIn = new MonitorSVGRenderPlugIn(plugInManager);
 
-        //this.MenuBarContentsPlugIn = new MonitorMenuBarPlugIn(plugInManager);
         this.SideMenuPlugIn = new MonitorSideMenuPlugIn(plugInManager);
         monitorNodeManager = new MonitorNodeManager();
         this.PlugInEnv = { "ActionNodeManager": monitorNodeManager };

@@ -250,7 +250,6 @@ var DScriptPaneManager = (function () {
             this.RefreshDefaultWidget();
             this.RefreshFunc();
         } else {
-            //pass
         }
         return ret;
     };
@@ -275,7 +274,6 @@ var DScriptPaneManager = (function () {
                 width: '50%'
             });
         } else {
-            //pass
         }
         this.CheckFrameSize(locatedWidget.parent());
         this.CheckFrameSize(newWidget.parent());
@@ -301,7 +299,6 @@ var DScriptPaneManager = (function () {
                 width: '50%'
             });
         } else {
-            //pass
         }
         this.CheckFrameSize(locatedWidget.parent());
         this.CheckFrameSize(newWidget.parent());
@@ -327,7 +324,6 @@ var DScriptPaneManager = (function () {
                 width: '100%'
             });
         } else {
-            //pass
         }
         this.CheckFrameSize(locatedWidget.parent());
         this.CheckFrameSize(newWidget.parent());
@@ -353,7 +349,6 @@ var DScriptPaneManager = (function () {
                 width: '100%'
             });
         } else {
-            //pass
         }
         this.CheckFrameSize(locatedWidget.parent());
         this.CheckFrameSize(newWidget.parent());
