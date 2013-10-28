@@ -4,6 +4,7 @@
 /// <reference path="ServerApi.ts" />
 /// <reference path="Layout.ts" />
 /// <reference path="PlugInManager.ts" />
+/// <reference path="ColorMap.ts" />
 /// <reference path="../d.ts/jquery.d.ts" />
 /// <reference path="../d.ts/pointer.d.ts" />
 var __extends = this.__extends || function (d, b) {
@@ -25,44 +26,38 @@ var AssureIt;
             this.Height = 0;
         }
         HTMLDoc.prototype.Render = function (Viewer, NodeModel) {
+            var textBefore = null;
             if (this.DocBase != null) {
+                textBefore = this.RawDocBase.innerHTML;
                 this.DocBase.remove();
             }
-            this.DocBase = $('<div class="node">').css("position", "absolute").attr('id', NodeModel.Label);
+            this.DocBase = $('<div>').css("position", "absolute").attr('id', NodeModel.Label);
             this.DocBase.append($('<h4>' + NodeModel.Label + '</h4>'));
             this.RawDocBase = this.DocBase[0];
 
             this.InvokePlugInHTMLRender(Viewer, NodeModel, this.DocBase);
             this.UpdateWidth(Viewer, NodeModel);
-            this.Resize(Viewer, NodeModel);
+            if (textBefore != this.RawDocBase.innerHTML) {
+                this.Resize(Viewer, NodeModel);
+            }
         };
 
         HTMLDoc.prototype.UpdateWidth = function (Viewer, Source) {
-            var px = 0;
-            var py = 0;
             switch (Source.Type) {
                 case AssureIt.NodeType.Goal:
-                    px = 10;
-                    py = 5;
+                    this.RawDocBase.className = "node node-goal";
                     break;
                 case AssureIt.NodeType.Context:
-                    px = 10;
-                    py = 10;
+                    this.RawDocBase.className = "node node-context";
                     break;
                 case AssureIt.NodeType.Strategy:
-                    px = 5;
-                    py = 20;
+                    this.RawDocBase.className = "node node-strategy";
                     break;
                 case AssureIt.NodeType.Evidence:
                 default:
-                    px = 20;
-                    py = 20;
+                    this.RawDocBase.className = "node node-evidence";
                     break;
             }
-            var style = this.RawDocBase.style;
-            style.paddingRight = style.paddingLeft = px + "px";
-            style.paddingTop = style.paddingBottom = py + "px";
-            style.width = (CaseViewer.ElementWidth - px * 2) + "px";
         };
 
         HTMLDoc.prototype.InvokePlugInHTMLRender = function (caseViewer, caseModel, DocBase) {
@@ -109,7 +104,7 @@ var AssureIt;
 
     var SVGShape = (function () {
         function SVGShape() {
-            this.ColorClassName = "assureit-default";
+            this.ColorClassName = AssureIt.Color.Default;
         }
         SVGShape.prototype.Render = function (CaseViewer, NodeModel, HTMLDoc) {
             this.ShapeGroup = document.createSVGElement("g");

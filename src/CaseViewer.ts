@@ -32,47 +32,40 @@ module AssureIt {
 		Height: number = 0;
 
 		Render(Viewer: CaseViewer, NodeModel: NodeModel): void {
-			if (this.DocBase != null) {
+            var textBefore = null;
+            if (this.DocBase != null) {
+                textBefore = this.RawDocBase.innerHTML;
 				this.DocBase.remove();
 			}
-			this.DocBase = $('<div class="node">').css("position", "absolute")
+            this.DocBase = $('<div>')
+                .css("position", "absolute")
                 .attr('id', NodeModel.Label);
             this.DocBase.append($('<h4>' + NodeModel.Label + '</h4>'));
             this.RawDocBase = <HTMLDivElement>this.DocBase[0];
 
 			this.InvokePlugInHTMLRender(Viewer, NodeModel, this.DocBase);
-			this.UpdateWidth(Viewer, NodeModel);
-			this.Resize(Viewer, NodeModel);
+            this.UpdateWidth(Viewer, NodeModel);
+            if (textBefore != this.RawDocBase.innerHTML) {
+                this.Resize(Viewer, NodeModel);
+            }
         }
 
-
-
 		UpdateWidth(Viewer: CaseViewer, Source: NodeModel) {
-            var px = 0;
-            var py = 0;
 			switch (Source.Type) {
                 case NodeType.Goal:
-                    px = 10;
-                    py = 5;
+                    this.RawDocBase.className = "node node-goal";
 					break;
 				case NodeType.Context:
-                    px = 10;
-                    py = 10;
+                    this.RawDocBase.className = "node node-context";
 					break;
 				case NodeType.Strategy:
-                    px = 5;
-                    py = 20;
+                    this.RawDocBase.className = "node node-strategy";
 					break;
 				case NodeType.Evidence:
 				default:
-                    px = 20;
-                    py = 20;
+                    this.RawDocBase.className = "node node-evidence";
 					break;
             }
-            var style = this.RawDocBase.style;
-            style.paddingRight = style.paddingLeft = px + "px";
-            style.paddingTop = style.paddingBottom = py + "px";
-            style.width = (CaseViewer.ElementWidth - px * 2) + "px";
 		}
 
 		InvokePlugInHTMLRender(caseViewer: CaseViewer, caseModel: NodeModel, DocBase: JQuery): void {
@@ -436,7 +429,7 @@ module AssureIt {
 	export class CaseViewer {
 		ViewMap: { [index: string]: NodeView; };
 		ElementTop : NodeModel;
-		static ElementWidth = 250;
+		static ElementWidth = 250; /*look index.css*/
 
 		constructor(public Source: Case, public pluginManager : PlugInManager, public serverApi: ServerAPI, public Screen: ScreenManager) {
 			this.InitViewMap(Source);
