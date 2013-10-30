@@ -112,6 +112,7 @@ var ImageFileHTMLPlugIn = (function (_super) {
             var img = $(new Image());
             img.bind('load', function () {
                 $('<a href="' + basepath + '/' + note + '"></a>').append(img).appendTo(element);
+                img.css('width', element.css('width'));
                 caseViewer.Draw();
             });
             img.attr('src', basepath + '/' + note);

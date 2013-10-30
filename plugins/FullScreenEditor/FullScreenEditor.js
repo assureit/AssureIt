@@ -152,14 +152,10 @@ var FullScreenEditorActionPlugIn = (function (_super) {
                     var orig_idCounters = case0.ReserveIdCounters(orig_model);
                     var orig_ElementMap = case0.ReserveElementMap(orig_model);
 
-                    orig_view.DeleteHTMLElementRecursive(null, null);
-
                     var decoder = new AssureIt.CaseDecoder();
                     var new_model = decoder.ParseASN(case0, editor.getValue(), orig_model);
 
                     if (new_model != null) {
-                        orig_view.DeleteHTMLElementRecursive($("#layer0"), $("#layer1"));
-                        caseViewer.DeleteViewsRecursive(orig_view);
                         var new_view = new AssureIt.NodeView(caseViewer, new_model);
                         var Parent = orig_model.Parent;
                         if (Parent != null) {

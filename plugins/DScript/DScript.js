@@ -61,7 +61,7 @@ var DScriptMenuPlugIn = (function (_super) {
         this.editorPlugIn = editorPlugIn;
     }
     DScriptMenuPlugIn.prototype.IsEnabled = function (caseViewer, nodeModel) {
-        return true;
+        return false;
     };
 
     DScriptMenuPlugIn.prototype.Delegate = function (caseViewer, nodeModel, element, serverApi) {

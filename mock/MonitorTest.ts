@@ -14,7 +14,7 @@
 /// <reference path="../plugins/Annotation/Annotation.ts" />
 /// <reference path="../plugins/Monitor/Monitor.ts" />
 /// <reference path="../plugins/Note/Note.ts" />
-/// <reference path="../plugins/ColorTheme/ColorTheme.ts" />
+/// <reference path="../plugins/Hover/Hover.ts" />
 /// <reference path="../plugins/Export/Export.ts" />
 /// <reference path="../d.ts/jquery.d.ts" />
 
@@ -27,7 +27,7 @@ $(function () {
 	pluginManager.SetPlugIn("editor", new EditorPlugIn(pluginManager));
 	pluginManager.SetPlugIn("dscript", new DScriptPlugIn(pluginManager));
 	pluginManager.SetPlugIn("fullscreeneditor", new FullScreenEditorPlugIn(pluginManager));
-	pluginManager.SetPlugIn("colortheme", new TiffanyBlueThemePlugIn(pluginManager));
+	pluginManager.SetPlugIn("hover", new HoverPlugIn(pluginManager));
 	pluginManager.SetPlugIn("statements", new DefaultStatementRenderPlugIn(pluginManager));
 	pluginManager.SetPlugIn("annotation", new AnnotationPlugIn(pluginManager));
 	pluginManager.SetPlugIn("note", new NotePlugIn(pluginManager));

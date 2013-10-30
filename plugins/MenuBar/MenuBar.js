@@ -21,9 +21,6 @@ var MenuBar = (function () {
         this.menu = $('<div id="menu">' + '</div>');
 
         if (this.case0.IsEditable()) {
-            if (this.node.children("h4").text() != this.case0.ElementTop.Label) {
-                this.menu.append('<a href="#" ><img id="remove" src="' + this.serverApi.basepath + 'images/remove.png" title="Remove" alt="remove" /></a>');
-            }
             var hasContext = false;
             this.menu.append('<a href="#" ><img id="search" src="' + this.serverApi.basepath + 'images/scale.png" title="Search" alt="search" /></a>');
         }
@@ -54,6 +51,9 @@ var MenuBar = (function () {
                 break;
             default:
                 break;
+        }
+        if (this.node.children("h4").text() != this.case0.ElementTop.Label) {
+            this.menu.append('<a href="#" ><img id="remove" src="' + this.serverApi.basepath + 'images/remove.png" title="Remove" alt="remove" /></a>');
         }
     };
 

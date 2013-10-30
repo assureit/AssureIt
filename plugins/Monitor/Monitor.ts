@@ -7,6 +7,7 @@
 
 
 var monitorNodeManager: MonitorNodeManager = null;
+var monitorWindow = null;
 
 
 class MonitorPlugIn extends AssureIt.PlugInSet {
@@ -63,18 +64,10 @@ class MonitorHTMLRenderPlugIn extends AssureIt.HTMLRenderPlugIn {
 			linkColor = 'red';
 		}
 
-		var $link = $('<a href="#"><p align="right" style="color: '+linkColor+'">past data</p></a>');
+		var $link = $('<a href="#"><p align="right" style="color: '+linkColor+'">Monitor Log</p></a>');
 		$link.click(function(ev: Event) {
 			ev.stopPropagation();
-			if(monitorNode.PastData.length < 1) {
-				return;
-			}
-
-			var childWindow = window.open();
-			for(var i: number = 0; i < monitorNode.PastData.length; i++) {
-				var log: string = JSON.stringify(monitorNode.PastData[i]);
-				$(childWindow.document.body).append($('<p>'+log+'</p>'));
-			}
+			monitorWindow.ShowMonitorLogTable(monitorNode.EvidenceNode.Label);
 		});
 
 		$link.appendTo($logs);
@@ -115,15 +108,13 @@ class MonitorSVGRenderPlugIn extends AssureIt.SVGRenderPlugIn {
 }
 
 
-class MonitorTableWindow {
+class MonitorWindow {
 
-	constructor() {
-		this.InitTable();
-	}
+	constructor() {}
 
-	InitTable() {
+	InitWindow(tableTitle: string): JQuery {
 		$('#modal-monitors').remove();
-		var $modal = $('<div id="modal-monitors" title="Monitors" />');
+		var $modal = $('<div id="modal-monitors" title="'+tableTitle+'"/>');
 
 		(<any>$modal).dialog({
 			autoOpen: false,
@@ -135,6 +126,13 @@ class MonitorTableWindow {
 			width: 800,
 			height: 500,
 		});
+
+		return $modal;
+	}
+
+	ShowMonitorTable() {
+		var self = this;
+		var $modal = this.InitWindow("Monitors");
 
 		var $table = $('<table id="monitor-table" bgcolor="#999999">'
 						+ '<thead>'
@@ -148,25 +146,18 @@ class MonitorTableWindow {
 								+ '<th>Status</th>'
 							+ '</tr>'
 						+ '</thead>'
-						+ '<tbody>'
-						+ '</tbody>'
 					+ '</table>');
-		$modal.append($table);
-		$modal.appendTo('layer2');
-	}
 
-	UpdateTable() {
-		var $table = $('#monitor-table');
-		$table.find('tbody').remove();
 		var $tbody = $('<tbody></tbody>');
-
 		for(var key in monitorNodeManager.ActionNodeMap) {
 			var monitorNode: MonitorNode = <MonitorNode>monitorNodeManager.ActionNodeMap[key];
 
 			if(!("Item" in <any>monitorNode)) continue;
 
 			if(monitorNode.LatestData != null) {
-				var $tr = $('<tr></tr>');
+				var $tr = $('<tr id="monitorlog-'+monitorNode.EvidenceNode.Label+'"></tr>');
+				$tr.unbind('click');
+
 				$tr.append('<td>'+key+'</td>');
 				$tr.append('<td>'+monitorNode.LatestData['type']+'</td>');
 				$tr.append('<td>'+monitorNode.LatestData['location']+'</td>');
@@ -178,14 +169,19 @@ class MonitorTableWindow {
 				}
 				else {
 					$tr.append('<td>Fail</td>');
-					$tr.attr('class', 'monitor-table-fail');
 				}
+
+				$tr.click(function() {
+					self.ShowMonitorLogTable(monitorNode.EvidenceNode.Label);
+				});
+
 				$tr.appendTo($tbody);
 			}
 		}
 
 		$tbody.appendTo($table);
-		$table.appendTo('#modal-monitors');
+		$table.appendTo($modal);
+		$modal.appendTo('layer2');
 
 		(<any>$('#monitor-table')).dataTable({
 				"bPaginate": true,
@@ -196,7 +192,50 @@ class MonitorTableWindow {
 				"bAutoWidth": true
 		});
 
-		//$('.monitor-table-fail').attr('bgcolor', '#FF9999');   // TODO: set color
+		self.Open();
+	}
+
+	ShowMonitorLogTable(label: string) {
+		var $modal = this.InitWindow(label+" Logs");
+
+		var $table = $('<table id="monitor-table" bgcolor="#999999">'
+						+ '<thead>'
+							+ '<tr>'
+								+ '<th>Timestamp</th>'
+								+ '<th>Type</th>'
+								+ '<th>Location</th>'
+								+ '<th>Latest Data</th>'
+								+ '<th>Auth ID</th>'
+							+ '</tr>'
+						+ '</thead>'
+					+ '</table>');
+
+		var $tbody = $('<tbody></tbody>');
+		var pastData = (<MonitorNode>monitorNodeManager.ActionNodeMap[label]).PastData;
+		for(var i: number = 0; i < pastData.length; i++) {
+			var $tr = $('<tr></tr>');
+			$tr.append('<td>'+pastData[i]['timestamp']+'</td>');
+			$tr.append('<td>'+pastData[i]['type']+'</td>');
+			$tr.append('<td>'+pastData[i]['location']+'</td>');
+			$tr.append('<td>'+pastData[i]['data']+'</td>');
+			$tr.append('<td>'+pastData[i]['authid']+'</td>');
+			$tr.appendTo($tbody);
+		}
+
+		$tbody.appendTo($table);
+		$table.appendTo($modal);
+		$modal.appendTo('layer2');
+
+		(<any>$('#monitor-table')).dataTable({
+				"bPaginate": true,
+				"bLengthChange": true,
+				"bFilter": true,
+				"bSort": true,
+				"bInfo": true,
+				"bAutoWidth": true
+		});
+
+		this.Open();
 	}
 
 	Open() {
@@ -204,46 +243,6 @@ class MonitorTableWindow {
 	}
 
 }
-
-
-//class MonitorMenuBarPlugIn extends AssureIt.MenuBarContentsPlugIn {
-//
-//	constructor(plugInManager: AssureIt.PlugInManager) {
-//		super(plugInManager);
-//	}
-//
-//	IsEnabled(caseViewer: AssureIt.CaseViewer, caseModel: AssureIt.NodeModel): boolean {
-//		return true;
-//	}
-//
-//	Delegate(caseViewer: AssureIt.CaseViewer, caseModel: AssureIt.NodeModel, element: JQuery, serverApi: AssureIt.ServerAPI): boolean {
-//		if(!monitorNodeManager.IsRegisteredMonitor(caseModel.Label)) {
-//			return true;
-//		}
-//
-//		var monitorNode = monitorNodeManager.MonitorNodeMap[caseModel.Label];
-//
-//		if(!monitorNode.IsActive) {
-//			element.append('<a href="#" ><img id="monitor-tgl" src="'+serverApi.basepath+'images/monitor.png" title="Activate monitor" alt="monitor-tgl" /></a>');
-//		}
-//		else {
-//			element.append('<a href="#" ><img id="monitor-tgl" src="'+serverApi.basepath+'images/monitor.png" title="Deactivate monitor" alt="monitor-tgl" /></a>');
-//		}
-//
-//		$('#monitor-tgl').unbind('click');
-//		$('#monitor-tgl').click(function() {
-//			if(!monitorNode.IsActive) {
-//				monitorNodeManager.ActivateMonitor(caseModel.Label);
-//			}
-//			else {
-//				monitorNodeManager.DeactivateMonitor(caseModel.Label);
-//			}
-//		});
-//
-//		return true;
-//	}
-//
-//}
 
 
 class MonitorSideMenuPlugIn extends AssureIt.SideMenuPlugIn {
@@ -258,11 +257,10 @@ class MonitorSideMenuPlugIn extends AssureIt.SideMenuPlugIn {
 
 	AddMenu(caseViewer: AssureIt.CaseViewer, Case0: AssureIt.Case, serverApi: AssureIt.ServerAPI): AssureIt.SideMenuModel {
 		monitorNodeManager.Init(caseViewer, serverApi.recpath);
+		monitorWindow = new MonitorWindow();
 
 		return new AssureIt.SideMenuModel('#', 'Monitors', "monitors", "glyphicon-list-alt", (ev:Event)=>{
-			var monitorTableWindow = new MonitorTableWindow();
-			monitorTableWindow.UpdateTable();
-			monitorTableWindow.Open();
+			monitorWindow.ShowMonitorTable();
 		});
 	}
 

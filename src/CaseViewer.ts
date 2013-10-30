@@ -4,6 +4,7 @@
 /// <reference path="ServerApi.ts" />
 /// <reference path="Layout.ts" />
 /// <reference path="PlugInManager.ts" />
+/// <reference path="ColorMap.ts" />
 /// <reference path="../d.ts/jquery.d.ts" />
 /// <reference path="../d.ts/pointer.d.ts" />
 
@@ -25,44 +26,42 @@ document.createSVGElement = function (name: string): Element {
 module AssureIt {
 
 	export class HTMLDoc {
-		DocBase: JQuery;
+        DocBase: JQuery;
+        RawDocBase: HTMLDivElement;
 		Width: number = 0;
 		Height: number = 0;
 
 		Render(Viewer: CaseViewer, NodeModel: NodeModel): void {
-			if (this.DocBase != null) {
-				//var parent = this.DocBase.parent();
-				//if (parent != null) parent.remove(this.DocBase);
+            if (this.DocBase != null) {
 				this.DocBase.remove();
 			}
-			this.DocBase = $('<div class="node">').css("position", "absolute")
-				.attr('id', NodeModel.Label);
-			this.DocBase.append($('<h4>' + NodeModel.Label + '</h4>'));
-			//this.DocBase.append($('<p>' + NodeModel.Statement + '</p>'));
+            this.DocBase = $('<div>')
+                .css("position", "absolute")
+                .attr('id', NodeModel.Label);
+            this.DocBase.append($('<h4>' + NodeModel.Label + '</h4>'));
+            this.RawDocBase = <HTMLDivElement>this.DocBase[0];
 
 			this.InvokePlugInHTMLRender(Viewer, NodeModel, this.DocBase);
-			this.UpdateWidth(Viewer, NodeModel);
-			this.Resize(Viewer, NodeModel);
-		}
+            this.UpdateWidth(Viewer, NodeModel);
+            this.Resize(Viewer, NodeModel);
+        }
 
 		UpdateWidth(Viewer: CaseViewer, Source: NodeModel) {
-			this.DocBase.width(CaseViewer.ElementWidth);
 			switch (Source.Type) {
-				case NodeType.Goal:
-					this.DocBase.css("padding", "5px 10px");
+                case NodeType.Goal:
+                    this.RawDocBase.className = "node node-goal";
 					break;
 				case NodeType.Context:
-					this.DocBase.css("padding", "10px 10px");
+                    this.RawDocBase.className = "node node-context";
 					break;
 				case NodeType.Strategy:
-					this.DocBase.css("padding", "5px 20px");
+                    this.RawDocBase.className = "node node-strategy";
 					break;
 				case NodeType.Evidence:
 				default:
-					this.DocBase.css("padding", "20px 20px");
+                    this.RawDocBase.className = "node node-evidence";
 					break;
-			}
-			this.DocBase.width(CaseViewer.ElementWidth * 2 - this.DocBase.outerWidth());
+            }
 		}
 
 		InvokePlugInHTMLRender(caseViewer: CaseViewer, caseModel: NodeModel, DocBase: JQuery): void {
@@ -74,12 +73,13 @@ module AssureIt {
 		}
 
 		Resize(Viewer: CaseViewer, Source: NodeModel): void {
-			this.Width = this.DocBase ? this.DocBase.outerWidth() : 0;
-			this.Height = this.DocBase ? this.DocBase.outerHeight() : 0;
+            this.Width = CaseViewer.ElementWidth;
+            this.Height = this.RawDocBase ? this.RawDocBase.clientHeight : 0;
 		}
 
-		SetPosition(x: number, y: number) {
-			this.DocBase.css({ left: x + "px", top: y + "px" });
+        SetPosition(x: number, y: number) {
+            this.RawDocBase.style.left = x + "px";
+            this.RawDocBase.style.top  = y + "px";
 		}
 	}
 
@@ -100,6 +100,7 @@ module AssureIt {
 		Height: number;
 		ShapeGroup: SVGGElement;
 		ArrowPath: SVGPathElement;
+		ColorClassName: string = Color.Default;
 
 		Render(CaseViewer: CaseViewer, NodeModel: NodeModel, HTMLDoc: HTMLDoc): void {
 			this.ShapeGroup = <SVGGElement>document.createSVGElement("g");
@@ -158,11 +159,7 @@ module AssureIt {
 			}
 		}
 
-		SetColor(fill: string, stroke: string) {
-		}
-
-		GetColor(): {[index: string]: string} {
-			return {};
+		SetColor(key: string) {
 		}
 
 		GetConnectorPosition(Dir: Direction): Point {
@@ -188,6 +185,7 @@ module AssureIt {
 		Render(CaseViewer: CaseViewer, NodeModel: NodeModel, HTMLDoc: HTMLDoc): void {
 			super.Render(CaseViewer, NodeModel, HTMLDoc);
 			this.BodyRect = <SVGRectElement>document.createSVGElement("rect");
+			this.BodyRect.setAttribute("class",this.ColorClassName);
 			this.UndevelopedSymbol = <SVGUseElement>document.createSVGElement("use");
 			this.UndevelopedSymbol.setAttribute("xlink:href", "#UndevelopdSymbol");
 
@@ -201,13 +199,8 @@ module AssureIt {
 			this.BodyRect.setAttribute("height", this.Height.toString());
 		}
 
-		SetColor(fill: string, stroke: string) {
-			this.BodyRect.setAttribute("fill", fill);
-			this.BodyRect.setAttribute("stroke", stroke);
-		}
-
-		GetColor(): {[index: string]: string} {
-			return { "fill": this.BodyRect.getAttribute("fill"), "stroke": this.BodyRect.getAttribute("stroke") };
+		SetColor(key: string) {
+			this.BodyRect.setAttribute("class", key);
 		}
 
 		SetUndevelolpedSymbolPosition(point: Point){
@@ -222,6 +215,7 @@ module AssureIt {
 		Render(CaseViewer: CaseViewer, NodeModel: NodeModel, HTMLDoc: HTMLDoc): void {
 			super.Render(CaseViewer, NodeModel, HTMLDoc);
 			this.BodyRect = <SVGRectElement>document.createSVGElement("rect");
+			this.BodyRect.setAttribute("class",this.ColorClassName);
 			this.ArrowPath.setAttribute("marker-end", "url(#Triangle-white)");
 			this.BodyRect.setAttribute("rx", "10");
 			this.BodyRect.setAttribute("ry", "10");
@@ -235,14 +229,10 @@ module AssureIt {
 			this.BodyRect.setAttribute("height", this.Height.toString());
 		}
 
-		SetColor(fill: string, stroke: string) {
-			this.BodyRect.setAttribute("fill", fill);
-			this.BodyRect.setAttribute("stroke", stroke);
+		SetColor(key: string) {
+			this.BodyRect.setAttribute("class", key);
 		}
 
-		GetColor(): {[index: string]: string} {
-			return { "fill": this.BodyRect.getAttribute("fill"), "stroke": this.BodyRect.getAttribute("stroke") };
-		}
 	}
 
 	export class StrategyShape extends SVGShape {
@@ -252,6 +242,7 @@ module AssureIt {
 		Render(CaseViewer: CaseViewer, NodeModel: NodeModel, HTMLDoc: HTMLDoc): void {
 			super.Render(CaseViewer, NodeModel, HTMLDoc);
 			this.BodyPolygon = <SVGPolygonElement>document.createSVGElement("polygon");
+			this.BodyPolygon.setAttribute("class",this.ColorClassName);
 			this.ShapeGroup.appendChild(this.BodyPolygon);
 			this.Resize(CaseViewer, NodeModel, HTMLDoc);
 		}
@@ -261,13 +252,8 @@ module AssureIt {
 			this.BodyPolygon.setAttribute("points", ""+this.delta+",0 " + this.Width + ",0 " + (this.Width - this.delta) + "," + this.Height + " 0," + this.Height);
 		}
 
-		SetColor(fill: string, stroke: string) {
-			this.BodyPolygon.setAttribute("fill", fill);
-			this.BodyPolygon.setAttribute("stroke", stroke);
-		}
-
-		GetColor(): {[index: string]: string} {
-			return { "fill": this.BodyPolygon.getAttribute("fill"), "stroke": this.BodyPolygon.getAttribute("stroke") };
+		SetColor(key: string) {
+			this.BodyPolygon.setAttribute("class", key);
 		}
 
 		GetConnectorPosition(Dir: Direction): Point {
@@ -290,6 +276,7 @@ module AssureIt {
 		Render(CaseViewer: CaseViewer, NodeModel: NodeModel, HTMLDoc: HTMLDoc): void {
 			super.Render(CaseViewer, NodeModel, HTMLDoc);
 			this.BodyEllipse = <SVGEllipseElement>document.createSVGElement("ellipse");
+			this.BodyEllipse.setAttribute("class",this.ColorClassName);
 			this.ShapeGroup.appendChild(this.BodyEllipse);
 			this.Resize(CaseViewer, NodeModel, HTMLDoc);
 		}
@@ -302,14 +289,10 @@ module AssureIt {
 			this.BodyEllipse.setAttribute("ry", (this.Height / 2).toString());
 		}
 
-		SetColor(fill: string, stroke: string) {
-			this.BodyEllipse.setAttribute("fill", fill);
-			this.BodyEllipse.setAttribute("stroke", stroke);
+		SetColor(key: string) {
+			this.BodyEllipse.setAttribute("class", key);
 		}
 
-		GetColor(): {[index: string]: string} {
-			return { "fill": this.BodyEllipse.getAttribute("fill"), "stroke": this.BodyEllipse.getAttribute("stroke") };
-		}
 	}
 
 	export class SVGShapeFactory {
@@ -366,22 +349,22 @@ module AssureIt {
 			}
 		}
 
-		private AppendHTMLElement(svgroot: JQuery, divroot: JQuery, caseViewer : CaseViewer): void {
-			divroot.append(this.HTMLDoc.DocBase);
-			svgroot.append(this.SVGShape.ShapeGroup);
+        private AppendHTMLElement(svgroot: DocumentFragment, divroot: DocumentFragment, caseViewer : CaseViewer): void {
+			divroot.appendChild(this.HTMLDoc.RawDocBase);
+            svgroot.appendChild(this.SVGShape.ShapeGroup);
 			this.InvokePlugInSVGRender(caseViewer);
 
 			// if it has an parent, add an arrow element.
 			if (this.ParentShape != null) {
-				svgroot.append(this.SVGShape.ArrowPath);
+                svgroot.appendChild(this.SVGShape.ArrowPath);
 			}
 			if (this.Source.Type == NodeType.Goal && this.Source.Children.length == 0){
-				svgroot.append((<GoalShape>this.SVGShape).UndevelopedSymbol);
+                svgroot.appendChild((<GoalShape>this.SVGShape).UndevelopedSymbol);
 			}
 			this.Update();
 		}
 
-		AppendHTMLElementRecursive(svgroot: JQuery, divroot: JQuery, caseViewer : CaseViewer): void {
+        AppendHTMLElementRecursive(svgroot: DocumentFragment, divroot: DocumentFragment, caseViewer : CaseViewer): void {
 			var Children = this.Source.Children;
 			var ViewMap = this.CaseViewer.ViewMap;
 			for (var i = 0; i < Children.length; i++) {
@@ -442,7 +425,7 @@ module AssureIt {
 	export class CaseViewer {
 		ViewMap: { [index: string]: NodeView; };
 		ElementTop : NodeModel;
-		static ElementWidth = 250;
+		static ElementWidth = 250; /*look index.css*/
 
 		constructor(public Source: Case, public pluginManager : PlugInManager, public serverApi: ServerAPI, public Screen: ScreenManager) {
 			this.InitViewMap(Source);
@@ -520,11 +503,12 @@ module AssureIt {
 		}
 
 		Draw(): void {
-			var shapelayer = $(this.Screen.ShapeLayer);
-			var screenlayer = $(this.Screen.ContentLayer);
 			this.UpdateViewMap();
-			//this.ViewMap[this.ElementTop.Label].DeleteHTMLElementRecursive(null, null);   // FIXME
-			this.ViewMap[this.ElementTop.Label].AppendHTMLElementRecursive(shapelayer, screenlayer, this);
+            var divfrag = document.createDocumentFragment();
+            var svgfrag = document.createDocumentFragment();
+            this.ViewMap[this.ElementTop.Label].AppendHTMLElementRecursive(svgfrag, divfrag, this);
+            this.Screen.ShapeLayer.appendChild(svgfrag);
+            this.Screen.ContentLayer.appendChild(divfrag);
 			this.pluginManager.RegisterActionEventListeners(this, this.Source, this.serverApi);
 			this.Update();
 		}

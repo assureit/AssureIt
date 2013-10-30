@@ -127,5 +127,10 @@ module AssureIt {
 			return this.RemoteCall("editProject", {
 				name: name, projectId: projectId });
 		}
+
+		GetDScript(funcName: string) {
+			return this.RemoteCall("getDScript", {
+				funcName: funcName });
+		}
 	}
 }
