@@ -47,7 +47,6 @@ var SearchWordKeyPlugIn = (function (_super) {
                                 if ($('.navbar-form input:first').val() != _this.Keyword) {
                                     _this.FirstMove = true;
                                     _this.Color(_this.HitNodes, caseViewer, "Default");
-                                    $('body').unbind("keydown", _this.Search.controllSearch);
                                     _this.HitNodes = [];
                                     _this.Search(Case0, caseViewer, serverApi);
                                     if (_this.HitNodes.length == 0) {
