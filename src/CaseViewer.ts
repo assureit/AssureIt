@@ -162,6 +162,16 @@ module AssureIt {
 		SetColor(key: string) {
 		}
 
+		GetColor(): string {
+			return null;
+		}
+
+		EnableHighlight() {
+		}
+
+		DisableHighlight() {
+		}
+
 		GetConnectorPosition(Dir: Direction): Point {
 			switch (Dir) {
 				case Direction.Right:
@@ -203,6 +213,22 @@ module AssureIt {
 			this.BodyRect.setAttribute("class", key);
 		}
 
+		GetColor() {
+			return this.BodyRect.getAttribute("class");
+		}
+
+		EnableHighlight() {
+			var CurrentColor: string = this.GetColor();
+			this.BodyRect.removeAttribute("class");
+			this.BodyRect.setAttribute("class", CurrentColor+"-highlight");
+		}
+
+		DisableHighlight() {
+			var CurrentColor: string = this.GetColor();
+			this.BodyRect.removeAttribute("class");
+			this.BodyRect.setAttribute("class", CurrentColor.replace(/-highlight/, ""));
+		}
+
 		SetUndevelolpedSymbolPosition(point: Point){
 			this.UndevelopedSymbol.setAttribute("x", point.x.toString());
 			this.UndevelopedSymbol.setAttribute("y", point.y.toString());
@@ -233,6 +259,22 @@ module AssureIt {
 			this.BodyRect.setAttribute("class", key);
 		}
 
+		GetColor() {
+			return this.BodyRect.getAttribute("class");
+		}
+
+		EnableHighlight() {
+			var CurrentColor: string = this.GetColor();
+			this.BodyRect.removeAttribute("class");
+			this.BodyRect.setAttribute("class", CurrentColor+"-highlight");
+		}
+
+		DisableHighlight() {
+			var CurrentColor: string = this.GetColor();
+			this.BodyRect.removeAttribute("class");
+			this.BodyRect.setAttribute("class", CurrentColor.replace(/-highlight/, ""));
+		}
+
 	}
 
 	export class StrategyShape extends SVGShape {
@@ -254,6 +296,22 @@ module AssureIt {
 
 		SetColor(key: string) {
 			this.BodyPolygon.setAttribute("class", key);
+		}
+
+		GetColor() {
+			return this.BodyPolygon.getAttribute("class");
+		}
+
+		EnableHighlight() {
+			var CurrentColor: string = this.GetColor();
+			this.BodyPolygon.removeAttribute("class");
+			this.BodyPolygon.setAttribute("class", CurrentColor+"-highlight");
+		}
+
+		DisableHighlight() {
+			var CurrentColor: string = this.GetColor();
+			this.BodyPolygon.removeAttribute("class");
+			this.BodyPolygon.setAttribute("class", CurrentColor.replace(/-highlight/, ""));
 		}
 
 		GetConnectorPosition(Dir: Direction): Point {
@@ -291,6 +349,22 @@ module AssureIt {
 
 		SetColor(key: string) {
 			this.BodyEllipse.setAttribute("class", key);
+		}
+
+		GetColor() {
+			return this.BodyEllipse.getAttribute("class");
+		}
+
+		EnableHighlight() {
+			var CurrentColor: string = this.GetColor();
+			this.BodyEllipse.removeAttribute("class");
+			this.BodyEllipse.setAttribute("class", CurrentColor+"-highlight");
+		}
+
+		DisableHighlight() {
+			var CurrentColor: string = this.GetColor();
+			this.BodyEllipse.removeAttribute("class");
+			this.BodyEllipse.setAttribute("class", CurrentColor.replace(/-highlight/, ""));
 		}
 
 	}

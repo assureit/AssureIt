@@ -21,10 +21,10 @@ class HoverActionPlugIn extends AssureIt.ActionPlugIn {
 
 		$('.node').hover(function () {
 			var thisNodeLabel: string = $(this).children('h4').text();
-			caseViewer.ViewMap[thisNodeLabel].SVGShape.SetColor(AssureIt.Color.HighLight);
+			caseViewer.ViewMap[thisNodeLabel].SVGShape.EnableHighlight();
 		}, function() {
 			var thisNodeLabel: string = $(this).children('h4').text();
-			caseViewer.ViewMap[thisNodeLabel].SVGShape.SetColor(AssureIt.Color.Default);
+			caseViewer.ViewMap[thisNodeLabel].SVGShape.DisableHighlight();
 		});
 
 		return true;

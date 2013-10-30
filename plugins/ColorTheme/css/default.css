@@ -3,12 +3,17 @@
 	stroke: none;
 }
 
+.assureit-danger-highlight {
+	fill: #005994;
+	stroke: orange;
+}
+
 .assureit-default {
 	fill: #b4d8df;
 	stroke: none;
 }
 
-.assureit-highlight {
+.assureit-default-highlight {
 	fill: #b4d8df;
 	stroke: orange;
 }

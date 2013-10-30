@@ -26,10 +26,10 @@ var HoverActionPlugIn = (function (_super) {
     HoverActionPlugIn.prototype.Delegate = function (caseViewer, case0, serverApi) {
         $('.node').hover(function () {
             var thisNodeLabel = $(this).children('h4').text();
-            caseViewer.ViewMap[thisNodeLabel].SVGShape.SetColor(AssureIt.Color.HighLight);
+            caseViewer.ViewMap[thisNodeLabel].SVGShape.EnableHighlight();
         }, function () {
             var thisNodeLabel = $(this).children('h4').text();
-            caseViewer.ViewMap[thisNodeLabel].SVGShape.SetColor(AssureIt.Color.Default);
+            caseViewer.ViewMap[thisNodeLabel].SVGShape.DisableHighlight();
         });
 
         return true;

@@ -152,6 +152,16 @@ var AssureIt;
         SVGShape.prototype.SetColor = function (key) {
         };
 
+        SVGShape.prototype.GetColor = function () {
+            return null;
+        };
+
+        SVGShape.prototype.EnableHighlight = function () {
+        };
+
+        SVGShape.prototype.DisableHighlight = function () {
+        };
+
         SVGShape.prototype.GetConnectorPosition = function (Dir) {
             switch (Dir) {
                 case Direction.Right:
@@ -196,6 +206,22 @@ var AssureIt;
             this.BodyRect.setAttribute("class", key);
         };
 
+        GoalShape.prototype.GetColor = function () {
+            return this.BodyRect.getAttribute("class");
+        };
+
+        GoalShape.prototype.EnableHighlight = function () {
+            var CurrentColor = this.GetColor();
+            this.BodyRect.removeAttribute("class");
+            this.BodyRect.setAttribute("class", CurrentColor + "-highlight");
+        };
+
+        GoalShape.prototype.DisableHighlight = function () {
+            var CurrentColor = this.GetColor();
+            this.BodyRect.removeAttribute("class");
+            this.BodyRect.setAttribute("class", CurrentColor.replace(/-highlight/, ""));
+        };
+
         GoalShape.prototype.SetUndevelolpedSymbolPosition = function (point) {
             this.UndevelopedSymbol.setAttribute("x", point.x.toString());
             this.UndevelopedSymbol.setAttribute("y", point.y.toString());
@@ -229,6 +255,22 @@ var AssureIt;
         ContextShape.prototype.SetColor = function (key) {
             this.BodyRect.setAttribute("class", key);
         };
+
+        ContextShape.prototype.GetColor = function () {
+            return this.BodyRect.getAttribute("class");
+        };
+
+        ContextShape.prototype.EnableHighlight = function () {
+            var CurrentColor = this.GetColor();
+            this.BodyRect.removeAttribute("class");
+            this.BodyRect.setAttribute("class", CurrentColor + "-highlight");
+        };
+
+        ContextShape.prototype.DisableHighlight = function () {
+            var CurrentColor = this.GetColor();
+            this.BodyRect.removeAttribute("class");
+            this.BodyRect.setAttribute("class", CurrentColor.replace(/-highlight/, ""));
+        };
         return ContextShape;
     })(SVGShape);
     AssureIt.ContextShape = ContextShape;
@@ -254,6 +296,22 @@ var AssureIt;
 
         StrategyShape.prototype.SetColor = function (key) {
             this.BodyPolygon.setAttribute("class", key);
+        };
+
+        StrategyShape.prototype.GetColor = function () {
+            return this.BodyPolygon.getAttribute("class");
+        };
+
+        StrategyShape.prototype.EnableHighlight = function () {
+            var CurrentColor = this.GetColor();
+            this.BodyPolygon.removeAttribute("class");
+            this.BodyPolygon.setAttribute("class", CurrentColor + "-highlight");
+        };
+
+        StrategyShape.prototype.DisableHighlight = function () {
+            var CurrentColor = this.GetColor();
+            this.BodyPolygon.removeAttribute("class");
+            this.BodyPolygon.setAttribute("class", CurrentColor.replace(/-highlight/, ""));
         };
 
         StrategyShape.prototype.GetConnectorPosition = function (Dir) {
@@ -295,6 +353,22 @@ var AssureIt;
 
         EvidenceShape.prototype.SetColor = function (key) {
             this.BodyEllipse.setAttribute("class", key);
+        };
+
+        EvidenceShape.prototype.GetColor = function () {
+            return this.BodyEllipse.getAttribute("class");
+        };
+
+        EvidenceShape.prototype.EnableHighlight = function () {
+            var CurrentColor = this.GetColor();
+            this.BodyEllipse.removeAttribute("class");
+            this.BodyEllipse.setAttribute("class", CurrentColor + "-highlight");
+        };
+
+        EvidenceShape.prototype.DisableHighlight = function () {
+            var CurrentColor = this.GetColor();
+            this.BodyEllipse.removeAttribute("class");
+            this.BodyEllipse.setAttribute("class", CurrentColor.replace(/-highlight/, ""));
         };
         return EvidenceShape;
     })(SVGShape);
