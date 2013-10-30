@@ -154,7 +154,6 @@ var DScriptActionMap = (function () {
             if (key in this.NodeRelation)
                 delete this.NodeRelation[key];
         }
-        console.log(this);
     };
 
     DScriptActionMap.prototype.GetNodeRelation = function () {

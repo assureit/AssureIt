@@ -10,49 +10,12 @@
 /// <reference path="../ActionNode/ActionNode.ts" />
 /// <reference path="../ActionNode/ActionNodeManager.ts" />
 
-var __dscript__ = {
-	script : {
-		main : "",
-		lib : {},
-		funcdef : {},
-	},
-	meta : {
-		actionmap : {},
-	},
-};
-__dscript__.script.funcdef = { //FIX ME!! on the assumption that function data is already extracted...
-	"PortScanMonitor()" : "\n\
-print(\"PortScanMonitor called...\");\n\
-DFault ret = null;\n\
-if (Monitor) {\n\
-\tret = null;\n\
-}\n\
-else {\n\
-\tret = fault(Risk);\n\
-}\n\
-return ret;\n\
-",
-	"BlockIP()" : "\n\
-print(\"BlockIP called...\");\n\
-DFault ret = null;\n\
-command rec, sleep;\n\
-int i = 0;\n\
-while(i < 10) {\n\
-\tprint(\"        *\");\n\
-\tsleep 1\n\
-\ti += 1;\n\
-}\n\
-rec -m pushRawData -l ServerA -t IsPortScaned -d 0\n\
-return ret;\n\
-",
-};
-
 class DScriptPlugIn extends AssureIt.PlugInSet {
 	constructor(public plugInManager: AssureIt.PlugInManager) {
 		super(plugInManager);
 		var editorPlugIn: DScriptEditorPlugIn = new DScriptEditorPlugIn(plugInManager);
 		this.ActionPlugIn = editorPlugIn;
-//		this.MenuBarContentsPlugIn = new DScriptMenuPlugIn(plugInManager, editorPlugIn);
+		this.MenuBarContentsPlugIn = new DScriptMenuPlugIn(plugInManager, editorPlugIn);
 		this.SideMenuPlugIn = new DScriptSideMenuPlugIn(plugInManager, editorPlugIn);
 	}
 }
@@ -106,12 +69,12 @@ class DScriptEditorPlugIn extends AssureIt.ActionPlugIn {
 			placeholder: "Generated DScript code goes here.",
 			lineWrapping: true,
 		});
-		this.NodeRelationTable = this.createTable(
+		this.NodeRelationTable = this.CreateTable(
 			["Action", "Risk", "Reaction"],
 			function(nRow, aData, iDisplayIndex, iDisplayIndexFull) {
 			}
 		);
-		this.ActionRelationTable = this.createTable(
+		this.ActionRelationTable = this.CreateTable(
 			["Location", "Evidence", "Risk", "Reaction"],
 			function(nRow, aData, iDisplayIndex, iDisplayIndexFull) {
 				if (aData[3].match("Undefined") != null) {
@@ -127,7 +90,7 @@ class DScriptEditorPlugIn extends AssureIt.ActionPlugIn {
 			}
 		);
 		this.ASNEditor.on("change", function(e: JQueryEventObject) {
-			self.GenerateCode();
+			self.UpdateAll();
 		});
 //		this.Highlighter = new ErrorHighlight(this.ASNEditor);
 
@@ -187,21 +150,41 @@ class DScriptEditorPlugIn extends AssureIt.ActionPlugIn {
 			.addClass("animated fadeInDown")
 			.focus()
 			.one("blur", function(e: JQueryEventObject, node: JQuery) {
-				e.stopPropagation();
-				var topNodeModel = self.CaseViewer.ElementTop;
-				var topNodeView = self.CaseViewer.ViewMap[self.RootNodeModel.Label];
-				self.CaseViewer.DeleteViewsRecursive(topNodeView);
-				if (self.RootNodeModel.Parent == null /* ElementTop */) {
-					var caseView : AssureIt.NodeView = new AssureIt.NodeView(self.CaseViewer, topNodeModel);
-					self.CaseViewer.ViewMap[topNodeModel.Label] = caseView;
+				/*
+				  ASN is already decoded in DecodeASN method.
+				  Just update CaseViewer here.
+				 */
+				self.plugInManager.UseUILayer(self);
+				var caseViewer = self.CaseViewer;
+				var rootNodeModel: AssureIt.NodeModel = self.RootNodeModel;
+				var rootNodeView: AssureIt.NodeView = new AssureIt.NodeView(caseViewer, rootNodeModel);
+				var Parent: AssureIt.NodeModel = rootNodeModel.Parent;
+				if (Parent != null) {
+					rootNodeView.ParentShape = caseViewer.ViewMap[Parent.Label];
+				} else {
+					caseViewer.ElementTop = rootNodeModel;
+					rootNodeModel.Case.ElementTop = rootNodeModel;
 				}
-				self.CaseViewer.Draw();
+				caseViewer.DeleteViewsRecursive(caseViewer.ViewMap[rootNodeModel.Label]);
+				(function(model: AssureIt.NodeModel, view: AssureIt.NodeView): void {
+					caseViewer.ViewMap[model.Label] = view;
+					for (var i = 0; i < model.Children.length; i++) {
+						var childModel = model.Children[i];
+						var childView : AssureIt.NodeView = new AssureIt.NodeView(caseViewer, childModel);
+						arguments.callee(childModel, childView);
+					}
+					if (model.Parent != null) view.ParentShape = caseViewer.ViewMap[model.Parent.Label];
+				})(rootNodeModel, rootNodeView);
+
 				wrapper.addClass("animated fadeOutUp");
 				window.setTimeout(function() {
 					wrapper.removeClass();
 					wrapper.css("display", "none");
 				}, 1300);
-				topNodeModel.EnableEditFlag();
+				rootNodeModel.EnableEditFlag();
+				caseViewer.Draw();
+				/* TODO We need to Draw twice for some unknown reason */
+				caseViewer.Draw();
 			});
 		//hide screen
 		var hideByClick = function() {
@@ -231,12 +214,12 @@ class DScriptEditorPlugIn extends AssureIt.ActionPlugIn {
 		} else {
 			self.ASNEditor.setOption("readOnly", true);
 		}
-		self.GenerateCode();
+		self.UpdateAll();
 		self.PaneManager.Refresh();
 		self.DScriptViewer.focus();
 	}
 
-	createTable(columnNames: string[], callbackFunc = null): JQuery {
+	CreateTable(columnNames: string[], callbackFunc = null): JQuery {
 		var table: JQuery = $("<table/>");
 		var header: JQuery = $("<thead/>");
 		var body: JQuery = $("<tbody/>");
@@ -310,61 +293,75 @@ class DScriptEditorPlugIn extends AssureIt.ActionPlugIn {
 		}
 	}
 
-	GenerateCode(): void {
-		var decoder: AssureIt.CaseDecoder = new AssureIt.CaseDecoder();
-		var ASNData: string = this.ASNEditor.getValue();
+	DecodeASN(): void {
+//		self.ErrorHighlight.ClearHighlight();
 		var case0: AssureIt.Case = this.RootNodeModel.Case;
-		var orig_IdCounters = case0.ReserveIdCounters(this.RootNodeModel);
-		var orig_ElementMap = case0.ReserveElementMap(this.RootNodeModel);
-		var nodeModel = decoder.ParseASN(case0, ASNData, this.RootNodeModel);
-		if (nodeModel == null) {
-//			this.Highlighter.Highlight(decoder.GetASNError().line, decoder.GetASNError().toString());
-			case0.IdCounters = orig_IdCounters;
-			case0.ElementMap = orig_ElementMap;
-			nodeModel = case0.ElementTop;
-		} else {
-			var ParentModel = this.RootNodeModel.Parent;
-			if (ParentModel != null) {
-				nodeModel.Parent = ParentModel;
-				for (var i in ParentModel.Children) {
-					if (ParentModel.Children[i].Label == this.RootNodeModel.Label) {
-						ParentModel.Children[i] = nodeModel;
+		var origModel: AssureIt.NodeModel = this.RootNodeModel;
+
+		/* In order to keep labels the same as much as possible */
+		var origIdCounters = case0.ReserveIdCounters(origModel);
+		var origElementMap = case0.ReserveElementMap(origModel);
+
+		var decoder: AssureIt.CaseDecoder = new AssureIt.CaseDecoder();
+		var newModel: AssureIt.NodeModel = decoder.ParseASN(case0, this.ASNEditor.getValue(), origModel);
+
+		if (newModel != null) {
+			var Parent: AssureIt.NodeModel = origModel.Parent;
+			if (Parent != null) {
+				newModel.Parent = Parent;
+				for (var j in Parent.Children) {
+					if (Parent.Children[j].Label == origModel.Label) {
+						Parent.Children[j] = newModel;
 					}
 				}
 			} else {
-				this.CaseViewer.ElementTop = nodeModel;
-				case0.ElementTop = nodeModel;
+				case0.ElementTop = newModel;
 			}
+			newModel.EnableEditFlag();
+			this.RootNodeModel = newModel;
+		} else {
+			/* Show an error */
+//			self.ErrorHighlight.Highlight(decoder.GetASNError().line,"");
+			case0.ElementMap = origElementMap;
+			case0.IdCounters = origIdCounters;
 		}
-		this.RootNodeModel = nodeModel;
-//		this.Highlighter.ClearHighlight();
+	}
 
+	UpdateAll(): any {
+		var ret = {
+			script : {
+				main : "",
+				lib : {},
+			},
+			meta : {
+				actionmap : {},
+			},
+		};
 		try {
-			nodeModel.UpdateEnvironment();
-			var script = this.Generator.CodeGen(nodeModel);
- 			var dscriptActionMap: DScriptActionMap = new DScriptActionMap(nodeModel);
-			var nodeRelation = dscriptActionMap.GetNodeRelation();
-			var actionRelation = dscriptActionMap.GetActionRelation();
- 			__dscript__.script.main = script;
- 			__dscript__.meta.actionmap = nodeRelation;
- 			this.UpdateNodeRelationTable(nodeRelation);
+			this.DecodeASN();
+ 			this.RootNodeModel.UpdateEnvironment();
+ 			var script = this.Generator.CodeGen(this.RootNodeModel);
+			var dscriptActionMap: DScriptActionMap = new DScriptActionMap(this.RootNodeModel);
+ 			var nodeRelation = dscriptActionMap.GetNodeRelation();
+ 			var actionRelation = dscriptActionMap.GetActionRelation();
+  			ret.script.main = script;
+  			ret.meta.actionmap = nodeRelation;
+			this.UpdateASNEditor(null);
+ 			this.UpdateDScriptViewer(script);
+  			this.UpdateNodeRelationTable(nodeRelation);
  			this.UpdateActionRelationTable(actionRelation);
 //			this.UpdateLineComment(this.ASNEditor, this.Widgets, generator);
-			this.DScriptViewer.setValue(script);
 		}
 		catch(e) {
 			//TODO:
-			console.log("error occured in DScript Generation");
+			console.log("DScript plugin : error occured in UpdateAll");
 			console.log(e);
 		}
-
-		this.ASNEditor.refresh();
-		this.DScriptViewer.refresh();
+		return ret;
 	}
 }
 
 class DScriptSideMenuPlugIn extends AssureIt.SideMenuPlugIn {
-
 	AssureItAgentAPI: AssureIt.AssureItAgentAPI;
 	editorPlugIn: DScriptEditorPlugIn;
 
@@ -384,20 +381,10 @@ class DScriptSideMenuPlugIn extends AssureIt.SideMenuPlugIn {
 		this.AssureItAgentAPI = new AssureIt.AssureItAgentAPI(serverApi.agentpath);
 		ret.push(new AssureIt.SideMenuModel('#', 'Deploy', "deploy", "glyphicon-list-alt"/* TODO: change icon */, (ev:Event)=>{
 			self.editorPlugIn.RootNodeModel = case0.ElementTop;
-			self.editorPlugIn.GenerateCode();
-			__dscript__.script.lib = {
-				"GetDataFromRec.ds" : "\n\
-int GetDataFromRec(String location, String type) {\n\
-command rec;\n\
-String data = rec -m getLatestData -t $type -l $location\n\
-return (int)data.replaceAll(\"\\n\", \"\");\n\
-}\n\
-",
-			};
-
+			var data = self.editorPlugIn.UpdateAll();
 			var actionNodeManager: ActionNodeManager = caseViewer.pluginManager.GetPlugInEnv("monitor").ActionNodeManager;
 			var ElementMap = caseViewer.Source.ElementMap;
-			console.log(__dscript__);
+			console.log(data);
 			for(var label in ElementMap) {
 				var nodeModel: AssureIt.NodeModel = ElementMap[label];
 
@@ -409,7 +396,7 @@ return (int)data.replaceAll(\"\\n\", \"\");\n\
 			}
 
 			try {
-				this.AssureItAgentAPI.Deploy(__dscript__);
+				this.AssureItAgentAPI.Deploy(data);
 			}
 			catch(e) {
 				alert("Assure-It Agent is not active.");

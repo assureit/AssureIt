@@ -4,43 +4,6 @@ var __extends = this.__extends || function (d, b) {
     __.prototype = b.prototype;
     d.prototype = new __();
 };
-var __dscript__ = {
-    script: {
-        main: "",
-        lib: {},
-        funcdef: {}
-    },
-    meta: {
-        actionmap: {}
-    }
-};
-__dscript__.script.funcdef = {
-    "PortScanMonitor()": "\n\
-print(\"PortScanMonitor called...\");\n\
-DFault ret = null;\n\
-if (Monitor) {\n\
-\tret = null;\n\
-}\n\
-else {\n\
-\tret = fault(Risk);\n\
-}\n\
-return ret;\n\
-",
-    "BlockIP()": "\n\
-print(\"BlockIP called...\");\n\
-DFault ret = null;\n\
-command rec, sleep;\n\
-int i = 0;\n\
-while(i < 10) {\n\
-\tprint(\"        *\");\n\
-\tsleep 1\n\
-\ti += 1;\n\
-}\n\
-rec -m pushRawData -l ServerA -t IsPortScaned -d 0\n\
-return ret;\n\
-"
-};
-
 var DScriptPlugIn = (function (_super) {
     __extends(DScriptPlugIn, _super);
     function DScriptPlugIn(plugInManager) {
@@ -48,7 +11,7 @@ var DScriptPlugIn = (function (_super) {
         this.plugInManager = plugInManager;
         var editorPlugIn = new DScriptEditorPlugIn(plugInManager);
         this.ActionPlugIn = editorPlugIn;
-
+        this.MenuBarContentsPlugIn = new DScriptMenuPlugIn(plugInManager, editorPlugIn);
         this.SideMenuPlugIn = new DScriptSideMenuPlugIn(plugInManager, editorPlugIn);
     }
     return DScriptPlugIn;
@@ -95,9 +58,9 @@ var DScriptEditorPlugIn = (function (_super) {
             placeholder: "Generated DScript code goes here.",
             lineWrapping: true
         });
-        this.NodeRelationTable = this.createTable(["Action", "Risk", "Reaction"], function (nRow, aData, iDisplayIndex, iDisplayIndexFull) {
+        this.NodeRelationTable = this.CreateTable(["Action", "Risk", "Reaction"], function (nRow, aData, iDisplayIndex, iDisplayIndexFull) {
         });
-        this.ActionRelationTable = this.createTable(["Location", "Evidence", "Risk", "Reaction"], function (nRow, aData, iDisplayIndex, iDisplayIndexFull) {
+        this.ActionRelationTable = this.CreateTable(["Location", "Evidence", "Risk", "Reaction"], function (nRow, aData, iDisplayIndex, iDisplayIndexFull) {
             if (aData[3].match("Undefined") != null) {
                 var $nRow = $(nRow);
                 if ($nRow.hasClass("odd")) {
@@ -109,7 +72,7 @@ var DScriptEditorPlugIn = (function (_super) {
             return nRow;
         });
         this.ASNEditor.on("change", function (e) {
-            self.GenerateCode();
+            self.UpdateAll();
         });
 
         var wrapper = $("#dscript-editor-wrapper");
@@ -158,21 +121,38 @@ var DScriptEditorPlugIn = (function (_super) {
 
         var wrapper = $("#dscript-editor-wrapper");
         wrapper.css("display", "block").addClass("animated fadeInDown").focus().one("blur", function (e, node) {
-            e.stopPropagation();
-            var topNodeModel = self.CaseViewer.ElementTop;
-            var topNodeView = self.CaseViewer.ViewMap[self.RootNodeModel.Label];
-            self.CaseViewer.DeleteViewsRecursive(topNodeView);
-            if (self.RootNodeModel.Parent == null) {
-                var caseView = new AssureIt.NodeView(self.CaseViewer, topNodeModel);
-                self.CaseViewer.ViewMap[topNodeModel.Label] = caseView;
+            self.plugInManager.UseUILayer(self);
+            var caseViewer = self.CaseViewer;
+            var rootNodeModel = self.RootNodeModel;
+            var rootNodeView = new AssureIt.NodeView(caseViewer, rootNodeModel);
+            var Parent = rootNodeModel.Parent;
+            if (Parent != null) {
+                rootNodeView.ParentShape = caseViewer.ViewMap[Parent.Label];
+            } else {
+                caseViewer.ElementTop = rootNodeModel;
+                rootNodeModel.Case.ElementTop = rootNodeModel;
             }
-            self.CaseViewer.Draw();
+            caseViewer.DeleteViewsRecursive(caseViewer.ViewMap[rootNodeModel.Label]);
+            (function (model, view) {
+                caseViewer.ViewMap[model.Label] = view;
+                for (var i = 0; i < model.Children.length; i++) {
+                    var childModel = model.Children[i];
+                    var childView = new AssureIt.NodeView(caseViewer, childModel);
+                    arguments.callee(childModel, childView);
+                }
+                if (model.Parent != null)
+                    view.ParentShape = caseViewer.ViewMap[model.Parent.Label];
+            })(rootNodeModel, rootNodeView);
+
             wrapper.addClass("animated fadeOutUp");
             window.setTimeout(function () {
                 wrapper.removeClass();
                 wrapper.css("display", "none");
             }, 1300);
-            topNodeModel.EnableEditFlag();
+            rootNodeModel.EnableEditFlag();
+            caseViewer.Draw();
+
+            caseViewer.Draw();
         });
 
         var hideByClick = function () {
@@ -202,12 +182,12 @@ var DScriptEditorPlugIn = (function (_super) {
         } else {
             self.ASNEditor.setOption("readOnly", true);
         }
-        self.GenerateCode();
+        self.UpdateAll();
         self.PaneManager.Refresh();
         self.DScriptViewer.focus();
     };
 
-    DScriptEditorPlugIn.prototype.createTable = function (columnNames, callbackFunc) {
+    DScriptEditorPlugIn.prototype.CreateTable = function (columnNames, callbackFunc) {
         if (typeof callbackFunc === "undefined") { callbackFunc = null; }
         var table = $("<table/>");
         var header = $("<thead/>");
@@ -264,52 +244,64 @@ var DScriptEditorPlugIn = (function (_super) {
         }
     };
 
-    DScriptEditorPlugIn.prototype.GenerateCode = function () {
-        var decoder = new AssureIt.CaseDecoder();
-        var ASNData = this.ASNEditor.getValue();
+    DScriptEditorPlugIn.prototype.DecodeASN = function () {
         var case0 = this.RootNodeModel.Case;
-        var orig_IdCounters = case0.ReserveIdCounters(this.RootNodeModel);
-        var orig_ElementMap = case0.ReserveElementMap(this.RootNodeModel);
-        var nodeModel = decoder.ParseASN(case0, ASNData, this.RootNodeModel);
-        if (nodeModel == null) {
-            case0.IdCounters = orig_IdCounters;
-            case0.ElementMap = orig_ElementMap;
-            nodeModel = case0.ElementTop;
-        } else {
-            var ParentModel = this.RootNodeModel.Parent;
-            if (ParentModel != null) {
-                nodeModel.Parent = ParentModel;
-                for (var i in ParentModel.Children) {
-                    if (ParentModel.Children[i].Label == this.RootNodeModel.Label) {
-                        ParentModel.Children[i] = nodeModel;
+        var origModel = this.RootNodeModel;
+
+        var origIdCounters = case0.ReserveIdCounters(origModel);
+        var origElementMap = case0.ReserveElementMap(origModel);
+
+        var decoder = new AssureIt.CaseDecoder();
+        var newModel = decoder.ParseASN(case0, this.ASNEditor.getValue(), origModel);
+
+        if (newModel != null) {
+            var Parent = origModel.Parent;
+            if (Parent != null) {
+                newModel.Parent = Parent;
+                for (var j in Parent.Children) {
+                    if (Parent.Children[j].Label == origModel.Label) {
+                        Parent.Children[j] = newModel;
                     }
                 }
             } else {
-                this.CaseViewer.ElementTop = nodeModel;
-                case0.ElementTop = nodeModel;
+                case0.ElementTop = newModel;
             }
+            newModel.EnableEditFlag();
+            this.RootNodeModel = newModel;
+        } else {
+            case0.ElementMap = origElementMap;
+            case0.IdCounters = origIdCounters;
         }
-        this.RootNodeModel = nodeModel;
+    };
 
+    DScriptEditorPlugIn.prototype.UpdateAll = function () {
+        var ret = {
+            script: {
+                main: "",
+                lib: {}
+            },
+            meta: {
+                actionmap: {}
+            }
+        };
         try  {
-            nodeModel.UpdateEnvironment();
-            var script = this.Generator.CodeGen(nodeModel);
-            var dscriptActionMap = new DScriptActionMap(nodeModel);
+            this.DecodeASN();
+            this.RootNodeModel.UpdateEnvironment();
+            var script = this.Generator.CodeGen(this.RootNodeModel);
+            var dscriptActionMap = new DScriptActionMap(this.RootNodeModel);
             var nodeRelation = dscriptActionMap.GetNodeRelation();
             var actionRelation = dscriptActionMap.GetActionRelation();
-            __dscript__.script.main = script;
-            __dscript__.meta.actionmap = nodeRelation;
+            ret.script.main = script;
+            ret.meta.actionmap = nodeRelation;
+            this.UpdateASNEditor(null);
+            this.UpdateDScriptViewer(script);
             this.UpdateNodeRelationTable(nodeRelation);
             this.UpdateActionRelationTable(actionRelation);
-
-            this.DScriptViewer.setValue(script);
         } catch (e) {
-            console.log("error occured in DScript Generation");
+            console.log("DScript plugin : error occured in UpdateAll");
             console.log(e);
         }
-
-        this.ASNEditor.refresh();
-        this.DScriptViewer.refresh();
+        return ret;
     };
     return DScriptEditorPlugIn;
 })(AssureIt.ActionPlugIn);
@@ -332,20 +324,10 @@ var DScriptSideMenuPlugIn = (function (_super) {
         this.AssureItAgentAPI = new AssureIt.AssureItAgentAPI(serverApi.agentpath);
         ret.push(new AssureIt.SideMenuModel('#', 'Deploy', "deploy", "glyphicon-list-alt", function (ev) {
             self.editorPlugIn.RootNodeModel = case0.ElementTop;
-            self.editorPlugIn.GenerateCode();
-            __dscript__.script.lib = {
-                "GetDataFromRec.ds": "\n\
-int GetDataFromRec(String location, String type) {\n\
-command rec;\n\
-String data = rec -m getLatestData -t $type -l $location\n\
-return (int)data.replaceAll(\"\\n\", \"\");\n\
-}\n\
-"
-            };
-
+            var data = self.editorPlugIn.UpdateAll();
             var actionNodeManager = caseViewer.pluginManager.GetPlugInEnv("monitor").ActionNodeManager;
             var ElementMap = caseViewer.Source.ElementMap;
-            console.log(__dscript__);
+            console.log(data);
             for (var label in ElementMap) {
                 var nodeModel = ElementMap[label];
 
@@ -357,7 +339,7 @@ return (int)data.replaceAll(\"\\n\", \"\");\n\
             }
 
             try  {
-                _this.AssureItAgentAPI.Deploy(__dscript__);
+                _this.AssureItAgentAPI.Deploy(data);
             } catch (e) {
                 alert("Assure-It Agent is not active.");
                 console.log(e);
