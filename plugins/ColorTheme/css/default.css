@@ -12,3 +12,13 @@
 	fill: #b4d8df;
 	stroke: orange;
 }
+
+.assureit-search{
+	fill: #fae9b1;
+	stroke: none;
+}
+
+.assureit-searchandfocus{
+	fill: #fae9b1;
+	stroke: orange;
+}

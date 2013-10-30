@@ -770,9 +770,19 @@ var AssureIt;
         };
 
         ScreenManager.prototype.SetCaseCenter = function (DCaseX, DCaseY, HTMLDoc) {
-            var NewOffsetX = this.OffsetX + (this.GetPageCenterX() - (this.OffsetX + DCaseX)) - HTMLDoc.Width / 2;
-            var NewOffsetY = this.OffsetY + (this.GetPageCenterY() - (this.OffsetY + DCaseY)) - HTMLDoc.Height / 2;
+            var NewOffsetX = this.ConvertX(DCaseX, HTMLDoc);
+            var NewOffsetY = this.ConvertY(DCaseY, HTMLDoc);
             this.SetOffset(NewOffsetX, NewOffsetY);
+        };
+
+        ScreenManager.prototype.ConvertX = function (DCaseX, HTMLDoc) {
+            var ConvertedX = this.OffsetX + (this.GetPageCenterX() - (this.OffsetX + DCaseX)) - HTMLDoc.Width / 2;
+            return ConvertedX;
+        };
+
+        ScreenManager.prototype.ConvertY = function (DCaseY, HTMLDoc) {
+            var ConvertedY = this.OffsetY + (this.GetPageCenterY() - (this.OffsetY + DCaseY)) - HTMLDoc.Height / 2;
+            return ConvertedY;
         };
         return ScreenManager;
     })();

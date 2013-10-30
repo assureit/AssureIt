@@ -31,6 +31,8 @@ class MenuBar {
 
 		if(this.case0.IsEditable()) { //TODO login
 		var hasContext: boolean = false;
+		this.menu.append('<a href="#" ><img id="search" src="'+this.serverApi.basepath+'images/scale.png" title="Search" alt="search" /></a>');
+		}
 
 		for(var i: number = 0; i < this.model.Children.length; i++) {
 			if(this.model.Children[i].Type == AssureIt.NodeType.Context) {
@@ -61,7 +63,6 @@ class MenuBar {
 		}
 		if(this.node.children("h4").text() != this.case0.ElementTop.Label) {
 			this.menu.append('<a href="#" ><img id="remove" src="'+this.serverApi.basepath+'images/remove.png" title="Remove" alt="remove" /></a>');
-		}
 		}
 	}
 
@@ -146,9 +147,7 @@ class MenuBar {
 			this.RemoveNode();
 			$('#menu').remove();
 		});
-
 	}
-
 }
 
 

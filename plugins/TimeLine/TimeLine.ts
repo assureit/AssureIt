@@ -28,8 +28,8 @@ class TimeLineSideMenuPlugIn extends AssureIt.SideMenuPlugIn {
 		return new AssureIt.SideMenuModel(loc, "Change History", "history", "glyphicon-time", (ev:Event)=>{});
 	}
 }
-
 class TimeLineKeyPlugIn extends AssureIt.ShortcutKeyPlugIn {
+
 
 	constructor(public plugInManager: AssureIt.PlugInManager) {
 		super(plugInManager);

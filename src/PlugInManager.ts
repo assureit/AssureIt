@@ -356,7 +356,7 @@ module AssureIt {
 				var plugin: ShortcutKeyPlugIn = this.ShortcutKeyPlugInMap[key];
 				if(plugin.IsEnabled(Case0, serverApi)) {
 					plugin.RegisterKeyEvents(caseViewer, Case0, serverApi);
-				}
+					}
 			}
 		}
 
