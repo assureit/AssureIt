@@ -171,7 +171,6 @@ class DScriptGenerator {
 		var ret: string = "";
 		for (var i: number = 0; i < node.Children.length; i++) {
 			ret += this.GenerateNodeFunction(node.Children[i]);
-			ret += this.LineFeed;
 		}
 		switch(node.Type) {
  		case AssureIt.NodeType.Context:
@@ -180,9 +179,11 @@ class DScriptGenerator {
 		case AssureIt.NodeType.Goal:
 		case AssureIt.NodeType.Strategy:
 			ret += this.GenerateNodeFunction_GoalOrStrategy(node);
+			ret += this.LineFeed;
 			break;
 		case AssureIt.NodeType.Evidence:
 			ret += this.GenerateNodeFunction_Evidence(node);
+			ret += this.LineFeed;
 			break;
 		default:
 			console.log("DScriptGenerator: invalid Node Type")
