@@ -52,7 +52,7 @@ class DScriptPlugIn extends AssureIt.PlugInSet {
 		super(plugInManager);
 		var editorPlugIn: DScriptEditorPlugIn = new DScriptEditorPlugIn(plugInManager);
 		this.ActionPlugIn = editorPlugIn;
-		this.MenuBarContentsPlugIn = new DScriptMenuPlugIn(plugInManager, editorPlugIn);
+//		this.MenuBarContentsPlugIn = new DScriptMenuPlugIn(plugInManager, editorPlugIn);
 		this.SideMenuPlugIn = new DScriptSideMenuPlugIn(plugInManager, editorPlugIn);
 	}
 }
@@ -69,37 +69,37 @@ class DScriptMenuPlugIn extends AssureIt.MenuBarContentsPlugIn {
 	Delegate(caseViewer: AssureIt.CaseViewer, nodeModel: AssureIt.NodeModel, element: JQuery, serverApi: AssureIt.ServerAPI): boolean {
 		element.append('<a href="#" ><img id="dscript"  src="' + serverApi.basepath + 'images/dse.png" title="DScript" alt="dscript" /></a>');
 		$('#dscript').unbind('click');
-		$('#dscript').bind('click', {
-			editorPlugIn : this.editorPlugIn,
-			nodeModel : nodeModel,
-		}, this.editorPlugIn.ShowEditor);
+		$('#dscript').bind('click', function() {
+			this.editorPlugIn.ShowEditor(nodeModel);
+		});
 		return true;
 	}
 }
 
 class DScriptEditorPlugIn extends AssureIt.ActionPlugIn {
 	ASNEditor; //CodeMirror Object
-	DScriptEditor; //CodeMirror Object
+	DScriptViewer; //CodeMirror Object
 	NodeRelationTable: JQuery;
 	ActionRelationTable: JQuery;
 	PaneManager: DScriptPaneManager;
 
-	Widgets: any[]; /*FIXME*/
 //	Highlighter: ErrorHighlight;
 	CaseViewer: AssureIt.CaseViewer;
 	RootNodeModel: AssureIt.NodeModel;
+	Generator: DScriptGenerator;
 
 	constructor(plugInManager: AssureIt.PlugInManager) {
 		super(plugInManager);
 		var self = this;
 
-		this.Widgets = [];
+		this.Generator = new DScriptGenerator();
+
 		this.ASNEditor = new CodeMirror($("<div/>").get(0), {
 			lineNumbers: true,
 			mode: "text/x-csrc",
 			lineWrapping: true,
 		});
-		this.DScriptEditor = new CodeMirror($("<div/>").get(0), {
+		this.DScriptViewer = new CodeMirror($("<div/>").get(0), {
 			lineNumbers: true,
 			mode: "text/x-csrc",
 			readOnly: true,
@@ -126,11 +126,10 @@ class DScriptEditorPlugIn extends AssureIt.ActionPlugIn {
 				return nRow;
 			}
 		);
-//		this.Highlighter = new ErrorHighlight(this.ASNEditor);
-
 		this.ASNEditor.on("change", function(e: JQueryEventObject) {
 			self.GenerateCode();
 		});
+//		this.Highlighter = new ErrorHighlight(this.ASNEditor);
 
 		var wrapper = $("#dscript-editor-wrapper");
 		wrapper.css({
@@ -145,7 +144,7 @@ class DScriptEditorPlugIn extends AssureIt.ActionPlugIn {
 
 		var paneManager = new DScriptPaneManager(wrapper, $(this.ASNEditor.getWrapperElement()));
 		paneManager.AddToOptionsList($(this.ASNEditor.getWrapperElement()), "ASN Editor", false);
-		paneManager.AddToOptionsList($(this.DScriptEditor.getWrapperElement()), "DScript Viewer", false);
+		paneManager.AddToOptionsList($(this.DScriptViewer.getWrapperElement()), "DScript Viewer", false);
 		paneManager.AddToOptionsList(this.NodeRelationTable.parent().css({
 			width : "100%",
 			height : "100%",
@@ -157,9 +156,18 @@ class DScriptEditorPlugIn extends AssureIt.ActionPlugIn {
 			overflow : "scroll",
 		}), "Action Relation Table", false, false);
 		paneManager.SetRefreshFunc(function() {
-			self.ASNEditor.refresh();
-			self.DScriptEditor.refresh();
+			self.UpdateASNEditor(null);
+			self.UpdateDScriptViewer(null);
 		});
+		paneManager.ShowWidget("Action Relation Table");
+ 		paneManager.AddWidgetOnBottom(
+			paneManager.Options["Action Relation Table"],
+			paneManager.Options["Node Relation Table"]
+		);
+		paneManager.AddWidgetOnRight(
+			paneManager.Options["Node Relation Table"],
+			paneManager.Options["DScript Viewer"]
+		);
 		this.PaneManager = paneManager;
 	}
 
@@ -169,17 +177,9 @@ class DScriptEditorPlugIn extends AssureIt.ActionPlugIn {
 		return true;
 	}
 
-	ShowEditor(ev) { // callback function on DScriptMenu click event
-		var self = ev.data.editorPlugIn;
-		self.RootNodeModel = ev.data.nodeModel;
-		var encoder: AssureIt.CaseEncoder = new AssureIt.CaseEncoder();
-		var encoded: string = encoder.ConvertToASN(self.RootNodeModel, false);
-		self.ASNEditor.setValue(encoded);
-		if (self.RootNodeModel.Case.IsEditable()) {
-			self.ASNEditor.setOption("readOnly", false);
-		} else {
-			self.ASNEditor.setOption("readOnly", true);
-		}
+    ShowEditor(rootNodeModel) { // callback function on DScriptMenu click event
+        var self = this;
+		if (rootNodeModel != null) self.RootNodeModel = rootNodeModel;
 
 		var wrapper = $("#dscript-editor-wrapper");
 		wrapper
@@ -196,33 +196,44 @@ class DScriptEditorPlugIn extends AssureIt.ActionPlugIn {
 					self.CaseViewer.ViewMap[topNodeModel.Label] = caseView;
 				}
 				self.CaseViewer.Draw();
-				var centeringNodeView = self.CaseViewer.ViewMap[self.RootNodeModel.Label];
-				self.CaseViewer.Screen.SetCaseCenter(centeringNodeView.AbsX, centeringNodeView.AbsY, centeringNodeView.HTMLDoc);
-
 				wrapper.addClass("animated fadeOutUp");
 				window.setTimeout(function() {
 					wrapper.removeClass();
 					wrapper.css("display", "none");
 				}, 1300);
 				topNodeModel.EnableEditFlag();
-			})
-			.on("keydown", function(e: JQueryEventObject) {
-				if(e.keyCode == 27 /* ESC */){
-					e.stopPropagation();
-					wrapper.blur();
-					wrapper.unbind('keydown');
-				}
 			});
-		$('#CodeMirror').focus();
-		$('#background').click(function(){
+		//hide screen
+		var hideByClick = function() {
 			wrapper.blur();
-		});
+			wrapper.unbind("keydown", hideByKey);
+			$('#background').unbind("click", hideByClick);
+		};
+		var hideByKey = function(e: JQueryEventObject) {
+			if(e.keyCode == 27 /* ESC */){
+				e.stopPropagation();
+				wrapper.blur();
+				wrapper.unbind("keydown", hideByKey);
+				$('#background').unbind("click", hideByClick);
+			}
+		};
+		$('#background').click(hideByClick);
+		wrapper.on("keydown", hideByKey);
 		window.setTimeout(function() {
 			wrapper.removeClass();
 		}, 1300);
-		self.ASNEditor.refresh();
-		self.DScriptEditor.refresh();
+
+		var encoder: AssureIt.CaseEncoder = new AssureIt.CaseEncoder();
+		var encoded: string = encoder.ConvertToASN(self.RootNodeModel, false);
+		self.ASNEditor.setValue(encoded);
+		if (self.RootNodeModel.Case.IsEditable()) {
+			self.ASNEditor.setOption("readOnly", false);
+		} else {
+			self.ASNEditor.setOption("readOnly", true);
+		}
 		self.GenerateCode();
+		self.PaneManager.Refresh();
+		self.DScriptViewer.focus();
 	}
 
 	createTable(columnNames: string[], callbackFunc = null): JQuery {
@@ -261,6 +272,18 @@ class DScriptEditorPlugIn extends AssureIt.ActionPlugIn {
 // 		});
 // 	}
 
+	UpdateASNEditor(ASNData: string): void {
+		if (ASNData != null) {
+			this.ASNEditor.setValue(ASNData);
+		}
+		this.ASNEditor.refresh();
+	}
+	UpdateDScriptViewer(script: string): void {
+		if (script != null) {
+			this.DScriptViewer.setValue(script);
+		}
+		this.DScriptViewer.refresh();
+	}
 	UpdateNodeRelationTable(nodeRelation): void {
 		(<any>this.NodeRelationTable).fnClearTable();
 		for (var key in nodeRelation) {
@@ -273,7 +296,6 @@ class DScriptEditorPlugIn extends AssureIt.ActionPlugIn {
 			(<any>this.NodeRelationTable).fnAddData(data);
 		}
 	}
-
 	UpdateActionRelationTable(actionRelation): void {
 		(<any>this.ActionRelationTable).fnClearTable();
 		for (var key in actionRelation) {
@@ -319,8 +341,7 @@ class DScriptEditorPlugIn extends AssureIt.ActionPlugIn {
 
 		try {
 			nodeModel.UpdateEnvironment();
-			var generator: DScriptGenerator = new DScriptGenerator();
-			var script = generator.CodeGen(nodeModel);
+			var script = this.Generator.CodeGen(nodeModel);
  			var dscriptActionMap: DScriptActionMap = new DScriptActionMap(nodeModel);
 			var nodeRelation = dscriptActionMap.GetNodeRelation();
 			var actionRelation = dscriptActionMap.GetActionRelation();
@@ -329,7 +350,7 @@ class DScriptEditorPlugIn extends AssureIt.ActionPlugIn {
  			this.UpdateNodeRelationTable(nodeRelation);
  			this.UpdateActionRelationTable(actionRelation);
 //			this.UpdateLineComment(this.ASNEditor, this.Widgets, generator);
-			this.DScriptEditor.setValue(script);
+			this.DScriptViewer.setValue(script);
 		}
 		catch(e) {
 			//TODO:
@@ -338,7 +359,7 @@ class DScriptEditorPlugIn extends AssureIt.ActionPlugIn {
 		}
 
 		this.ASNEditor.refresh();
-		this.DScriptEditor.refresh();
+		this.DScriptViewer.refresh();
 	}
 }
 
@@ -396,18 +417,7 @@ return (int)data.replaceAll(\"\\n\", \"\");\n\
 			}
 		}));
 		ret.push(new AssureIt.SideMenuModel('#', 'Actions', "actions", "glyphicon-list-alt", (ev:Event)=>{
-			var paneManager = self.editorPlugIn.PaneManager;
-			self.editorPlugIn.ShowEditor({
-				data : {
-					editorPlugIn : self.editorPlugIn,
-					nodeModel : case0.ElementTop,
-				}
-			});
-			paneManager.ShowWidget("Action Relation Table");
- 			paneManager.AddWidgetOnBottom(
-				paneManager.Options["Action Relation Table"],
-				paneManager.Options["Node Relation Table"]
-			);
+			self.editorPlugIn.ShowEditor(case0.ElementTop);
 		}));
 		return ret;
 	}
