@@ -61,6 +61,10 @@ var DScriptGenerator = (function () {
             if (key == "prototype" || key == "Reaction") {
                 continue;
             } else if (key == "Monitor") {
+                var condStr = env["Monitor"].replace(/\{|\}/g, "").replace(/[a-zA-Z]+/g, function (matchedStr) {
+                    return "GetDataFromRec(Location, \"" + matchedStr + "\")";
+                }).trim();
+                ret += this.Indent + "let Monitor = " + condStr + ";" + this.LineFeed;
             } else {
                 ret += this.Indent + "let " + key + " = \"" + env[key] + "\";" + this.LineFeed;
             }

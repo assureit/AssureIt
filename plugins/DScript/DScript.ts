@@ -385,6 +385,7 @@ class DScriptSideMenuPlugIn extends AssureIt.SideMenuPlugIn {
 			var data = self.editorPlugIn.UpdateAll();
 			var actionNodeManager: ActionNodeManager = caseViewer.pluginManager.GetPlugInEnv("monitor").ActionNodeManager;
 			var ElementMap = caseViewer.Source.ElementMap;
+			data.script.lib["GetDataFromRec"] = "int GetDataFromRec(String location, String type) { return 0; }"; //FIX ME!!
 			console.log(data);
 			for(var label in ElementMap) {
 				var nodeModel: AssureIt.NodeModel = ElementMap[label];

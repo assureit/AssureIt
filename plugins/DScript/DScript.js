@@ -328,6 +328,7 @@ var DScriptSideMenuPlugIn = (function (_super) {
             var data = self.editorPlugIn.UpdateAll();
             var actionNodeManager = caseViewer.pluginManager.GetPlugInEnv("monitor").ActionNodeManager;
             var ElementMap = caseViewer.Source.ElementMap;
+            data.script.lib["GetDataFromRec"] = "int GetDataFromRec(String location, String type) { return 0; }";
             console.log(data);
             for (var label in ElementMap) {
                 var nodeModel = ElementMap[label];

@@ -88,7 +88,13 @@ class DScriptGenerator {
 				continue;
 			}
 			else if (key == "Monitor") {
-				// lazy generation
+				var condStr = env["Monitor"]
+					.replace(/\{|\}/g, "")
+					.replace(/[a-zA-Z]+/g, function(matchedStr) {
+						return "GetDataFromRec(Location, \"" + matchedStr + "\")";
+					})
+					.trim();
+				ret += this.Indent + "let Monitor = " + condStr + ";" + this.LineFeed;
 			}
 			else {
 				ret += this.Indent + "let " + key + " = \"" + env[key] + "\";" + this.LineFeed;
@@ -101,15 +107,6 @@ class DScriptGenerator {
 		ret += this.GenerateLocalVariable(env);
 
 		/* Define Action Function */
-		// if("Monitor" in env) {
-		// 	var condStr = env["Monitor"]
-		// 					.replace(/\{|\}/g, "")
-		// 					.replace(/[a-zA-Z]+/g, function(matchedStr) {
-		// 							return "GetDataFromRec(Location, \"" + matchedStr + "\")";
-		// 					})
-		// 					.trim();
-		// 	ret += this.Indent + this.Indent + "boolean Monitor = " + condStr + ";" + this.LineFeed;
-		// }
 		ret += this.Indent
 			+ this.LibraryManager.GetLibraryFunction(funcName.replace("()", "")).replace(/\n/g, "\n" + this.Indent)
 			+ this.LineFeed;
