@@ -3,19 +3,26 @@
 
 class DScriptLibraryManager {
 	ServerApi: AssureIt.ServerAPI;
+	Cache: { [funcName: string]: string };
 
 	constructor() {
 		this.ServerApi = null;
+		this.Cache = {};
 	}
 	GetLibraryFunction(funcName: string): string {
-		var ret = "DFault ${funcName} { return null; }".replace("${funcName}", funcName);
+		var ret = "DFault ${funcName}() { return null; }".replace("${funcName}", funcName);
 		if (this.ServerApi == null) {
 			console.log("DScriptLibraryManager error : not set ServerApi yet");
 		}
+		else if (funcName in this.Cache) {
+			ret = this.Cache[funcName];
+		}
 		else {
-			var script = this.ServerApi.GetDScript(funcName.replace("()", ""));
-			console.log(script);
-			if (script != null) ret = script.script;
+			var script = this.ServerApi.GetDScript(funcName);
+			if (script != null) {
+				ret = script.script;
+				this.Cache[funcName] = script.script;
+			}
 		}
 		return ret;
 	}
@@ -103,7 +110,9 @@ class DScriptGenerator {
 		// 					.trim();
 		// 	ret += this.Indent + this.Indent + "boolean Monitor = " + condStr + ";" + this.LineFeed;
 		// }
-		ret += this.Indent + this.LibraryManager.GetLibraryFunction(funcName).replace(/\n/g, "\n" + this.Indent) + this.LineFeed;
+		ret += this.Indent
+			+ this.LibraryManager.GetLibraryFunction(funcName.replace("()", "")).replace(/\n/g, "\n" + this.Indent)
+			+ this.LineFeed;
 
 		/* Call Action Function */
 		ret += this.Indent + "DFault ret = null;" + this.LineFeed;

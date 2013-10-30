@@ -1,16 +1,20 @@
 var DScriptLibraryManager = (function () {
     function DScriptLibraryManager() {
         this.ServerApi = null;
+        this.Cache = {};
     }
     DScriptLibraryManager.prototype.GetLibraryFunction = function (funcName) {
-        var ret = "DFault ${funcName} { return null; }".replace("${funcName}", funcName);
+        var ret = "DFault ${funcName}() { return null; }".replace("${funcName}", funcName);
         if (this.ServerApi == null) {
             console.log("DScriptLibraryManager error : not set ServerApi yet");
+        } else if (funcName in this.Cache) {
+            ret = this.Cache[funcName];
         } else {
-            var script = this.ServerApi.GetDScript(funcName.replace("()", ""));
-            console.log(script);
-            if (script != null)
+            var script = this.ServerApi.GetDScript(funcName);
+            if (script != null) {
                 ret = script.script;
+                this.Cache[funcName] = script.script;
+            }
         }
         return ret;
     };
@@ -67,7 +71,7 @@ var DScriptGenerator = (function () {
         var ret = "";
         ret += this.GenerateLocalVariable(env);
 
-        ret += this.Indent + this.LibraryManager.GetLibraryFunction(funcName).replace(/\n/g, "\n" + this.Indent) + this.LineFeed;
+        ret += this.Indent + this.LibraryManager.GetLibraryFunction(funcName.replace("()", "")).replace(/\n/g, "\n" + this.Indent) + this.LineFeed;
 
         ret += this.Indent + "DFault ret = null;" + this.LineFeed;
         ret += this.Indent + "if(Location == LOCATION) {" + this.LineFeed;
