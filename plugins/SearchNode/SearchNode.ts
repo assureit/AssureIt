@@ -50,7 +50,6 @@ class SearchWordKeyPlugIn extends AssureIt.ShortcutKeyPlugIn {
 								if ($('.navbar-form input:first').val() != this.Keyword) {
 									this.FirstMove = true;
 									this.Color(this.HitNodes, caseViewer, "Default");
-									$('body').unbind("keydown" , this.Search.controllSearch);
 									this.HitNodes = [];
 									this.Search(Case0, caseViewer, serverApi);
 									if (this.HitNodes.length == 0) {
