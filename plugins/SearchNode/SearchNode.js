@@ -33,7 +33,6 @@ var SearchWordKeyPlugIn = (function (_super) {
                 }
                 if (e.keyCode == 70) {
                     e.preventDefault();
-                    console.log("form length" + $('nav').length);
                     if ($('nav').length == 0) {
                         _this.CreateSearchWindow();
 
@@ -49,13 +48,10 @@ var SearchWordKeyPlugIn = (function (_super) {
                                     _this.Color(_this.HitNodes, caseViewer, "Default");
                                     $('body').unbind("keydown", _this.Search.controllSearch);
                                     _this.HitNodes = [];
-                                    console.log('before firstmove search');
                                     _this.Search(Case0, caseViewer, serverApi);
                                     if (_this.HitNodes.length == 0) {
                                         _this.HasStarted = false;
                                     }
-
-                                    console.log($('.navbar-form input:first').val());
                                 }
                             }
                         });
@@ -77,9 +73,7 @@ var SearchWordKeyPlugIn = (function (_super) {
             return;
         }
 
-        console.log('here is code');
-
-        console.log(TopNodeModel.SearchNode(this.Keyword, this.HitNodes));
+        TopNodeModel.SearchNode(this.Keyword, this.HitNodes);
 
         if (this.HitNodes.length == 0) {
             return;
@@ -95,8 +89,6 @@ var SearchWordKeyPlugIn = (function (_super) {
         var destinationX = screenManager.ConvertX(NodePosX, currentHTML);
         var destinationY = screenManager.ConvertY(NodePosY, currentHTML);
 
-        console.log('X=' + destinationX + 'Y=' + destinationY);
-        console.log("start moving");
         this.Move(destinationX, destinationY, 100, function () {
             _this.FirstMove = false;
         });
@@ -105,7 +97,6 @@ var SearchWordKeyPlugIn = (function (_super) {
         var controllSearch = function (e) {
             if (e.ctrlKey) {
                 if (e.keyCode == 81) {
-                    console.log('quitting');
                     $('body').unbind("keydown", controllSearch);
                     _this.Color(_this.HitNodes, caseViewer, "Default");
                     $('nav').remove();
@@ -115,7 +106,6 @@ var SearchWordKeyPlugIn = (function (_super) {
             }
             if (!e.shiftKey) {
                 if (e.keyCode == 13) {
-                    console.log("pushed enter button");
                     if (!moveFlag) {
                         if (_this.HitNodes.length == 1) {
                             return;
@@ -134,7 +124,6 @@ var SearchWordKeyPlugIn = (function (_super) {
                         destinationX = screenManager.ConvertX(NodePosX, currentHTML);
                         destinationY = screenManager.ConvertY(NodePosY, currentHTML);
 
-                        console.log('X=' + destinationX + 'Y=' + destinationY);
                         moveFlag = true;
 
                         _this.Move(destinationX, destinationY, 100, function () {
@@ -146,16 +135,13 @@ var SearchWordKeyPlugIn = (function (_super) {
                             }
 
                             if (!_this.FirstMove) {
-                                console.log('here for one');
                                 CaseMap.SVGShape.SetColor(AssureIt.Color.Focused);
                             }
                         });
-                        console.log("after calling Move");
                     }
                 }
             } else {
                 if (e.keyCode == 13) {
-                    console.log("pushed enter button");
                     if (!moveFlag) {
                         if (_this.HitNodes.length == 1) {
                             return;
@@ -174,7 +160,6 @@ var SearchWordKeyPlugIn = (function (_super) {
                         destinationX = screenManager.ConvertX(NodePosX, currentHTML);
                         destinationY = screenManager.ConvertY(NodePosY, currentHTML);
 
-                        console.log('X=' + destinationX + 'Y=' + destinationY);
                         moveFlag = true;
 
                         _this.Move(destinationX, destinationY, 100, function () {
@@ -186,11 +171,9 @@ var SearchWordKeyPlugIn = (function (_super) {
                                 caseViewer.ViewMap[_this.HitNodes[nodeIndex + 1].Label].SVGShape.SetColor(AssureIt.Color.Searched);
                             }
                             if (!_this.FirstMove) {
-                                console.log('here for one');
                                 CaseMap.SVGShape.SetColor(AssureIt.Color.Focused);
                             }
                         });
-                        console.log("after calling Move");
                     }
                 }
             }
@@ -243,7 +226,6 @@ var SearchWordKeyPlugIn = (function (_super) {
         var count = 0;
 
         var move = function () {
-            console.log("move function");
             if (count < cycles) {
                 count += 1;
                 currentX += deltaX;
