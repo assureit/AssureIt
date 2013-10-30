@@ -1,15 +1,37 @@
 /// <reference path="../../src/CaseModel.ts" />
 /// <reference path="../../src/PlugInManager.ts" />
 
+class DScriptLibraryManager {
+	ServerApi: AssureIt.ServerAPI;
+
+	constructor() {
+		this.ServerApi = null;
+	}
+	GetLibraryFunction(funcName: string): string {
+		var ret = "DFault ${funcName} { return null; }".replace("${funcName}", funcName);
+		if (this.ServerApi == null) {
+			console.log("DScriptLibraryManager error : not set ServerApi yet");
+		}
+		else {
+			var script = this.ServerApi.GetDScript(funcName.replace("()", ""));
+			console.log(script);
+			if (script != null) ret = script.script;
+		}
+		return ret;
+	}
+}
+
 class DScriptGenerator {
 	Indent: string;
 	LineFeed: string;
 	GenMainFunctionFlag: boolean;
+	LibraryManager: DScriptLibraryManager;
 
 	constructor(genMainFunctionFlag: boolean = false) {
 		this.Indent = "\t";
 		this.LineFeed = "\n";
 		this.GenMainFunctionFlag = genMainFunctionFlag;
+		this.LibraryManager = new DScriptLibraryManager();
 	}
 
 // 	GenerateMainFunction(): string {
@@ -72,28 +94,16 @@ class DScriptGenerator {
 		ret += this.GenerateLocalVariable(env);
 
 		/* Define Action Function */
-		ret += this.Indent + "DFault " + funcName + " {" + this.LineFeed;
-
-		if("Monitor" in env) {
-			var condStr = env["Monitor"]
-							.replace(/\{|\}/g, "")
-							.replace(/[a-zA-Z]+/g, function(matchedStr) {
-									return "GetDataFromRec(Location, \"" + matchedStr + "\")";
-							})
-							.trim();
-			ret += this.Indent + this.Indent + "boolean Monitor = " + condStr + ";" + this.LineFeed;
-		}
-
-		// var funcdef = __dscript__.script.funcdef[funcName];
-		// if (funcdef != null) { // FIXME
- 		// 	ret += funcdef.replace(/\n/g, this.LineFeed + this.Indent + this.Indent)
+		// if("Monitor" in env) {
+		// 	var condStr = env["Monitor"]
+		// 					.replace(/\{|\}/g, "")
+		// 					.replace(/[a-zA-Z]+/g, function(matchedStr) {
+		// 							return "GetDataFromRec(Location, \"" + matchedStr + "\")";
+		// 					})
+		// 					.trim();
+		// 	ret += this.Indent + this.Indent + "boolean Monitor = " + condStr + ";" + this.LineFeed;
 		// }
-		// else {
-		// 	ret += this.Indent + this.Indent + "return null;";
-		// }
-		ret += this.LineFeed;
-		ret = ret.replace(/\t\t\n/, "");
-		ret += this.Indent + "}" + this.LineFeed;
+		ret += this.Indent + this.LibraryManager.GetLibraryFunction(funcName).replace(/\n/g, "\n" + this.Indent) + this.LineFeed;
 
 		/* Call Action Function */
 		ret += this.Indent + "DFault ret = null;" + this.LineFeed;

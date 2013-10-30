@@ -1,9 +1,29 @@
+var DScriptLibraryManager = (function () {
+    function DScriptLibraryManager() {
+        this.ServerApi = null;
+    }
+    DScriptLibraryManager.prototype.GetLibraryFunction = function (funcName) {
+        var ret = "DFault ${funcName} { return null; }".replace("${funcName}", funcName);
+        if (this.ServerApi == null) {
+            console.log("DScriptLibraryManager error : not set ServerApi yet");
+        } else {
+            var script = this.ServerApi.GetDScript(funcName.replace("()", ""));
+            console.log(script);
+            if (script != null)
+                ret = script.script;
+        }
+        return ret;
+    };
+    return DScriptLibraryManager;
+})();
+
 var DScriptGenerator = (function () {
     function DScriptGenerator(genMainFunctionFlag) {
         if (typeof genMainFunctionFlag === "undefined") { genMainFunctionFlag = false; }
         this.Indent = "\t";
         this.LineFeed = "\n";
         this.GenMainFunctionFlag = genMainFunctionFlag;
+        this.LibraryManager = new DScriptLibraryManager();
     }
     DScriptGenerator.prototype.SearchChildrenByType = function (node, type) {
         return node.Children.filter(function (child) {
@@ -47,18 +67,7 @@ var DScriptGenerator = (function () {
         var ret = "";
         ret += this.GenerateLocalVariable(env);
 
-        ret += this.Indent + "DFault " + funcName + " {" + this.LineFeed;
-
-        if ("Monitor" in env) {
-            var condStr = env["Monitor"].replace(/\{|\}/g, "").replace(/[a-zA-Z]+/g, function (matchedStr) {
-                return "GetDataFromRec(Location, \"" + matchedStr + "\")";
-            }).trim();
-            ret += this.Indent + this.Indent + "boolean Monitor = " + condStr + ";" + this.LineFeed;
-        }
-
-        ret += this.LineFeed;
-        ret = ret.replace(/\t\t\n/, "");
-        ret += this.Indent + "}" + this.LineFeed;
+        ret += this.Indent + this.LibraryManager.GetLibraryFunction(funcName).replace(/\n/g, "\n" + this.Indent) + this.LineFeed;
 
         ret += this.Indent + "DFault ret = null;" + this.LineFeed;
         ret += this.Indent + "if(Location == LOCATION) {" + this.LineFeed;

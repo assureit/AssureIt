@@ -137,6 +137,7 @@ class DScriptEditorPlugIn extends AssureIt.ActionPlugIn {
 	Delegate(caseViewer: AssureIt.CaseViewer, case0: AssureIt.Case, serverApi: AssureIt.ServerAPI): boolean {
 		this.RootNodeModel = case0.ElementTop; // will be chenged in ShowEditor
 		this.CaseViewer = caseViewer;
+		this.Generator.LibraryManager.ServerApi = serverApi;
 		return true;
 	}
 

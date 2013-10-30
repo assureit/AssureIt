@@ -111,6 +111,7 @@ var DScriptEditorPlugIn = (function (_super) {
     DScriptEditorPlugIn.prototype.Delegate = function (caseViewer, case0, serverApi) {
         this.RootNodeModel = case0.ElementTop;
         this.CaseViewer = caseViewer;
+        this.Generator.LibraryManager.ServerApi = serverApi;
         return true;
     };
 
