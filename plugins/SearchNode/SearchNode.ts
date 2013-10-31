@@ -33,6 +33,7 @@ class SearchWordKeyPlugIn extends AssureIt.ShortcutKeyPlugIn {
 					e.preventDefault();
 					$('nav').remove();
 				}
+
 				if (e.keyCode == 70/*f*/) {
 					e.preventDefault();
 					if ($('nav').length == 0) {
@@ -49,7 +50,6 @@ class SearchWordKeyPlugIn extends AssureIt.ShortcutKeyPlugIn {
 								if ($('.navbar-form input:first').val() != this.Keyword) {
 									this.FirstMove = true;
 									this.Color(this.HitNodes, caseViewer, "Default");
-									$('body').unbind("keydown",this.Search.controllSearch);
 									this.HitNodes = [];
 									this.Search(Case0, caseViewer, serverApi);
 									if (this.HitNodes.length == 0) {
@@ -95,7 +95,7 @@ class SearchWordKeyPlugIn extends AssureIt.ShortcutKeyPlugIn {
 		this.Move(destinationX, destinationY, 100, ()=>{
 			this.FirstMove = false;
 		});
-		CaseMap.SVGShape.SetColor(AssureIt.Color.Focused);
+		CaseMap.SVGShape.EnableHighlight();
 
 		var controllSearch = (e: JQueryEventObject)=> {
 			if (e.ctrlKey) {
@@ -133,12 +133,14 @@ class SearchWordKeyPlugIn extends AssureIt.ShortcutKeyPlugIn {
 							moveFlag = false;
 							if (nodeIndex == 0) {
 								caseViewer.ViewMap[this.HitNodes[this.HitNodes.length-1].Label].SVGShape.SetColor(AssureIt.Color.Searched);
+								caseViewer.ViewMap[this.HitNodes[this.HitNodes.length-1].Label].SVGShape.DisableHighlight();
 							} else {
 								caseViewer.ViewMap[this.HitNodes[nodeIndex-1].Label].SVGShape.SetColor(AssureIt.Color.Searched);
+								caseViewer.ViewMap[this.HitNodes[nodeIndex-1].Label].SVGShape.DisableHighlight();
 							}
 
 							if (!this.FirstMove) {
-								CaseMap.SVGShape.SetColor(AssureIt.Color.Focused);
+								CaseMap.SVGShape.EnableHighlight();
 							}
 						});
 					}
@@ -170,11 +172,13 @@ class SearchWordKeyPlugIn extends AssureIt.ShortcutKeyPlugIn {
 
 							if (nodeIndex == this.HitNodes.length - 1) {
 								caseViewer.ViewMap[this.HitNodes[0].Label].SVGShape.SetColor(AssureIt.Color.Searched);
+								caseViewer.ViewMap[this.HitNodes[0].Label].SVGShape.DisableHighlight();
 							} else {
 								caseViewer.ViewMap[this.HitNodes[nodeIndex+1].Label].SVGShape.SetColor(AssureIt.Color.Searched);
+								caseViewer.ViewMap[this.HitNodes[nodeIndex+1].Label].SVGShape.DisableHighlight();
 							}
 							if (!this.FirstMove) {
-								CaseMap.SVGShape.SetColor(AssureIt.Color.Focused);
+								CaseMap.SVGShape.EnableHighlight();
 							}
 						});
 					}

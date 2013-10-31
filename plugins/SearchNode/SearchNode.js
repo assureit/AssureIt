@@ -31,6 +31,7 @@ var SearchWordKeyPlugIn = (function (_super) {
                     e.preventDefault();
                     $('nav').remove();
                 }
+
                 if (e.keyCode == 70) {
                     e.preventDefault();
                     if ($('nav').length == 0) {
@@ -46,7 +47,6 @@ var SearchWordKeyPlugIn = (function (_super) {
                                 if ($('.navbar-form input:first').val() != _this.Keyword) {
                                     _this.FirstMove = true;
                                     _this.Color(_this.HitNodes, caseViewer, "Default");
-                                    $('body').unbind("keydown", _this.Search.controllSearch);
                                     _this.HitNodes = [];
                                     _this.Search(Case0, caseViewer, serverApi);
                                     if (_this.HitNodes.length == 0) {
@@ -92,7 +92,7 @@ var SearchWordKeyPlugIn = (function (_super) {
         this.Move(destinationX, destinationY, 100, function () {
             _this.FirstMove = false;
         });
-        CaseMap.SVGShape.SetColor(AssureIt.Color.Focused);
+        CaseMap.SVGShape.EnableHighlight();
 
         var controllSearch = function (e) {
             if (e.ctrlKey) {
@@ -130,12 +130,14 @@ var SearchWordKeyPlugIn = (function (_super) {
                             moveFlag = false;
                             if (nodeIndex == 0) {
                                 caseViewer.ViewMap[_this.HitNodes[_this.HitNodes.length - 1].Label].SVGShape.SetColor(AssureIt.Color.Searched);
+                                caseViewer.ViewMap[_this.HitNodes[_this.HitNodes.length - 1].Label].SVGShape.DisableHighlight();
                             } else {
                                 caseViewer.ViewMap[_this.HitNodes[nodeIndex - 1].Label].SVGShape.SetColor(AssureIt.Color.Searched);
+                                caseViewer.ViewMap[_this.HitNodes[nodeIndex - 1].Label].SVGShape.DisableHighlight();
                             }
 
                             if (!_this.FirstMove) {
-                                CaseMap.SVGShape.SetColor(AssureIt.Color.Focused);
+                                CaseMap.SVGShape.EnableHighlight();
                             }
                         });
                     }
@@ -167,11 +169,13 @@ var SearchWordKeyPlugIn = (function (_super) {
 
                             if (nodeIndex == _this.HitNodes.length - 1) {
                                 caseViewer.ViewMap[_this.HitNodes[0].Label].SVGShape.SetColor(AssureIt.Color.Searched);
+                                caseViewer.ViewMap[_this.HitNodes[0].Label].SVGShape.DisableHighlight();
                             } else {
                                 caseViewer.ViewMap[_this.HitNodes[nodeIndex + 1].Label].SVGShape.SetColor(AssureIt.Color.Searched);
+                                caseViewer.ViewMap[_this.HitNodes[nodeIndex + 1].Label].SVGShape.DisableHighlight();
                             }
                             if (!_this.FirstMove) {
-                                CaseMap.SVGShape.SetColor(AssureIt.Color.Focused);
+                                CaseMap.SVGShape.EnableHighlight();
                             }
                         });
                     }
