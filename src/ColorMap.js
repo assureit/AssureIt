@@ -2,7 +2,8 @@ var AssureIt;
 (function (AssureIt) {
     AssureIt.Color = {
         Default: "assureit-default",
-        Danger: "assureit-danger",
-        Searched: "assureit-search"
+        ToDo: "assureit-todo",
+        Searched: "assureit-search",
+        Danger: "assureit-danger"
     };
 })(AssureIt || (AssureIt = {}));

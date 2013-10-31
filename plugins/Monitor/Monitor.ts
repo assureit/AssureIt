@@ -53,12 +53,12 @@ class MonitorHTMLRenderPlugIn extends AssureIt.HTMLRenderPlugIn {
 
 		var linkColor: string;
 		if(monitorNode.Status == true) {
-			if(monitorNode.IsRecovered) {
-				linkColor = 'orange';
-			}
-			else {
+			//if(monitorNode.IsRecovered) {
+			//	linkColor = 'orange';
+			//}
+			//else {
 				linkColor = 'blue';
-			}
+			//}
 		}
 		else {
 			linkColor = 'red';
@@ -90,16 +90,12 @@ class MonitorSVGRenderPlugIn extends AssureIt.SVGRenderPlugIn {
 		if(!monitorNode) return true;
 
 		if(monitorNode.Status) {
-			if(monitorNode.IsRecovered) {
-				var fill: string = "#FFFF99";   // FIXME: allow any color
-				var stroke: string = "none";
-				monitorNode.BlushAllAncestor(caseViewer, nodeView, fill, stroke);
-			}
+			//if(monitorNode.IsRecovered) {
+				monitorNode.BlushAllAncestor(caseViewer, nodeView, AssureIt.Color.Default);
+			//}
 		}
 		else {
-			var fill: string = "#FF9999";   // FIXME: allow any color
-			var stroke: string = "none";
-			monitorNode.BlushAllAncestor(caseViewer, nodeView, fill, stroke);
+			monitorNode.BlushAllAncestor(caseViewer, nodeView, AssureIt.Color.Danger);
 		}
 
 		return true;

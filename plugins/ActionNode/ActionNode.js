@@ -1,8 +1,8 @@
 function selectStrongColor(color1, color2) {
-    if (parseInt(color1.replace(/#/g, ""), 16) < parseInt(color2.replace(/#/g, ""), 16)) {
-        return color1;
+    if (color1 == AssureIt.Color.Danger || color2 == AssureIt.Color.Danger) {
+        return AssureIt.Color.Danger;
     } else {
-        return color2;
+        return AssureIt.Color.Default;
     }
 }
 
@@ -53,11 +53,13 @@ var ActionNode = (function () {
         this.Fault = fault;
     };
 
-    ActionNode.prototype.BlushAllAncestor = function (caseViewer, nodeView, fill, stroke) {
+    ActionNode.prototype.BlushAllAncestor = function (caseViewer, nodeView, color) {
         if (nodeView == null)
             return;
 
-        nodeView.SetTemporaryColor(fill, stroke);
+        if (nodeView.SVGShape.GetColor() != AssureIt.Color.Searched) {
+            nodeView.SVGShape.SetColor(color);
+        }
 
         if (nodeView.ParentShape != null) {
             var brotherModels = nodeView.ParentShape.Source.Children;
@@ -65,14 +67,14 @@ var ActionNode = (function () {
             for (var i = 0; i < brotherModels.length; i++) {
                 var view = caseViewer.ViewMap[brotherModels[i].Label];
 
-                if (view.GetTemporaryColor() != null) {
-                    var tmpFill = view.GetTemporaryColor()["fill"];
-                    fill = selectStrongColor(fill, tmpFill);
+                if (view.SVGShape.GetColor() != null) {
+                    var currentColor = view.SVGShape.GetColor();
+                    color = selectStrongColor(color, currentColor);
                 }
             }
         }
 
-        this.BlushAllAncestor(caseViewer, nodeView.ParentShape, fill, stroke);
+        this.BlushAllAncestor(caseViewer, nodeView.ParentShape, color);
     };
 
     ActionNode.prototype.Show = function (caseViewer, HTMLRenderFunctions, SVGRenderFunctions) {

@@ -55,11 +55,7 @@ var MonitorHTMLRenderPlugIn = (function (_super) {
 
         var linkColor;
         if (monitorNode.Status == true) {
-            if (monitorNode.IsRecovered) {
-                linkColor = 'orange';
-            } else {
-                linkColor = 'blue';
-            }
+            linkColor = 'blue';
         } else {
             linkColor = 'red';
         }
@@ -93,15 +89,9 @@ var MonitorSVGRenderPlugIn = (function (_super) {
             return true;
 
         if (monitorNode.Status) {
-            if (monitorNode.IsRecovered) {
-                var fill = "#FFFF99";
-                var stroke = "none";
-                monitorNode.BlushAllAncestor(caseViewer, nodeView, fill, stroke);
-            }
+            monitorNode.BlushAllAncestor(caseViewer, nodeView, AssureIt.Color.Default);
         } else {
-            var fill = "#FF9999";
-            var stroke = "none";
-            monitorNode.BlushAllAncestor(caseViewer, nodeView, fill, stroke);
+            monitorNode.BlushAllAncestor(caseViewer, nodeView, AssureIt.Color.Danger);
         }
 
         return true;
