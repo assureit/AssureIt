@@ -61,10 +61,6 @@ var DScriptGenerator = (function () {
             if (key == "prototype" || key == "Reaction") {
                 continue;
             } else if (key == "Monitor") {
-                var condStr = env["Monitor"].replace(/\{|\}/g, "").replace(/[a-zA-Z]+/g, function (matchedStr) {
-                    return "GetDataFromRec(Location, \"" + matchedStr + "\")";
-                }).trim();
-                ret += this.Indent + "let Monitor = " + condStr + ";" + this.LineFeed;
             } else {
                 ret += this.Indent + "let " + key + " = \"" + env[key] + "\";" + this.LineFeed;
             }
@@ -75,7 +71,16 @@ var DScriptGenerator = (function () {
         var ret = "";
         ret += this.GenerateLocalVariable(env);
 
-        ret += this.Indent + this.LibraryManager.GetLibraryFunction(funcName.replace("()", "")).replace(/\n/g, "\n" + this.Indent) + this.LineFeed;
+        var actionFunctionDef = this.LibraryManager.GetLibraryFunction(funcName.replace("()", ""));
+        if (env["Monitor"] != null) {
+            var monitor = env["Monitor"].replace(/\{|\}/g, "").replace(/[a-zA-Z]+/g, function (matchedStr) {
+                return "GetDataFromRec(Location, \"" + matchedStr + "\")";
+            }).trim();
+            actionFunctionDef = actionFunctionDef.replace(/[\(\w]Monitor[\)\w]/g, function (matchedStr) {
+                return matchedStr.replace("Monitor", monitor);
+            });
+        }
+        ret += this.Indent + actionFunctionDef.replace(/\n/g, "\n\t") + this.LineFeed;
 
         ret += this.Indent + "DFault ret = null;" + this.LineFeed;
         ret += this.Indent + "if(Location == LOCATION) {" + this.LineFeed;
