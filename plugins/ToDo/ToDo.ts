@@ -29,7 +29,7 @@ class ToDoSVGRenderPlugIn extends AssureIt.SVGRenderPlugIn {
 			}
 		}
 		if (found) {
-			elementShape.SVGShape.SetColor(AssureIt.Color.Danger);
+			elementShape.SVGShape.SetColor(AssureIt.Color.ToDo);
 		}
 		return true;
 	}

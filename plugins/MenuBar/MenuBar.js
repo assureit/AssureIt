@@ -22,38 +22,37 @@ var MenuBar = (function () {
 
         if (this.case0.IsEditable()) {
             var hasContext = false;
-            this.menu.append('<a href="#" ><img id="search" src="' + this.serverApi.basepath + 'images/scale.png" title="Search" alt="search" /></a>');
-        }
 
-        for (var i = 0; i < this.model.Children.length; i++) {
-            if (this.model.Children[i].Type == AssureIt.NodeType.Context) {
-                hasContext = true;
+            for (var i = 0; i < this.model.Children.length; i++) {
+                if (this.model.Children[i].Type == AssureIt.NodeType.Context) {
+                    hasContext = true;
+                }
             }
-        }
-        switch (thisNodeType) {
-            case AssureIt.NodeType.Goal:
-                if (!hasContext) {
-                    this.menu.append('<a href="#" ><img id="context"  src="' + this.serverApi.basepath + 'images/context.png" title="Context" alt="context" /></a>');
-                }
-                this.menu.append('<a href="#" ><img id="strategy" src="' + this.serverApi.basepath + 'images/strategy.png" title="Strategy" alt="strategy" /></a>');
-                this.menu.append('<a href="#" ><img id="evidence" src="' + this.serverApi.basepath + 'images/evidence.png" title="Evidence" alt="evidence" /></a>');
-                break;
-            case AssureIt.NodeType.Strategy:
-                this.menu.append('<a href="#" ><img id="goal"     src="' + this.serverApi.basepath + 'images/goal.png" title="Goal" alt="goal" /></a>');
-                if (!hasContext) {
-                    this.menu.append('<a href="#" ><img id="context"  src="' + this.serverApi.basepath + 'images/context.png" title="Context" alt="context" /></a>');
-                }
-                break;
-            case AssureIt.NodeType.Evidence:
-                if (!hasContext) {
-                    this.menu.append('<a href="#" ><img id="context"  src="' + this.serverApi.basepath + 'images/context.png" title="Context" alt="context" /></a>');
-                }
-                break;
-            default:
-                break;
-        }
-        if (this.node.children("h4").text() != this.case0.ElementTop.Label) {
-            this.menu.append('<a href="#" ><img id="remove" src="' + this.serverApi.basepath + 'images/remove.png" title="Remove" alt="remove" /></a>');
+            switch (thisNodeType) {
+                case AssureIt.NodeType.Goal:
+                    if (!hasContext) {
+                        this.menu.append('<a href="#" ><img id="context"  src="' + this.serverApi.basepath + 'images/context.png" title="Context" alt="context" /></a>');
+                    }
+                    this.menu.append('<a href="#" ><img id="strategy" src="' + this.serverApi.basepath + 'images/strategy.png" title="Strategy" alt="strategy" /></a>');
+                    this.menu.append('<a href="#" ><img id="evidence" src="' + this.serverApi.basepath + 'images/evidence.png" title="Evidence" alt="evidence" /></a>');
+                    break;
+                case AssureIt.NodeType.Strategy:
+                    this.menu.append('<a href="#" ><img id="goal"     src="' + this.serverApi.basepath + 'images/goal.png" title="Goal" alt="goal" /></a>');
+                    if (!hasContext) {
+                        this.menu.append('<a href="#" ><img id="context"  src="' + this.serverApi.basepath + 'images/context.png" title="Context" alt="context" /></a>');
+                    }
+                    break;
+                case AssureIt.NodeType.Evidence:
+                    if (!hasContext) {
+                        this.menu.append('<a href="#" ><img id="context"  src="' + this.serverApi.basepath + 'images/context.png" title="Context" alt="context" /></a>');
+                    }
+                    break;
+                default:
+                    break;
+            }
+            if (this.node.children("h4").text() != this.case0.ElementTop.Label) {
+                this.menu.append('<a href="#" ><img id="remove" src="' + this.serverApi.basepath + 'images/remove.png" title="Remove" alt="remove" /></a>');
+            }
         }
     };
 

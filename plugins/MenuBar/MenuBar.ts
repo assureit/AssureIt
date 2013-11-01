@@ -29,40 +29,39 @@ class MenuBar {
 			//'<a href="#" ><img id="scale"  src="'+this.serverApi.basepath+'images/scale.png" title="Scale" alt="scale" /></a>' +
 			'</div>');
 
-		if(this.case0.IsEditable()) { //TODO login
-		var hasContext: boolean = false;
-		this.menu.append('<a href="#" ><img id="search" src="'+this.serverApi.basepath+'images/scale.png" title="Search" alt="search" /></a>');
-		}
+		if(this.case0.IsEditable()) {
+			var hasContext: boolean = false;
 
-		for(var i: number = 0; i < this.model.Children.length; i++) {
-			if(this.model.Children[i].Type == AssureIt.NodeType.Context) {
-				hasContext = true;
+			for(var i: number = 0; i < this.model.Children.length; i++) {
+				if(this.model.Children[i].Type == AssureIt.NodeType.Context) {
+					hasContext = true;
+				}
 			}
-		}
-		switch(thisNodeType) {
-			case AssureIt.NodeType.Goal:
-				if(!hasContext) {
-					this.menu.append('<a href="#" ><img id="context"  src="'+this.serverApi.basepath+'images/context.png" title="Context" alt="context" /></a>');
-				}
-				this.menu.append('<a href="#" ><img id="strategy" src="'+this.serverApi.basepath+'images/strategy.png" title="Strategy" alt="strategy" /></a>');
-				this.menu.append('<a href="#" ><img id="evidence" src="'+this.serverApi.basepath+'images/evidence.png" title="Evidence" alt="evidence" /></a>');
-				break;
-			case AssureIt.NodeType.Strategy:
-				this.menu.append('<a href="#" ><img id="goal"     src="'+this.serverApi.basepath+'images/goal.png" title="Goal" alt="goal" /></a>');
-				if (!hasContext) {
-					this.menu.append('<a href="#" ><img id="context"  src="'+this.serverApi.basepath+'images/context.png" title="Context" alt="context" /></a>');
-				}
-				break;
-			case AssureIt.NodeType.Evidence:
-				if (!hasContext) {
-					this.menu.append('<a href="#" ><img id="context"  src="'+this.serverApi.basepath+'images/context.png" title="Context" alt="context" /></a>');
-				}
-				break;
-			default:
-				break;
-		}
-		if(this.node.children("h4").text() != this.case0.ElementTop.Label) {
-			this.menu.append('<a href="#" ><img id="remove" src="'+this.serverApi.basepath+'images/remove.png" title="Remove" alt="remove" /></a>');
+			switch(thisNodeType) {
+				case AssureIt.NodeType.Goal:
+					if(!hasContext) {
+						this.menu.append('<a href="#" ><img id="context"  src="'+this.serverApi.basepath+'images/context.png" title="Context" alt="context" /></a>');
+					}
+					this.menu.append('<a href="#" ><img id="strategy" src="'+this.serverApi.basepath+'images/strategy.png" title="Strategy" alt="strategy" /></a>');
+					this.menu.append('<a href="#" ><img id="evidence" src="'+this.serverApi.basepath+'images/evidence.png" title="Evidence" alt="evidence" /></a>');
+					break;
+				case AssureIt.NodeType.Strategy:
+					this.menu.append('<a href="#" ><img id="goal"     src="'+this.serverApi.basepath+'images/goal.png" title="Goal" alt="goal" /></a>');
+					if (!hasContext) {
+						this.menu.append('<a href="#" ><img id="context"  src="'+this.serverApi.basepath+'images/context.png" title="Context" alt="context" /></a>');
+					}
+					break;
+				case AssureIt.NodeType.Evidence:
+					if (!hasContext) {
+						this.menu.append('<a href="#" ><img id="context"  src="'+this.serverApi.basepath+'images/context.png" title="Context" alt="context" /></a>');
+					}
+					break;
+				default:
+					break;
+			}
+			if(this.node.children("h4").text() != this.case0.ElementTop.Label) {
+				this.menu.append('<a href="#" ><img id="remove" src="'+this.serverApi.basepath+'images/remove.png" title="Remove" alt="remove" /></a>');
+			}
 		}
 	}
 

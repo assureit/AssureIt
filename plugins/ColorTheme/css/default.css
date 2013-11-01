@@ -1,13 +1,3 @@
-.assureit-danger {
-	fill: #005994;
-	stroke: none;
-}
-
-.assureit-danger-highlight {
-	fill: #005994;
-	stroke: orange;
-}
-
 .assureit-default {
 	fill: #b4d8df;
 	stroke: none;
@@ -18,6 +8,16 @@
 	stroke: orange;
 }
 
+.assureit-todo {
+	fill: #005994;
+	stroke: none;
+}
+
+.assureit-todo-highlight {
+	fill: #005994;
+	stroke: orange;
+}
+
 .assureit-search{
 	fill: #fae9b1;
 	stroke: none;
@@ -25,5 +25,15 @@
 
 .assureit-search-highlight{
 	fill: #fae9b1;
+	stroke: orange;
+}
+
+.assureit-danger {
+	fill: #FFAA7D;
+	stroke: none;
+}
+
+.assureit-danger-highlight {
+	fill: #FFAA7D;
 	stroke: orange;
 }

@@ -33,7 +33,7 @@ var ToDoSVGRenderPlugIn = (function (_super) {
             }
         }
         if (found) {
-            elementShape.SVGShape.SetColor(AssureIt.Color.Danger);
+            elementShape.SVGShape.SetColor(AssureIt.Color.ToDo);
         }
         return true;
     };
