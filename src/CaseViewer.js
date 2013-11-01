@@ -212,8 +212,10 @@ var AssureIt;
 
         GoalShape.prototype.EnableHighlight = function () {
             var CurrentColor = this.GetColor();
-            this.BodyRect.removeAttribute("class");
-            this.BodyRect.setAttribute("class", CurrentColor + "-highlight");
+            if (!CurrentColor.match(/-highlight/)) {
+                this.BodyRect.removeAttribute("class");
+                this.BodyRect.setAttribute("class", CurrentColor + "-highlight");
+            }
         };
 
         GoalShape.prototype.DisableHighlight = function () {
@@ -306,8 +308,10 @@ var AssureIt;
 
         StrategyShape.prototype.EnableHighlight = function () {
             var CurrentColor = this.GetColor();
-            this.BodyPolygon.removeAttribute("class");
-            this.BodyPolygon.setAttribute("class", CurrentColor + "-highlight");
+            if (!CurrentColor.match(/-highlight/)) {
+                this.BodyPolygon.removeAttribute("class");
+                this.BodyPolygon.setAttribute("class", CurrentColor + "-highlight");
+            }
         };
 
         StrategyShape.prototype.DisableHighlight = function () {
@@ -363,8 +367,10 @@ var AssureIt;
 
         EvidenceShape.prototype.EnableHighlight = function () {
             var CurrentColor = this.GetColor();
-            this.BodyEllipse.removeAttribute("class");
-            this.BodyEllipse.setAttribute("class", CurrentColor + "-highlight");
+            if (!CurrentColor.match(/-highlight/)) {
+                this.BodyEllipse.removeAttribute("class");
+                this.BodyEllipse.setAttribute("class", CurrentColor + "-highlight");
+            }
         };
 
         EvidenceShape.prototype.DisableHighlight = function () {
