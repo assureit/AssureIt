@@ -19,6 +19,7 @@ class SearchWordKeyPlugIn extends AssureIt.ShortcutKeyPlugIn {
 	HasStarted: boolean;
 	FirstMove: boolean = false;
 	Keyword: string;
+	controllSearch: (e: any)=> void;
 
 	constructor(public plugInManager: AssureIt.PlugInManager) {
 		super(plugInManager);
@@ -52,6 +53,8 @@ class SearchWordKeyPlugIn extends AssureIt.ShortcutKeyPlugIn {
 									this.Color(this.HitNodes, caseViewer, "Default");
 									this.HitNodes = [];
 									this.Search(Case0, caseViewer, serverApi);
+									$('body').unbind("keydown",this.controllSearch);
+									this.controllSearch = null;
 									if (this.HitNodes.length == 0) {
 										this.HasStarted = false;
 									}
@@ -97,10 +100,10 @@ class SearchWordKeyPlugIn extends AssureIt.ShortcutKeyPlugIn {
 		});
 		CaseMap.SVGShape.EnableHighlight();
 
-		var controllSearch = (e: JQueryEventObject)=> {
+		this.controllSearch = (e)=> {
 			if (e.ctrlKey) {
 				if (e.keyCode == 81/*q*/) {
-					$('body').unbind("keydown",controllSearch);
+					$('body').unbind("keydown",this.controllSearch);
 					this.Color(this.HitNodes, caseViewer, "Default");
 					$('nav').remove();
 					this.HitNodes = [];
@@ -113,7 +116,6 @@ class SearchWordKeyPlugIn extends AssureIt.ShortcutKeyPlugIn {
 						if (this.HitNodes.length == 1) {
 							return;
 						}
-
 						nodeIndex++;
 						if (nodeIndex == this.HitNodes.length) {
 							nodeIndex = 0;
@@ -185,7 +187,7 @@ class SearchWordKeyPlugIn extends AssureIt.ShortcutKeyPlugIn {
 				}
 			}
 		};
-		$('body').keydown(controllSearch);
+		$('body').keydown(this.controllSearch);
 	}
 
 	CreateSearchWindow(): void {
