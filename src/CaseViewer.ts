@@ -265,8 +265,10 @@ module AssureIt {
 
 		EnableHighlight() {
 			var CurrentColor: string = this.GetColor();
-			this.BodyRect.removeAttribute("class");
-			this.BodyRect.setAttribute("class", CurrentColor+"-highlight");
+			if(!CurrentColor.match(/-highlight/)) {
+				this.BodyRect.removeAttribute("class");
+				this.BodyRect.setAttribute("class", CurrentColor+"-highlight");
+			}
 		}
 
 		DisableHighlight() {
