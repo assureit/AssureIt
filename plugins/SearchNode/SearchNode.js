@@ -49,6 +49,8 @@ var SearchWordKeyPlugIn = (function (_super) {
                                     _this.Color(_this.HitNodes, caseViewer, "Default");
                                     _this.HitNodes = [];
                                     _this.Search(Case0, caseViewer, serverApi);
+                                    $('body').unbind("keydown", _this.controllSearch);
+                                    _this.controllSearch = null;
                                     if (_this.HitNodes.length == 0) {
                                         _this.HasStarted = false;
                                     }
@@ -94,10 +96,10 @@ var SearchWordKeyPlugIn = (function (_super) {
         });
         CaseMap.SVGShape.EnableHighlight();
 
-        var controllSearch = function (e) {
+        this.controllSearch = function (e) {
             if (e.ctrlKey) {
                 if (e.keyCode == 81) {
-                    $('body').unbind("keydown", controllSearch);
+                    $('body').unbind("keydown", _this.controllSearch);
                     _this.Color(_this.HitNodes, caseViewer, "Default");
                     $('nav').remove();
                     _this.HitNodes = [];
@@ -110,7 +112,6 @@ var SearchWordKeyPlugIn = (function (_super) {
                         if (_this.HitNodes.length == 1) {
                             return;
                         }
-
                         nodeIndex++;
                         if (nodeIndex == _this.HitNodes.length) {
                             nodeIndex = 0;
@@ -182,7 +183,7 @@ var SearchWordKeyPlugIn = (function (_super) {
                 }
             }
         };
-        $('body').keydown(controllSearch);
+        $('body').keydown(this.controllSearch);
     };
 
     SearchWordKeyPlugIn.prototype.CreateSearchWindow = function () {
