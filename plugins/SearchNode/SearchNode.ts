@@ -34,23 +34,28 @@ class SearchWordKeyPlugIn extends AssureIt.ShortcutKeyPlugIn {
 					e.preventDefault();
 					$('nav').remove();
 				}
-
 				if (e.keyCode == 70/*f*/) {
 					e.preventDefault();
 					if ($('nav').length == 0) {
 						this.CreateSearchWindow();
-
-						//$('nav').show(3000);
-						$('.navbar-form input:first').focus();
+						$('.form-control').focus();
 						$('.btn').click((ev: JQueryEventObject)=> {
 							ev.preventDefault();
 							if (!this.HasStarted) {
 								this.Search(Case0, caseViewer,serverApi);
 								this.HasStarted = true;
 							} else {
-								if ($('.navbar-form input:first').val() != this.Keyword) {
+								if ($('.form-control').val() != this.Keyword) {
 									this.FirstMove = true;
 									this.Color(this.HitNodes, caseViewer, "Default");
+									var Top:      AssureIt.NodeModel = Case0.ElementTop;
+									var TopLabel: string = Top.Label;
+									var TopMap:   AssureIt.NodeView  = caseViewer.ViewMap[TopLabel];
+									var TopHTML:  AssureIt.HTMLDoc   = TopMap.HTMLDoc;
+									var Screen:   AssureIt.ScreenManager = caseViewer.Screen;
+									var DestX: number = Screen.ConvertX(TopMap.AbsX, TopHTML);
+									var DestY: number = Screen.ConvertY(TopMap.AbsY, TopHTML);
+									this.Move(DestX, DestY, 100, ()=>{});
 									this.HitNodes = [];
 									this.Search(Case0, caseViewer, serverApi);
 									$('body').unbind("keydown",this.controllSearch);
@@ -70,7 +75,7 @@ class SearchWordKeyPlugIn extends AssureIt.ShortcutKeyPlugIn {
 	}
 
 	Search(Case0: AssureIt.Case, caseViewer: AssureIt.CaseViewer ,serverApi: AssureIt.ServerAPI): void {
-		this.Keyword = $('.navbar-form input:first').val();
+		this.Keyword = $('.form-control').val();
 		var nodeIndex: number = 0;
 		var moveFlag: boolean = false;
 		var TopNodeModel: AssureIt.NodeModel = Case0.ElementTop;
@@ -86,14 +91,14 @@ class SearchWordKeyPlugIn extends AssureIt.ShortcutKeyPlugIn {
 		}
 
 		this.Color(this.HitNodes, caseViewer, "Search");
-		var NodeLabel     = this.HitNodes[nodeIndex].Label;
-		var CaseMap       = caseViewer.ViewMap[NodeLabel];
-		var NodePosX      = CaseMap.AbsX;
-		var NodePosY      = CaseMap.AbsY;
-		var currentHTML   = CaseMap.HTMLDoc;
-		var screenManager = caseViewer.Screen;
-		var destinationX  = screenManager.ConvertX(NodePosX, currentHTML);
-		var destinationY  = screenManager.ConvertY(NodePosY, currentHTML);
+		var NodeLabel:     string = this.HitNodes[nodeIndex].Label;
+		var CaseMap:       AssureIt.NodeView = caseViewer.ViewMap[NodeLabel];
+		var currentHTML:   AssureIt.HTMLDoc  = CaseMap.HTMLDoc;
+		var screenManager: AssureIt.ScreenManager  = caseViewer.Screen;
+		var NodePosX: number      = CaseMap.AbsX;
+		var NodePosY: number      = CaseMap.AbsY;
+		var destinationX: number  = screenManager.ConvertX(NodePosX, currentHTML);
+		var destinationY: number  = screenManager.ConvertY(NodePosY, currentHTML);
 
 		this.Move(destinationX, destinationY, 100, ()=>{
 			this.FirstMove = false;
