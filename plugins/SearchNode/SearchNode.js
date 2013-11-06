@@ -111,10 +111,6 @@ var SearchWordKeyPlugIn = (function (_super) {
         CaseMap.SVGShape.EnableHighlight();
 
         this.controllSearch = function (e) {
-            if (e.ctrlKey) {
-                if (e.keyCode == 81) {
-                }
-            }
             if (!e.shiftKey) {
                 if (e.keyCode == 13) {
                     if (!moveFlag) {
