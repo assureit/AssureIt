@@ -31,24 +31,33 @@ var SearchWordKeyPlugIn = (function (_super) {
                     e.preventDefault();
                     $('nav').remove();
                 }
-
                 if (e.keyCode == 70) {
                     e.preventDefault();
                     if ($('nav').length == 0) {
                         _this.CreateSearchWindow();
-
-                        $('.navbar-form input:first').focus();
+                        $('.form-control').focus();
                         $('.btn').click(function (ev) {
                             ev.preventDefault();
                             if (!_this.HasStarted) {
                                 _this.Search(Case0, caseViewer, serverApi);
                                 _this.HasStarted = true;
                             } else {
-                                if ($('.navbar-form input:first').val() != _this.Keyword) {
+                                if ($('.form-control').val() != _this.Keyword) {
                                     _this.FirstMove = true;
                                     _this.Color(_this.HitNodes, caseViewer, "Default");
+                                    var Top = Case0.ElementTop;
+                                    var TopLabel = Top.Label;
+                                    var TopMap = caseViewer.ViewMap[TopLabel];
+                                    var TopHTML = TopMap.HTMLDoc;
+                                    var Screen = caseViewer.Screen;
+                                    var DestX = Screen.ConvertX(TopMap.AbsX, TopHTML);
+                                    var DestY = Screen.ConvertY(TopMap.AbsY, TopHTML);
+                                    _this.Move(DestX, DestY, 100, function () {
+                                    });
                                     _this.HitNodes = [];
                                     _this.Search(Case0, caseViewer, serverApi);
+                                    $('body').unbind("keydown", _this.controllSearch);
+                                    _this.controllSearch = null;
                                     if (_this.HitNodes.length == 0) {
                                         _this.HasStarted = false;
                                     }
@@ -64,7 +73,7 @@ var SearchWordKeyPlugIn = (function (_super) {
 
     SearchWordKeyPlugIn.prototype.Search = function (Case0, caseViewer, serverApi) {
         var _this = this;
-        this.Keyword = $('.navbar-form input:first').val();
+        this.Keyword = $('.form-control').val();
         var nodeIndex = 0;
         var moveFlag = false;
         var TopNodeModel = Case0.ElementTop;
@@ -82,10 +91,10 @@ var SearchWordKeyPlugIn = (function (_super) {
         this.Color(this.HitNodes, caseViewer, "Search");
         var NodeLabel = this.HitNodes[nodeIndex].Label;
         var CaseMap = caseViewer.ViewMap[NodeLabel];
-        var NodePosX = CaseMap.AbsX;
-        var NodePosY = CaseMap.AbsY;
         var currentHTML = CaseMap.HTMLDoc;
         var screenManager = caseViewer.Screen;
+        var NodePosX = CaseMap.AbsX;
+        var NodePosY = CaseMap.AbsY;
         var destinationX = screenManager.ConvertX(NodePosX, currentHTML);
         var destinationY = screenManager.ConvertY(NodePosY, currentHTML);
 
@@ -94,10 +103,10 @@ var SearchWordKeyPlugIn = (function (_super) {
         });
         CaseMap.SVGShape.EnableHighlight();
 
-        var controllSearch = function (e) {
+        this.controllSearch = function (e) {
             if (e.ctrlKey) {
                 if (e.keyCode == 81) {
-                    $('body').unbind("keydown", controllSearch);
+                    $('body').unbind("keydown", _this.controllSearch);
                     _this.Color(_this.HitNodes, caseViewer, "Default");
                     $('nav').remove();
                     _this.HitNodes = [];
@@ -110,7 +119,6 @@ var SearchWordKeyPlugIn = (function (_super) {
                         if (_this.HitNodes.length == 1) {
                             return;
                         }
-
                         nodeIndex++;
                         if (nodeIndex == _this.HitNodes.length) {
                             nodeIndex = 0;
@@ -182,7 +190,7 @@ var SearchWordKeyPlugIn = (function (_super) {
                 }
             }
         };
-        $('body').keydown(controllSearch);
+        $('body').keydown(this.controllSearch);
     };
 
     SearchWordKeyPlugIn.prototype.CreateSearchWindow = function () {

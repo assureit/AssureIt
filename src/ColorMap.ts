@@ -1,7 +1,8 @@
 module AssureIt {
 	export var Color = {
 		Default: "assureit-default",
-		Danger: "assureit-danger",
+		ToDo: "assureit-todo",
 		Searched: "assureit-search",
+		Danger: "assureit-danger"
 	};
 }
