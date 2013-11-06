@@ -219,8 +219,10 @@ module AssureIt {
 
 		EnableHighlight() {
 			var CurrentColor: string = this.GetColor();
-			this.BodyRect.removeAttribute("class");
-			this.BodyRect.setAttribute("class", CurrentColor+"-highlight");
+			if(!CurrentColor.match(/-highlight/)) {
+				this.BodyRect.removeAttribute("class");
+				this.BodyRect.setAttribute("class", CurrentColor+"-highlight");
+			}
 		}
 
 		DisableHighlight() {
@@ -265,8 +267,10 @@ module AssureIt {
 
 		EnableHighlight() {
 			var CurrentColor: string = this.GetColor();
-			this.BodyRect.removeAttribute("class");
-			this.BodyRect.setAttribute("class", CurrentColor+"-highlight");
+			if(!CurrentColor.match(/-highlight/)) {
+				this.BodyRect.removeAttribute("class");
+				this.BodyRect.setAttribute("class", CurrentColor+"-highlight");
+			}
 		}
 
 		DisableHighlight() {
@@ -304,8 +308,10 @@ module AssureIt {
 
 		EnableHighlight() {
 			var CurrentColor: string = this.GetColor();
-			this.BodyPolygon.removeAttribute("class");
-			this.BodyPolygon.setAttribute("class", CurrentColor+"-highlight");
+			if(!CurrentColor.match(/-highlight/)) {
+				this.BodyPolygon.removeAttribute("class");
+				this.BodyPolygon.setAttribute("class", CurrentColor+"-highlight");
+			}
 		}
 
 		DisableHighlight() {
@@ -357,8 +363,10 @@ module AssureIt {
 
 		EnableHighlight() {
 			var CurrentColor: string = this.GetColor();
-			this.BodyEllipse.removeAttribute("class");
-			this.BodyEllipse.setAttribute("class", CurrentColor+"-highlight");
+			if(!CurrentColor.match(/-highlight/)) {
+				this.BodyEllipse.removeAttribute("class");
+				this.BodyEllipse.setAttribute("class", CurrentColor+"-highlight");
+			}
 		}
 
 		DisableHighlight() {
