@@ -25,45 +25,19 @@ var SearchWordKeyPlugIn = (function (_super) {
         var _this = this;
         this.caseViewer = caseViewer;
         this.HasStarted = false;
+        this.CreateSearchWindow();
         $("body").keydown(function (e) {
             if (e.ctrlKey) {
-                if (e.keyCode == 81) {
-                    e.preventDefault();
-                    $('nav').remove();
-                }
                 if (e.keyCode == 70) {
                     e.preventDefault();
-                    if ($('nav').length == 0) {
-                        _this.CreateSearchWindow();
-                        $('.form-control').focus();
-                        $('.btn').click(function (ev) {
-                            ev.preventDefault();
-                            if (!_this.HasStarted) {
-                                _this.Search(Case0, caseViewer, serverApi);
-                                _this.HasStarted = true;
-                            } else {
-                                if ($('.form-control').val() != _this.Keyword) {
-                                    _this.FirstMove = true;
-                                    _this.Color(_this.HitNodes, caseViewer, "Default");
-                                    var Top = Case0.ElementTop;
-                                    var TopLabel = Top.Label;
-                                    var TopMap = caseViewer.ViewMap[TopLabel];
-                                    var TopHTML = TopMap.HTMLDoc;
-                                    var Screen = caseViewer.Screen;
-                                    var DestX = Screen.ConvertX(TopMap.AbsX, TopHTML);
-                                    var DestY = Screen.ConvertY(TopMap.AbsY, TopHTML);
-                                    _this.Move(DestX, DestY, 100, function () {
-                                    });
-                                    _this.HitNodes = [];
-                                    _this.Search(Case0, caseViewer, serverApi);
-                                    $('body').unbind("keydown", _this.controllSearch);
-                                    _this.controllSearch = null;
-                                    if (_this.HitNodes.length == 0) {
-                                        _this.HasStarted = false;
-                                    }
-                                }
-                            }
-                        });
+                    $('nav').toggle();
+                    if ($('nav').css('display') == 'block') {
+                        _this.Start(caseViewer, Case0, serverApi);
+                    } else {
+                        $('body').unbind("keydown", _this.controllSearch);
+                        _this.Color(_this.HitNodes, caseViewer, "Default");
+                        _this.HitNodes = [];
+                        _this.HasStarted = false;
                     }
                 }
             }
@@ -71,7 +45,40 @@ var SearchWordKeyPlugIn = (function (_super) {
         return true;
     };
 
-    SearchWordKeyPlugIn.prototype.Search = function (Case0, caseViewer, serverApi) {
+    SearchWordKeyPlugIn.prototype.Start = function (caseViewer, Case0, serverApi) {
+        var _this = this;
+        $('.form-control').focus();
+        $('.btn').click(function (ev) {
+            ev.preventDefault();
+            if (!_this.HasStarted) {
+                _this.Search(caseViewer, Case0, serverApi);
+                _this.HasStarted = true;
+            } else {
+                if ($('.form-control').val() != _this.Keyword) {
+                    _this.FirstMove = true;
+                    _this.Color(_this.HitNodes, caseViewer, "Default");
+                    var Top = Case0.ElementTop;
+                    var TopLabel = Top.Label;
+                    var TopMap = caseViewer.ViewMap[TopLabel];
+                    var TopHTML = TopMap.HTMLDoc;
+                    var Screen = caseViewer.Screen;
+                    var DestX = Screen.ConvertX(TopMap.AbsX, TopHTML);
+                    var DestY = Screen.ConvertY(TopMap.AbsY, TopHTML);
+                    _this.Move(DestX, DestY, 100, function () {
+                    });
+                    _this.HitNodes = [];
+                    _this.Search(caseViewer, Case0, serverApi);
+                    $('body').unbind("keydown", _this.controllSearch);
+                    _this.controllSearch = null;
+                    if (_this.HitNodes.length == 0) {
+                        _this.HasStarted = false;
+                    }
+                }
+            }
+        });
+    };
+
+    SearchWordKeyPlugIn.prototype.Search = function (caseViewer, Case0, serverApi) {
         var _this = this;
         this.Keyword = $('.form-control').val();
         var nodeIndex = 0;
@@ -106,11 +113,6 @@ var SearchWordKeyPlugIn = (function (_super) {
         this.controllSearch = function (e) {
             if (e.ctrlKey) {
                 if (e.keyCode == 81) {
-                    $('body').unbind("keydown", _this.controllSearch);
-                    _this.Color(_this.HitNodes, caseViewer, "Default");
-                    $('nav').remove();
-                    _this.HitNodes = [];
-                    _this.HasStarted = false;
                 }
             }
             if (!e.shiftKey) {
@@ -196,7 +198,7 @@ var SearchWordKeyPlugIn = (function (_super) {
     SearchWordKeyPlugIn.prototype.CreateSearchWindow = function () {
         $('<nav class="navbar pull-right" style="position: absolute"><form class="navbar-form" role="Search"><input type="text" class="form-control" placeholder="Search"/><input type="submit" value="search" class="btn"/></form></nav>').appendTo($('body'));
 
-        $('nav').css({ width: '260px', margin: 0, height: '24px', top: '0', right: '0' });
+        $('nav').css({ display: 'none', width: '260px', margin: 0, height: '24px', top: '0', right: '0' });
 
         $('.navbar-form').css({ width: '230px', position: 'absolute' });
 

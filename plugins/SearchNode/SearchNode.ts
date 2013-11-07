@@ -28,45 +28,19 @@ class SearchWordKeyPlugIn extends AssureIt.ShortcutKeyPlugIn {
 	RegisterKeyEvents(caseViewer: AssureIt.CaseViewer, Case0: AssureIt.Case, serverApi: AssureIt.ServerAPI): boolean {
 		this.caseViewer = caseViewer;
 		this.HasStarted = false;
+		this.CreateSearchWindow();
 		$("body").keydown((e)=>{
 			if (e.ctrlKey) {
-				if (e.keyCode == 81/*q*/) {
-					e.preventDefault();
-					$('nav').remove();
-				}
 				if (e.keyCode == 70/*f*/) {
 					e.preventDefault();
-					if ($('nav').length == 0) {
-						this.CreateSearchWindow();
-						$('.form-control').focus();
-						$('.btn').click((ev: JQueryEventObject)=> {
-							ev.preventDefault();
-							if (!this.HasStarted) {
-								this.Search(Case0, caseViewer,serverApi);
-								this.HasStarted = true;
-							} else {
-								if ($('.form-control').val() != this.Keyword) {
-									this.FirstMove = true;
-									this.Color(this.HitNodes, caseViewer, "Default");
-									var Top:      AssureIt.NodeModel = Case0.ElementTop;
-									var TopLabel: string = Top.Label;
-									var TopMap:   AssureIt.NodeView  = caseViewer.ViewMap[TopLabel];
-									var TopHTML:  AssureIt.HTMLDoc   = TopMap.HTMLDoc;
-									var Screen:   AssureIt.ScreenManager = caseViewer.Screen;
-									var DestX: number = Screen.ConvertX(TopMap.AbsX, TopHTML);
-									var DestY: number = Screen.ConvertY(TopMap.AbsY, TopHTML);
-									this.Move(DestX, DestY, 100, ()=>{});
-									this.HitNodes = [];
-									this.Search(Case0, caseViewer, serverApi);
-									$('body').unbind("keydown",this.controllSearch);
-									this.controllSearch = null;
-									if (this.HitNodes.length == 0) {
-										this.HasStarted = false;
-									}
-
-								}
-							}
-						});
+					$('nav').toggle();
+					if ($('nav').css('display') == 'block') {
+						this.Start(caseViewer, Case0, serverApi);
+					} else {
+						$('body').unbind("keydown",this.controllSearch);
+						this.Color(this.HitNodes, caseViewer, "Default");
+						this.HitNodes = [];
+						this.HasStarted = false;
 					}
 				}
 			}
@@ -74,7 +48,39 @@ class SearchWordKeyPlugIn extends AssureIt.ShortcutKeyPlugIn {
 		return true;
 	}
 
-	Search(Case0: AssureIt.Case, caseViewer: AssureIt.CaseViewer ,serverApi: AssureIt.ServerAPI): void {
+	Start(caseViewer: AssureIt.CaseViewer, Case0: AssureIt.Case, serverApi: AssureIt.ServerAPI): void {
+		$('.form-control').focus();
+		$('.btn').click((ev: JQueryEventObject)=> {
+			ev.preventDefault();
+			if (!this.HasStarted) {
+				this.Search(caseViewer, Case0, serverApi);
+				this.HasStarted = true;
+			} else {
+				if ($('.form-control').val() != this.Keyword) {
+					this.FirstMove = true;
+					this.Color(this.HitNodes, caseViewer, "Default");
+					var Top:      AssureIt.NodeModel = Case0.ElementTop;
+					var TopLabel: string = Top.Label;
+					var TopMap:   AssureIt.NodeView  = caseViewer.ViewMap[TopLabel];
+					var TopHTML:  AssureIt.HTMLDoc   = TopMap.HTMLDoc;
+					var Screen:   AssureIt.ScreenManager = caseViewer.Screen;
+					var DestX: number = Screen.ConvertX(TopMap.AbsX, TopHTML);
+					var DestY: number = Screen.ConvertY(TopMap.AbsY, TopHTML);
+					this.Move(DestX, DestY, 100, ()=>{});
+					this.HitNodes = [];
+					this.Search(caseViewer, Case0, serverApi);
+					$('body').unbind("keydown",this.controllSearch);
+					this.controllSearch = null;
+					if (this.HitNodes.length == 0) {
+						this.HasStarted = false;
+					}
+
+				}
+			}
+		});
+	}
+
+	Search(caseViewer: AssureIt.CaseViewer, Case0: AssureIt.Case, serverApi: AssureIt.ServerAPI): void {
 		this.Keyword = $('.form-control').val();
 		var nodeIndex: number = 0;
 		var moveFlag: boolean = false;
@@ -108,11 +114,7 @@ class SearchWordKeyPlugIn extends AssureIt.ShortcutKeyPlugIn {
 		this.controllSearch = (e)=> {
 			if (e.ctrlKey) {
 				if (e.keyCode == 81/*q*/) {
-					$('body').unbind("keydown",this.controllSearch);
-					this.Color(this.HitNodes, caseViewer, "Default");
-					$('nav').remove();
-					this.HitNodes = [];
-					this.HasStarted = false;
+					
 				}
 			}
 			if (!e.shiftKey) {
@@ -199,7 +201,7 @@ class SearchWordKeyPlugIn extends AssureIt.ShortcutKeyPlugIn {
 		$('<nav class="navbar pull-right" style="position: absolute"><form class="navbar-form" role="Search"><input type="text" class="form-control" placeholder="Search"/><input type="submit" value="search" class="btn"/></form></nav>').appendTo($('body'));
 
 
-		$('nav').css({width: '260px', margin: 0, height: '24px', top: '0', right: '0' });
+		$('nav').css({display: 'none', width: '260px', margin: 0, height: '24px', top: '0', right: '0' });
 
 		$('.navbar-form').css({width: '230px', position: 'absolute'});
 
