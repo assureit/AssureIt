@@ -58,18 +58,34 @@ var DScriptEditorPlugIn = (function (_super) {
             placeholder: "Generated DScript code goes here.",
             lineWrapping: true
         });
-        this.NodeRelationTable = this.CreateTable(["Action", "Risk", "Reaction"], function (nRow, aData, iDisplayIndex, iDisplayIndexFull) {
+        this.NodeRelationTable = this.CreateTable(["Action", "Risk", "Reaction"], {
+            bAutoWidth: false,
+            aoColumns: [
+                { sWidth: '15%' },
+                { sWidth: '70%' },
+                { sWidth: '15%' }
+            ]
         });
-        this.ActionRelationTable = this.CreateTable(["Location", "Evidence", "Risk", "Reaction"], function (nRow, aData, iDisplayIndex, iDisplayIndexFull) {
-            if (aData[3].match("Undefined") != null) {
-                var $nRow = $(nRow);
-                if ($nRow.hasClass("odd")) {
-                    $nRow.children().css("background-color", "#FFDDDD");
-                } else if ($nRow.hasClass("even")) {
-                    $nRow.children().css("background-color", "#FFC4C4");
+        this.ActionRelationTable = this.CreateTable(["Location", "Goal", "FailureRisk", "Action"], {
+            bAutoWidth: false,
+            fnRowCallback: function (nRow, aData, iDisplayIndex, iDisplayIndexFull) {
+                var action = aData[3];
+                if (action.match(/\*/) != null || action.match(/-/) != null) {
+                    var $nRow = $(nRow);
+                    if ($nRow.hasClass("odd")) {
+                        $nRow.children().css("background-color", "#FFDDDD");
+                    } else if ($nRow.hasClass("even")) {
+                        $nRow.children().css("background-color", "#FFC4C4");
+                    }
                 }
-            }
-            return nRow;
+                return nRow;
+            },
+            aoColumns: [
+                { sWidth: '15%' },
+                { sWidth: '45%' },
+                { sWidth: '20%' },
+                { sWidth: '20%' }
+            ]
         });
         this.ASNEditor.on("change", function (e) {
             self.UpdateAll();
@@ -183,13 +199,12 @@ var DScriptEditorPlugIn = (function (_super) {
         } else {
             self.ASNEditor.setOption("readOnly", true);
         }
-        self.UpdateAll();
         self.PaneManager.Refresh();
         self.DScriptViewer.focus();
     };
 
-    DScriptEditorPlugIn.prototype.CreateTable = function (columnNames, callbackFunc) {
-        if (typeof callbackFunc === "undefined") { callbackFunc = null; }
+    DScriptEditorPlugIn.prototype.CreateTable = function (columnNames, initializationData) {
+        if (typeof initializationData === "undefined") { initializationData = null; }
         var table = $("<table/>");
         var header = $("<thead/>");
         var body = $("<tbody/>");
@@ -201,10 +216,7 @@ var DScriptEditorPlugIn = (function (_super) {
         header.append(tr);
         table.append(header).append(body);
         $("<div/>").append(table);
-        return (table).dataTable({
-            fnRowCallback: callbackFunc,
-            bAutoWidth: true
-        });
+        return (table).dataTable(initializationData);
     };
 
     DScriptEditorPlugIn.prototype.UpdateASNEditor = function (ASNData) {
@@ -233,11 +245,20 @@ var DScriptEditorPlugIn = (function (_super) {
     };
     DScriptEditorPlugIn.prototype.UpdateActionRelationTable = function (actionRelation) {
         (this.ActionRelationTable).fnClearTable();
+        var elementMap = this.RootNodeModel.Case.ElementMap;
         for (var key in actionRelation) {
             var relationMap = actionRelation[key];
+            var goal = elementMap[relationMap["action"]["node"]];
+            while (goal.Type != AssureIt.NodeType.Goal) {
+                if (goal.Parent != null) {
+                    goal = goal.Parent;
+                } else {
+                    throw "in DScriptPlugIn, UpdateActionRelationTable Error";
+                }
+            }
             var data = [
                 relationMap["location"],
-                relationMap["action"]["func"] + " : " + relationMap["action"]["node"],
+                goal.Statement + " : " + goal.Label,
                 relationMap["risk"],
                 relationMap["reaction"]["func"] + " : " + relationMap["reaction"]["node"]
             ];

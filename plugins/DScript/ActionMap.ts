@@ -74,8 +74,8 @@ class DScriptActionMap {
 				reaction = (reaction != null ? reaction : "-");
 			}
 			else {
-				reactionNodeLabel = "Undefined";
-				reaction = "Undefined";
+				reactionNodeLabel = "*";
+				reaction = "ManagerCall()";
 			}
 			ret = {
 				"action" : {

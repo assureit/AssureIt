@@ -46,8 +46,8 @@ var DScriptActionMap = (function () {
                 reaction = reactionNode.GetNote("Action");
                 reaction = (reaction != null ? reaction : "-");
             } else {
-                reactionNodeLabel = "Undefined";
-                reaction = "Undefined";
+                reactionNodeLabel = "*";
+                reaction = "ManagerCall()";
             }
             ret = {
                 "action": {
