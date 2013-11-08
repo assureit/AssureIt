@@ -396,7 +396,7 @@ class GSNNode {
 		return "#"+this.Created.Rev+":"+this.Branched.Rev+":"+this.LastModified;
 	}
 
-	void UpdateBody(ArrayList<String> LineList) {
+	void UpdateContent(ArrayList<String> LineList) {
 		int LineCount = 0;
 		StringWriter Writer = new StringWriter();
 		MessageDigest md = MD5.GetMD5();
@@ -422,37 +422,15 @@ class GSNNode {
 		}
 	}
 	
-//	void UpdateBody() {
-//	StringStream Stream = new StringStream(Text);
-//	HashMap<String, String> TagMap = new HashMap<String, String>();
-//	StringWriter sb = new StringWriter();
-//	MessageDigest md = MD5.GetMD5();
-//	while(Stream.HasNext()) {
-//		String Line = Stream.ReadLine();
-//		int Loc = Line.indexOf("::");
-//		if(Loc > 0) {
-//			ASN.ParseTag(TagMap, Line);
-//		}
-//		sb.append(StringWriter.LineFeed);
-//		sb.append(Line);
-//		MD5.UpdateMD5(md, Line);
-//	}
-//	if(this.Digest == null) {
-//		this.Digest = md.digest();
-//		this.NodeDoc = sb.toString();
-//		if(TagMap.size() > 0) {
-//			this.TagMap = TagMap;
-//		}
-//	}
-//	else {
-//		byte[] Digest = md.digest();
-//		if(!MD5.EqualsDigest(this.Digest, Digest)) {
-//			this.Digest = Digest;
-//			this.NodeDoc = sb.toString();
-//			this.TagMap = (TagMap.size() > 0) ? TagMap : null;
-//		}
-//	}
-//}
+	void UpdateText(String DocText) {
+		ArrayList<String> LineList = new ArrayList<String>();
+		StringReader Reader = new StringReader(DocText);
+		while(Reader.HasNext()) {
+			String Line = Reader.ReadLine();
+			LineList.add(Line);
+		}
+		this.UpdateContent(LineList);
+	}	
 
 	HashMap<String,String> GetTagMap() {
 		if(this.TagMap == null && this.HasTag) {
@@ -468,7 +446,7 @@ class GSNNode {
 		}
 		return this.TagMap;
 	}
-	
+
 	void  AppendSubNode(GSNNode Node) {
 		if(this.SubNodeList == null) {
 			this.SubNodeList = new ArrayList<GSNNode>();
@@ -525,12 +503,10 @@ class GSNNode {
 		Writer.print(this.LabelNumber);
 //		Stream.append(" ");
 //		MD5.FormatDigest(this.Digest, Stream);
-		if(this.Created != null) {
-			Writer.print(" #" + this.Created.Rev + ":" + this.LastModified.Rev);
-		}
 		String RefKey = null;
 		GSNNode RefNode = null;
 		if(this.Created != null) {
+			Writer.print(" " + this.GetHistoryTriple());
 			RefKey = WikiSyntax.FormatRefKey(this.NodeType, this.LabelNumber, this.GetHistoryTriple());
 			RefNode = RefMap.get(RefKey);
 		}
@@ -554,7 +530,6 @@ class GSNNode {
 	}
 	
 	// Merge
-
 	boolean IsNewerTree(int ModifiedRev) {
 		if(ModifiedRev <= this.LastModified.Rev) {
 			if(this.SubNodeList != null) {
@@ -735,7 +710,7 @@ class GSNDoc {
 			if(Line.startsWith("*")) {
 				if(Context.IsValidNode(Line)) {
 					if(LastNode != null) {
-						LastNode.UpdateBody(LineList);
+						LastNode.UpdateContent(LineList);
 					}
 					LineList.clear();
 					if(!Context.CheckRefMap(RefMap, Line)) {
@@ -750,7 +725,7 @@ class GSNDoc {
 			LineList.add(Line);
 		}
 		if(LastNode != null) {
-			LastNode.UpdateBody(LineList);
+			LastNode.UpdateContent(LineList);
 		}
 	}
 
@@ -1047,8 +1022,10 @@ class GSNRecord {
 		}
 	}
 	
-	private GSNDoc GetLatestDoc() {
-		// TODO Auto-generated method stub
+	GSNDoc GetLatestDoc() {
+		if(this.DocList.size() > 0) {
+			this.DocList.get(this.DocList.size()-1);
+		}
 		return null;
 	}
 
@@ -1066,7 +1043,7 @@ class GSNRecord {
 
 }
 
-public class AssureItNotation {
+public class BlueScript {
 	public static String ReadFile(String File) {
 		StringWriter sb = new StringWriter();
 		try {
@@ -1094,7 +1071,7 @@ public class AssureItNotation {
 		Record.Parse(TextDoc);
 //		Record.StartToEdit("u", "r", "d", "p");
 //		Record.Commit();
-		Record.Merge(Record);
+//		Record.Merge(Record);
 		StringWriter Writer = new StringWriter();
 		Record.FormatCase(Writer);
 		System.out.println("--------\n" + Writer.toString());
