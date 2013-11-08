@@ -3,21 +3,26 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 
 class StringReader {
 	int CurrentPos;
+	int PreviousPos;
 	String Text;
 	StringReader(String Text) {
 		this.Text = Text;
 		this.CurrentPos = 0;
+		this.PreviousPos = 0;
 	}
 	boolean HasNext() {
 		return this.CurrentPos < this.Text.length();
 	}
 	String ReadLine() {
 		int StartPos = this.CurrentPos;
+		this.PreviousPos = this.CurrentPos;
 		int i;
 		for(i = this.CurrentPos; i < this.Text.length(); i++) {
 			char ch = this.Text.charAt(i);
@@ -40,6 +45,10 @@ class StringReader {
 			return null;
 		}
 		return this.Text.substring(StartPos, this.CurrentPos).trim();
+	}
+
+	public void LineBack() {
+		this.CurrentPos = this.PreviousPos;
 	}
 }
 
@@ -68,32 +77,53 @@ enum GSNType {
 	Goal, Context, Strategy, Evidence, Undefined;
 }
 
-class NodeHistory {
+class History {
+	int Rev;
 	String Author;
 	String Role;
 	String Date;
 	String Process;
-	NodeHistory(String Author, String Role, String Date, String Process) {
+	public GSNDoc Doc;
+	
+	History(int Rev, String Author, String Role, String Date, String Process, GSNDoc Doc) {
+		this.Rev = Rev;
 		this.Author = Author;
 		this.Role = Role;
 		this.Date = Date;
+		if(Date == null) {
+			SimpleDateFormat Format = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ");
+			this.Date = Format.format(new Date());
+		}
 		this.Process = Process;
+		this.Doc = Doc;
+	}
+		
+	public String toString() {
+		return this.Author + ";" + this.Role + ";" + this.Date + ";" + this.Process;
 	}
 
-	public static NodeHistory CreateDefaultHistory() {
-		return new NodeHistory(null, null, null, null);
+	public boolean EqualsHistory(History aHistory) {
+		return (this.Date.equals(aHistory.Date) && this.Author.equals(aHistory.Author));
 	}
-	
-	public String toString() {
-		if(this.Author == null) return "-";
-		return "$" + this.Author + ";" + this.Role + ";" + this.Date + ";" + this.Process;
+
+	public int CompareDate(History aHistory) {
+		return (this.Date.compareTo(aHistory.Date));
 	}
-	
+
 }
 
 class WikiSyntax {
 	public final static String VersionDelim = "=====";
 	
+	static int ParseInt(String NumText, int DefVal) {
+		try {
+			return Integer.parseInt(NumText);
+		}
+		catch(Exception e) {
+		}
+		return DefVal;
+	}
+
 	static int ParseGoalLevel(String LabelLine) {
 		int GoalLevel = 0;
 		for(int i = 0; i < LabelLine.length(); i++) {
@@ -102,6 +132,7 @@ class WikiSyntax {
 		}
 		return GoalLevel;
 	}
+	
 	static String FormatGoalLevel(int GoalLevel) {
 		StringBuilder sb = new StringBuilder();
 		for(int i = 0; i < GoalLevel; i++) {
@@ -110,7 +141,7 @@ class WikiSyntax {
 		return sb.toString();
 	}
 
-	static GSNType ParseNodelType(String LabelLine) {
+	static GSNType ParseNodeType(String LabelLine) {
 		int i;
 		for(i = 0; i < LabelLine.length(); i++) {
 			if(LabelLine.charAt(i) != '*') break;
@@ -166,38 +197,97 @@ class WikiSyntax {
 		return null;
 	}
 
-	static HashMap<String, NodeHistory> HistoryMap = new HashMap<String,NodeHistory>();
-	public static NodeHistory ParseHistory(String LabelLine) {
-		int Loc = LabelLine.indexOf("$");
+	public static String ParseRevisionHistory(String LabelLine, GSNRecord Record) {
+		int Loc = LabelLine.indexOf("#");
 		if(Loc != -1) {
-			try {
-				String Record = LabelLine.substring(Loc+1).trim();
-				NodeHistory History = HistoryMap.get(Record);
-				if(History != null) {
-					return History;
-				}
-				String[] Records = Record.split(";");
-				return new NodeHistory(Records[0], Records[1], Records[2], Records[3]);
-			}
-			catch(Exception e) {
-				// any parser error is treated null
-			}
+			return LabelLine.substring(Loc).trim();
 		}
 		return null;
 	}
 
-	public static String FormatRefKey(GSNType NodeType, String LabelNumber, NodeHistory History) {
-		return WikiSyntax.FormatNodeType(NodeType)+LabelNumber+History.toString();
+	public static History[] ParseHistory(String LabelLine, GSNRecord Record) {
+		int Loc = LabelLine.indexOf("#");
+		if(Loc != -1) {
+			History[] HistoryTriple = new History[3];
+			String RevText = LabelLine.substring(Loc+1).trim();
+			String RevSet[] = RevText.split(":");
+			HistoryTriple[0] = Record.GetHistory(WikiSyntax.ParseInt(RevSet[0], -1)); // Created
+			HistoryTriple[1] = Record.GetHistory(WikiSyntax.ParseInt(RevSet[1], -1)); // Branched
+			HistoryTriple[2] = Record.GetHistory(WikiSyntax.ParseInt(RevSet[2], -1)); // LastModified
+			if(HistoryTriple[0] == null || HistoryTriple[1] == null || HistoryTriple[2] == null) {
+				return null;
+			}
+			return HistoryTriple;
+		}
+		return null;
 	}
-	
+
+	public static String FormatRefKey(GSNType NodeType, String LabelNumber, String HistoryTriple) {
+		return WikiSyntax.FormatNodeType(NodeType) + LabelNumber + HistoryTriple;
+	}
+
+}
+
+class TagUtils {
 	static void ParseTag(HashMap<String, String> TagMap, String Line) {
 		int loc = Line.indexOf("::");
 		if(loc != -1) {
 			String Key = Line.substring(0, loc).toUpperCase().trim();
 			String Value = Line.substring(loc+1).trim();
-			TagMap.put(Key.toUpperCase(), Value);
+			TagMap.put(Key, Value);
 		}
 	}
+	static void ParseHistoryTag(GSNRecord Record, String Line) {
+		int loc = Line.indexOf("::");
+		if(loc != -1) {
+			String Key = Line.substring(0, loc).trim();
+			try {
+				String Value = Line.substring(loc+1).trim();
+				String[] Records = Value.split(";");
+				Record.AddHistory(Integer.parseInt(Key.substring(1)), Records[0], Records[1], Records[2], Records[3]);
+			}
+			catch(Exception e) { // any parse errors are ignored
+			}
+		}
+	}
+	
+	static void FormatTag(HashMap<String, String> TagMap, StringWriter Writer) {
+		if(TagMap != null) {
+			for(String Key : TagMap.keySet()) {
+				Writer.println(Key+":: "+ TagMap.get(Key));
+			}
+		}
+	}
+	static void FormatHistoryTag(ArrayList<History> HistoryList, StringWriter Writer) {
+		for(int i = 0; i < HistoryList.size(); i++) {
+			History History =  HistoryList.get(i);
+			if(History != null) {
+				Writer.println("#"+ i+"::"+ History);
+			}
+		}
+	}
+
+	static String GetString(HashMap<String, String> TagMap, String Key, String DefValue) {
+		if(TagMap != null) {
+			String Value = TagMap.get(Key);
+			if(Value != null) {
+				return Value;
+			}
+		}
+		return DefValue;
+	}
+
+	static int GetInteger(HashMap<String, String> TagMap, String Key, int DefValue) {
+		if(TagMap != null) {
+			try {
+				return Integer.parseInt(TagMap.get(Key));
+			}
+			catch(Exception e) {
+			}
+		}
+		return DefValue;
+	}
+
 }
 
 class MD5 {
@@ -247,13 +337,15 @@ class GSNNode {
 	int GoalLevel;       /* 1: top level */
 	String LabelNumber;  /* e.g, G1 G1.1 */
 	int SectionCount;
-	NodeHistory HistoryInfo;
+	History Created;
+	History Branched;
+	History LastModified;
 	String NodeDoc;
 	boolean HasTag;
 	HashMap<String, String> TagMap;
 	byte[] Digest;
 
-	GSNNode(GSNDoc BaseDoc, GSNNode ParentNode, int GoalLevel, GSNType NodeType, String LabelNumber, NodeHistory HistoryInfo) {
+	GSNNode(GSNDoc BaseDoc, GSNNode ParentNode, int GoalLevel, GSNType NodeType, String LabelNumber, History[] HistoryTriple) {
 		this.BaseDoc = BaseDoc;
 		this.ParentNode = ParentNode;
 		this.GoalLevel = GoalLevel;
@@ -261,7 +353,16 @@ class GSNNode {
 		this.LabelNumber = LabelNumber;
 		this.SectionCount = 0;
 		this.SubNodeList = null;
-		this.HistoryInfo = HistoryInfo == null ? BaseDoc.DocHistory : HistoryInfo;
+		if(HistoryTriple != null) {
+			this.Created = HistoryTriple[0];
+			this.Branched = HistoryTriple[1];
+			this.LastModified = HistoryTriple[2];
+		}
+		else {
+			this.Created = BaseDoc.DocHistory;
+			this.Branched = this.Created;			
+			this.LastModified = this.Created;
+		}
 		this.Digest = null;
 		this.NodeDoc = StringWriter.LineFeed;
 		this.HasTag = false;
@@ -272,6 +373,9 @@ class GSNNode {
 
 	public GSNNode Duplicate(GSNDoc BaseDoc, GSNNode ParentNode) {
 		GSNNode NewNode = new GSNNode(BaseDoc, ParentNode, this.GoalLevel, this.NodeType, this.LabelNumber, null);
+		NewNode.Created = this.Created;
+		NewNode.Branched = this.Branched;
+		NewNode.LastModified = this.LastModified;		
 		NewNode.Digest = this.Digest;
 		NewNode.NodeDoc = this.NodeDoc;
 		NewNode.HasTag = this.HasTag;
@@ -282,6 +386,14 @@ class GSNNode {
 			}
 		}
 		return NewNode;
+	}
+
+	String GetLabel() {
+		return WikiSyntax.FormatNodeType(this.NodeType) + this.LabelNumber;
+	}
+
+	String GetHistoryTriple() {
+		return "#"+this.Created.Rev+":"+this.Branched.Rev+":"+this.LastModified;
 	}
 
 	void UpdateBody(ArrayList<String> LineList) {
@@ -350,7 +462,7 @@ class GSNNode {
 				String Line = Reader.ReadLine();
 				int Loc = Line.indexOf("::");
 				if(Loc > 0) {
-					WikiSyntax.ParseTag(this.TagMap, Line);
+					TagUtils.ParseTag(this.TagMap, Line);
 				}
 			}
 		}
@@ -406,60 +518,109 @@ class GSNNode {
 		return null;
 	}
 	
-	void FormatNode(HashMap<String, GSNNode> RefMap, StringWriter Stream) {
-		Stream.print(WikiSyntax.FormatGoalLevel(this.GoalLevel));
-		Stream.print(" ");
-		Stream.print(WikiSyntax.FormatNodeType(this.NodeType));
-		Stream.print(this.LabelNumber);
+	void FormatNode(HashMap<String, GSNNode> RefMap, StringWriter Writer) {
+		Writer.print(WikiSyntax.FormatGoalLevel(this.GoalLevel));
+		Writer.print(" ");
+		Writer.print(WikiSyntax.FormatNodeType(this.NodeType));
+		Writer.print(this.LabelNumber);
 //		Stream.append(" ");
 //		MD5.FormatDigest(this.Digest, Stream);
-		Stream.print(" ");
-		Stream.print(this.HistoryInfo.toString());
-		String RefKey = WikiSyntax.FormatRefKey(this.NodeType, this.LabelNumber, this.HistoryInfo);
+		if(this.Created != null) {
+			Writer.print(" #" + this.Created.Rev + ":" + this.LastModified.Rev);
+		}
+		String RefKey = null;
 		GSNNode RefNode = null;
-		if(RefMap != null) {
+		if(this.Created != null) {
+			RefKey = WikiSyntax.FormatRefKey(this.NodeType, this.LabelNumber, this.GetHistoryTriple());
 			RefNode = RefMap.get(RefKey);
 		}
 		if(RefNode == null) {
-			Stream.print(this.NodeDoc);
+			Writer.print(this.NodeDoc);
 			if(this.Digest != null) {
-				Stream.println();
+				Writer.println();
 			}
-			if(RefMap != null) {
+			if(RefKey != null) {
 				RefMap.put(RefKey, this);
 			}
 		}
 		else {
-			Stream.println();
+			Writer.println();
 		}
 		if(this.SubNodeList != null) {
 			for(GSNNode Node : this.SubNodeList) {
-				Node.FormatNode(RefMap, Stream);
+				Node.FormatNode(RefMap, Writer);
 			}
 		}
 	}
+	
+	// Merge
 
+	boolean IsNewerTree(int ModifiedRev) {
+		if(ModifiedRev <= this.LastModified.Rev) {
+			if(this.SubNodeList != null) {
+				for(GSNNode Node :this.SubNodeList) {
+					if(!Node.IsNewerTree(ModifiedRev)) {
+						return false;
+					}
+				}
+			}
+			return true;
+		}
+		return false;
+	}
+	
+	public void Merge(GSNDoc MasterDoc, int ModifiedRev, ArrayList<GSNNode> ConflictList) {
+		if(ModifiedRev <= this.LastModified.Rev) {
+			GSNNode MasterNode = MasterDoc.GetNode(this.GetLabel());
+			if(MasterNode == null || MasterNode.Created.Rev != this.Created.Rev) { // new node
+//				GSNNode MasterParentNode = MasterDoc.GetNode(this.ParentNode.GetLabel());
+//				if(MasterParentNode != null) {
+//					this.MoveWithNewLabel(MasterDoc, MasterParentNode);
+//					this.ParentNode = MasterParentNode;
+//					MasterParentNode.AppendSubNode(this);
+//				}
+//				return;
+			}
+			if(MasterNode.LastModified.Rev == this.Branched.Rev) {
+				MasterNode.NodeDoc = this.NodeDoc;
+				MasterNode.Digest = this.Digest;
+				MasterNode.HasTag = this.HasTag;
+				MasterNode.Branched = this.Branched;
+				MasterNode.LastModified = this.LastModified;
+			}
+			else {
+				ConflictList.add(this);
+			}
+			if(this.SubNodeList != null) {
+				for(GSNNode Node :this.SubNodeList) {
+					Node.Merge(MasterDoc, ModifiedRev, ConflictList);
+				}
+			}
+		}
+	}
 }
 
 class GSNDoc {
+	GSNRecord Record;
 	GSNNode TopGoal;
 	HashMap<String, GSNNode> NodeMap;
 	HashMap<String, String> DocTagMap;
-	NodeHistory DocHistory;
+	History DocHistory;
 	int GoalCount;
 
-	GSNDoc() {
+	GSNDoc(GSNRecord Record) {
+		this.Record = Record;
 		this.TopGoal = null;
 		this.NodeMap = new HashMap<String, GSNNode>();
 		this.DocTagMap = new HashMap<String,String>();
-		this.DocHistory = NodeHistory.CreateDefaultHistory();
+		this.DocHistory = null;
 		this.GoalCount = 0;
 	}
 	
 	GSNDoc Duplicate(String Author, String Role, String Date, String Process) {
-		GSNDoc NewDoc = new GSNDoc();
+		GSNDoc NewDoc = new GSNDoc(this.Record);
 		NewDoc.GoalCount = this.GoalCount;
-		NewDoc.DocHistory = new NodeHistory(Author, Role, Date, Process);
+		NewDoc.DocHistory = this.Record.NewHistory(Author, Role, Date, Process, NewDoc);
 		NewDoc.DocTagMap = this.DuplicateTagMap(this.DocTagMap);
 		if(this.TopGoal != null) {
 			NewDoc.TopGoal = this.TopGoal.Duplicate(NewDoc, null);
@@ -478,6 +639,20 @@ class GSNDoc {
 		return null;
 	}
 
+	void UpdateDocHeader() {
+		int Revision = TagUtils.GetInteger(this.DocTagMap, "Revision", -1);
+		if(Revision != -1) {
+			this.DocHistory = this.Record.GetHistory(Revision);
+			if(this.DocHistory != null) {
+				this.DocHistory.Doc = this;
+			}
+		}
+	}
+
+	public GSNNode GetNode(String Label) {
+		return this.NodeMap.get(Label);
+	}
+
 	void UncheckAddNode(GSNNode Node) {
 		String Key =  Node.NodeType + Node.LabelNumber;
 		this.NodeMap.put(Key, Node);
@@ -488,7 +663,7 @@ class GSNDoc {
 		GSNNode OldNode = this.NodeMap.get(Key);
 		if(OldNode != null) {
 			if(MD5.EqualsDigest(OldNode.Digest, Node.Digest)) {
-				Node.HistoryInfo = OldNode.HistoryInfo;
+				Node.Created = OldNode.Created;
 			}
 		}
 		this.NodeMap.put(Key, Node);
@@ -498,7 +673,6 @@ class GSNDoc {
 			}
 			try {
 				int num = Integer.parseInt(Node.LabelNumber);
-//				System.err.println("num = " + num + ", GoalCount = " + this.GoalCount);
 				if(num > this.GoalCount) {
 					this.GoalCount = num;
 				}
@@ -531,12 +705,30 @@ class GSNDoc {
 		return this.UniqueNumber(NodeType, LabelNumber);
 	}
 	
-	void UpdateNode(GSNNode Node, StringReader Stream, HashMap<String, GSNNode> RefMap) {
+	void UpdateNode(GSNNode Node, StringReader Reader, HashMap<String, GSNNode> RefMap) {
 		ParserContext Context = new ParserContext(this, Node);
+		while(Reader.HasNext()) {
+			String Line = Reader.ReadLine();
+			if(Line.startsWith(WikiSyntax.VersionDelim)) {
+				Reader.LineBack();
+				break;
+			}
+			if(Line.startsWith("*")) {
+				Reader.LineBack();
+				break;
+			}
+			if(Line.startsWith("#")) {
+				TagUtils.ParseHistoryTag(Context.BaseDoc.Record, Line);
+			}
+			else {
+				TagUtils.ParseTag(Context.BaseDoc.DocTagMap, Line);				
+			}
+		}
+		Context.BaseDoc.UpdateDocHeader();
 		GSNNode LastNode = null;
 		ArrayList<String> LineList = new ArrayList<String>();
-		while(Stream.HasNext()) {
-			String Line = Stream.ReadLine();
+		while(Reader.HasNext()) {
+			String Line = Reader.ReadLine();
 			if(Line.startsWith(WikiSyntax.VersionDelim)) {
 				break;
 			}
@@ -554,9 +746,6 @@ class GSNDoc {
 					}
 					continue;
 				}
-			}
-			if(LastNode == null) {
-				WikiSyntax.ParseTag(Context.BaseDoc.DocTagMap, Line);
 			}
 			LineList.add(Line);
 		}
@@ -621,7 +810,7 @@ class ParserContext {
 
 	public boolean IsValidNode_(String Line) {
 		int Level = WikiSyntax.ParseGoalLevel(Line);
-		GSNType NodeType = WikiSyntax.ParseNodelType(Line);
+		GSNType NodeType = WikiSyntax.ParseNodeType(Line);
 		if(NodeType == GSNType.Goal) {
 			GSNNode ParentNode = this.GetParentNodeOfGoal(Level);
 			if(ParentNode != null) {
@@ -658,18 +847,19 @@ class ParserContext {
 	
 	boolean CheckRefMap(HashMap<String, GSNNode> RefMap, String LabelLine) {
 		if(RefMap != null) {
-			GSNType NodeType = WikiSyntax.ParseNodelType(LabelLine);
+			GSNType NodeType = WikiSyntax.ParseNodeType(LabelLine);
 			String LabelNumber = WikiSyntax.ParseLabelNumber(LabelLine);
-			NodeHistory  GivenHistory = WikiSyntax.ParseHistory(LabelLine);
-			if(LabelNumber != null && GivenHistory != null) {
-				String RefKey = WikiSyntax.FormatRefKey(NodeType, LabelNumber, GivenHistory);
+			String RevisionHistory = WikiSyntax.ParseRevisionHistory(LabelLine, this.BaseDoc.Record);
+			if(LabelNumber != null && RevisionHistory != null) {
+				String RefKey = WikiSyntax.FormatRefKey(NodeType, LabelNumber, RevisionHistory);
 				GSNNode RefNode = RefMap.get(RefKey);
 				GSNNode NewNode = null;
 				if(RefNode != null) {
+					History[] HistoryTriple = WikiSyntax.ParseHistory(LabelLine, this.BaseDoc.Record);
 					if(NodeType == GSNType.Goal) {			
 						int Level = WikiSyntax.ParseGoalLevel(LabelLine);
 						GSNNode ParentNode = this.GetParentNodeOfGoal(Level);
-						NewNode = new GSNNode(this.BaseDoc, ParentNode, Level, NodeType, LabelNumber, GivenHistory);
+						NewNode = new GSNNode(this.BaseDoc, ParentNode, Level, NodeType, LabelNumber, HistoryTriple);
 						this.SetGoalStackAt(Level, NewNode);
 						this.LastGoalNode = NewNode;
 					}
@@ -678,7 +868,7 @@ class ParserContext {
 						if(NodeType == GSNType.Context) {
 							ParentNode = ParentNode.GetLastNodeOrSelf();
 						}
-						NewNode = new GSNNode(this.BaseDoc, ParentNode, ParentNode.GoalLevel, NodeType, LabelNumber, GivenHistory);
+						NewNode = new GSNNode(this.BaseDoc, ParentNode, ParentNode.GoalLevel, NodeType, LabelNumber, HistoryTriple);
 					}
 					this.BaseDoc.AddNode(NewNode);
 					NewNode.NodeDoc = RefNode.NodeDoc;
@@ -691,15 +881,15 @@ class ParserContext {
 	}
 	
 	public GSNNode AppendNewNode(String LabelLine, HashMap<String, GSNNode> RefMap) {
-		GSNType NodeType = WikiSyntax.ParseNodelType(LabelLine);
+		GSNType NodeType = WikiSyntax.ParseNodeType(LabelLine);
 		String LabelNumber = WikiSyntax.ParseLabelNumber(LabelLine);
-		NodeHistory  GivenHistory = WikiSyntax.ParseHistory(LabelLine);
+		History[] HistoryTriple = WikiSyntax.ParseHistory(LabelLine, this.BaseDoc.Record);
 		GSNNode NewNode = null;
 		if(NodeType == GSNType.Goal) {			
 			int Level = WikiSyntax.ParseGoalLevel(LabelLine);
 			GSNNode ParentNode = this.GetParentNodeOfGoal(Level);
 			LabelNumber = this.BaseDoc.CheckLabelNumber(ParentNode, NodeType, LabelNumber);
-			NewNode = new GSNNode(this.BaseDoc, ParentNode, Level, NodeType, LabelNumber, GivenHistory);
+			NewNode = new GSNNode(this.BaseDoc, ParentNode, Level, NodeType, LabelNumber, HistoryTriple);
 			this.SetGoalStackAt(Level, NewNode);
 			this.LastGoalNode = NewNode;
 		}
@@ -709,33 +899,76 @@ class ParserContext {
 				ParentNode = ParentNode.GetLastNodeOrSelf();
 			}
 			LabelNumber = this.BaseDoc.CheckLabelNumber(ParentNode, NodeType, LabelNumber);
-			NewNode = new GSNNode(this.BaseDoc, ParentNode, ParentNode.GoalLevel, NodeType, LabelNumber, GivenHistory);
+			NewNode = new GSNNode(this.BaseDoc, ParentNode, ParentNode.GoalLevel, NodeType, LabelNumber, HistoryTriple);
 		}
 		this.BaseDoc.AddNode(NewNode);
-		if(RefMap != null && GivenHistory != null) {
-			String RefKey = WikiSyntax.FormatRefKey(NodeType, LabelNumber, GivenHistory);
+		if(RefMap != null && HistoryTriple != null) {
+			String RefKey = WikiSyntax.FormatRefKey(NodeType, LabelNumber, NewNode.GetHistoryTriple());
 			RefMap.put(RefKey, NewNode);
 		}
 		return NewNode;
 	}
 }
 
-class GSNCase {
+class GSNRecord {
+	ArrayList<History> HistoryList;
 	ArrayList<GSNDoc> DocList;
 	GSNDoc EditingDoc;
 	
-	GSNCase() {
+	GSNRecord() {
+		this.HistoryList = new ArrayList<History>();
 		this.DocList = new ArrayList<GSNDoc>();
 		this.EditingDoc = null;
 	}
-		
+	
+	History GetHistory(int Rev) {
+		if(Rev < this.HistoryList.size()) {
+			return this.HistoryList.get(Rev);
+		}
+		return null;
+	}
+
+	public History NewHistory(String Author, String Role, String Date, String Process, GSNDoc Doc) {
+		History History = new History(this.HistoryList.size(), Author, Role, Date, Process, Doc);
+		this.HistoryList.add(History);
+		return History;
+	}
+	
+	public void AddHistory(int Rev, String Author, String Role, String Date, String Process) {
+		History History = new History(Rev, Author, Role, Date, Process, null);
+		while(!(Rev < this.HistoryList.size())) {
+			this.HistoryList.add(null);
+		}
+		this.HistoryList.set(Rev, History);
+	}
+	
 	void Parse(String TextDoc) {
 		HashMap<String, GSNNode> RefMap = new HashMap<String, GSNNode>();
 		StringReader Reader = new StringReader(TextDoc);
 		while(Reader.HasNext()) {
-			GSNDoc Doc = new GSNDoc();
+			GSNDoc Doc = new GSNDoc(this);
 			Doc.UpdateNode(null, Reader, RefMap);
 			this.DocList.add(Doc);
+		}
+		int Rev = 0;
+		for(int i = this.DocList.size()-1; i >= 0; i--) {
+			GSNDoc Doc = this.DocList.get(i);
+			if(Doc.DocHistory == null) {
+				History History = this.GetHistory(Rev);
+				if(History == null) {
+					String Author = TagUtils.GetString(Doc.DocTagMap, "Author", "-");
+					String Role   = TagUtils.GetString(Doc.DocTagMap, "Role", "-");
+					String Date   = TagUtils.GetString(Doc.DocTagMap, "Date", "-");
+					String Process = TagUtils.GetString(Doc.DocTagMap, "Process", "-");
+					History = new History(Rev, Author, Role, Date, Process, Doc);
+					while(!(Rev < this.HistoryList.size())) {
+						this.HistoryList.add(null);
+					}
+					this.HistoryList.set(Rev, History);
+				}
+				Doc.DocHistory = History;
+			}
+			Rev++;
 		}
 	}
 
@@ -752,8 +985,76 @@ class GSNCase {
 //		}
 //	}
 	
+	public void StartToEdit(String Author, String Role, String Date, String Process) {
+		if(this.EditingDoc == null) {
+			if(this.DocList.size() > 0) {
+				this.EditingDoc = this.DocList.get(0).Duplicate(Author, Role, Date, Process);
+			}
+			else {
+				this.EditingDoc = new GSNDoc(this);
+				this.EditingDoc.DocHistory = this.NewHistory(Author, Role, Date, Process, this.EditingDoc);
+			}
+		}
+	}
+
+	public void Commit() {
+		// TODO Auto-generated method stub
+	}
+
+	public void Merge(GSNRecord BranchRecord) {
+		int CommonRev = this.HistoryList.size();
+		boolean IsLinearHistory = true;
+		for(int Rev = 0; Rev < BranchRecord.HistoryList.size(); Rev++) {
+			History BranchHistory = BranchRecord.GetHistory(Rev);
+			History MasterHistory = this.GetHistory(Rev);
+			if(MasterHistory == null || !MasterHistory.EqualsHistory(BranchHistory)) {
+				if(BranchHistory.Rev != this.HistoryList.size()) {
+					IsLinearHistory = false;
+				}
+				BranchHistory.Rev = this.HistoryList.size();
+				this.HistoryList.add(BranchHistory);
+			}
+		}
+		if(IsLinearHistory) {
+			for(int i = CommonRev; i < BranchRecord.DocList.size(); i++) {
+				GSNDoc BranchDoc = BranchRecord.DocList.get(i);
+				BranchDoc.Record = this;
+				this.DocList.add(BranchDoc);
+			}
+		}
+		else {
+			ArrayList<GSNNode> ConflictList = new ArrayList<GSNNode>();
+			GSNDoc Doc = BranchRecord.GetLatestDoc();
+			Doc.TopGoal.Merge(this.GetLatestDoc(), CommonRev, ConflictList);
+//			for(GSNNode BranchNode : MergedNodeList) {
+//				String Label = BranchNode.GetLabel();
+//				GSNNode MasterNode = Doc.NodeMap.get(Label);
+//				if(MasterNode != null || MasterNode.Created.Rev == BranchNode.Created.Rev) {
+//					if(MasterNode.IsSameParent(BranchNode)) {
+//						if(MasterNode.LastModified.Rev == BranchNode.Branched.Rev) {
+//							MasterNode.NodeDoc = BranchNode.NodeDoc;
+//							MasterNode.Digest = BranchNode.Digest;
+//							MasterNode.HasTag = BranchNode.HasTag;
+//							MasterNode.Branched = BranchNode.Branched;
+//							MasterNode.LastModified = BranchNode.LastModified;
+//						}
+//						else {
+//							MasterNode.ConflictedWith(BranchNode.NodeDoc);
+//						}
+//					}
+//				}
+//			}
+		}
+	}
+	
+	private GSNDoc GetLatestDoc() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
 	public void FormatCase(StringWriter Writer) {
 		HashMap<String, GSNNode> RefMap = new HashMap<String, GSNNode>();
+		TagUtils.FormatHistoryTag(this.HistoryList, Writer);
 		for(int i = 0; i < this.DocList.size(); i++) {
 			GSNDoc Doc = this.DocList.get(i);
 			Doc.FormatDoc(RefMap, Writer);
@@ -763,26 +1064,9 @@ class GSNCase {
 		}
 	}
 
-	public void StartToEdit(String Author, String Role, String Date, String Process) {
-		if(this.EditingDoc == null) {
-			if(this.DocList.size() > 0) {
-				this.EditingDoc = this.DocList.get(0).Duplicate(Author, Role, Date, Process);
-			}
-			else {
-				this.EditingDoc = new GSNDoc();
-				this.EditingDoc.DocHistory = new NodeHistory(Author, Role, Date, Process);
-			}
-		}
-	}
-
-	public void Commit() {
-		// TODO Auto-generated method stub
-	}
-	
 }
 
 public class AssureItNotation {
-	
 	public static String ReadFile(String File) {
 		StringWriter sb = new StringWriter();
 		try {
@@ -806,12 +1090,13 @@ public class AssureItNotation {
 	
 	public final static void main(String[] file) {
 		String TextDoc = ReadFile(file[0]);
-		GSNCase Case = new GSNCase();
-		Case.Parse(TextDoc);
-		Case.StartToEdit("u", "r", "d", "p");
-		Case.Commit();
+		GSNRecord Record = new GSNRecord();
+		Record.Parse(TextDoc);
+//		Record.StartToEdit("u", "r", "d", "p");
+//		Record.Commit();
+		Record.Merge(Record);
 		StringWriter Writer = new StringWriter();
-		Case.FormatCase(Writer);
+		Record.FormatCase(Writer);
 		System.out.println("--------\n" + Writer.toString());
 	}
 }
