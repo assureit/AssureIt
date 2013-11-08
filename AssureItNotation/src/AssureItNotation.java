@@ -6,18 +6,74 @@ import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.HashMap;
 
+class StringReader {
+	int CurrentPos;
+	String Text;
+	StringReader(String Text) {
+		this.Text = Text;
+		this.CurrentPos = 0;
+	}
+	boolean HasNext() {
+		return this.CurrentPos < this.Text.length();
+	}
+	String ReadLine() {
+		int StartPos = this.CurrentPos;
+		int i;
+		for(i = this.CurrentPos; i < this.Text.length(); i++) {
+			char ch = this.Text.charAt(i);
+			if(ch == '\n') {
+				int EndPos = i;
+				this.CurrentPos = i + 1;
+				return this.Text.substring(StartPos, EndPos).trim();
+			}
+			if(ch == '\r') {
+				int EndPos = i;
+				if(i+1 < this.Text.length() && this.Text.charAt(i+1) == '\n') {
+					i++;
+				}
+				this.CurrentPos = i + 1;
+				return this.Text.substring(StartPos, EndPos).trim();
+			}
+		}
+		this.CurrentPos = i;
+		if(StartPos == this.CurrentPos) {
+			return null;
+		}
+		return this.Text.substring(StartPos, this.CurrentPos).trim();
+	}
+}
+
+class StringWriter {
+	public final static String LineFeed = "\n";
+	StringBuilder sb;
+	StringWriter() {
+		this.sb = new StringBuilder();
+	}
+	void print(String s) {
+		this.sb.append(s);
+	}
+	void println(String s) {
+		this.sb.append(s);
+		this.sb.append(LineFeed);
+	}
+	void println() {
+		this.sb.append(LineFeed);
+	}
+	public String toString() {
+		return sb.toString();
+	}
+}
+
 enum GSNType {
 	Goal, Context, Strategy, Evidence, Undefined;
 }
 
 class NodeHistory {
-	int Revision;
 	String Author;
 	String Role;
 	String Date;
 	String Process;
-	NodeHistory(int Revision, String Author, String Role, String Date, String Process) {
-		this.Revision = Revision;
+	NodeHistory(String Author, String Role, String Date, String Process) {
 		this.Author = Author;
 		this.Role = Role;
 		this.Date = Date;
@@ -25,24 +81,19 @@ class NodeHistory {
 	}
 
 	public static NodeHistory CreateDefaultHistory() {
-		return new NodeHistory(0, null, null, null, null);
+		return new NodeHistory(null, null, null, null);
 	}
 	
-	String FormatLabelLine(String Label) {
-		if(this.Revision > 0) {
-			return Label + " $" + this.Revision + ";" + this.Author + ";" + this.Role + ";" + this.Date + ";" + this.Process;
-		}
-		return Label;
-	}
-
 	public String toString() {
-		return "$" + this.Revision + ";" + this.Author + ";" + this.Role + ";" + this.Date + ";" + this.Process;
+		if(this.Author == null) return "-";
+		return "$" + this.Author + ";" + this.Role + ";" + this.Date + ";" + this.Process;
 	}
 	
 }
 
-
-class ASN {	
+class WikiSyntax {
+	public final static String VersionDelim = "=====";
+	
 	static int ParseGoalLevel(String LabelLine) {
 		int GoalLevel = 0;
 		for(int i = 0; i < LabelLine.length(); i++) {
@@ -73,7 +124,7 @@ class ASN {
 				return GSNType.Goal;
 			}
 			if(ch == 'C') {
-				return GSNType.Goal;
+				return GSNType.Context;
 			}
 			if(ch == 'E') {
 				return GSNType.Evidence;
@@ -87,8 +138,8 @@ class ASN {
 
 	static String FormatNodeType(GSNType NodeType) {
 		switch(NodeType) {
-			case Goal : return "G";
-			case Context : return "C";
+			case Goal :     return "G";
+			case Context :  return "C";
 			case Strategy : return "S";
 			case Evidence : return "E";
 			case Undefined: 
@@ -115,9 +166,7 @@ class ASN {
 		return null;
 	}
 
-//	static NodeHistory NullHistory = CreateDefaultHistory();
 	static HashMap<String, NodeHistory> HistoryMap = new HashMap<String,NodeHistory>();
-	
 	public static NodeHistory ParseHistory(String LabelLine) {
 		int Loc = LabelLine.indexOf("$");
 		if(Loc != -1) {
@@ -128,14 +177,19 @@ class ASN {
 					return History;
 				}
 				String[] Records = Record.split(";");
-				return new NodeHistory(Integer.parseInt(Records[0]), Records[1], Records[2], Records[3], Records[4]);
+				return new NodeHistory(Records[0], Records[1], Records[2], Records[3]);
 			}
 			catch(Exception e) {
+				// any parser error is treated null
 			}
 		}
 		return null;
 	}
-		
+
+	public static String FormatRefKey(GSNType NodeType, String LabelNumber, NodeHistory History) {
+		return WikiSyntax.FormatNodeType(NodeType)+LabelNumber+History.toString();
+	}
+	
 	static void ParseTag(HashMap<String, String> TagMap, String Line) {
 		int loc = Line.indexOf("::");
 		if(loc != -1) {
@@ -160,6 +214,29 @@ class MD5 {
 	static void UpdateMD5(MessageDigest md, String Text) {
 		md.update(Text.getBytes());
 	}
+	
+	static void FormatDigest(byte[] Digest, StringWriter Writer) {
+		if(Digest != null) {
+			for(int i = 0; i < Digest.length; i++) {
+				int hex = Digest[i] < 0 ? 256 + Digest[i] : Digest[i];
+				//Stream.append(":");
+				if(hex < 16) {
+					Writer.print("0");					
+				}
+				Writer.print(Integer.toString(hex, 16));
+			}
+		}
+	}
+	
+	static boolean EqualsDigest(byte[] Digest, byte[] Digest2) {
+		if(Digest != null && Digest2 != null) {
+			for(int i = 0; i < Digest.length; i++) {
+				if(Digest[i] != Digest2[i]) return false;
+			}
+			return true;
+		}
+		return Digest == null && Digest2 == null;
+	}
 }
 
 class GSNNode {
@@ -167,62 +244,119 @@ class GSNNode {
 	GSNNode ParentNode;
 	ArrayList<GSNNode> SubNodeList;
 	GSNType NodeType;
-	int GoalLevel;   /* 1: top level */
-	String LabelNumber;  /* e.g, G1 */
+	int GoalLevel;       /* 1: top level */
+	String LabelNumber;  /* e.g, G1 G1.1 */
+	int SectionCount;
 	NodeHistory HistoryInfo;
 	String NodeDoc;
+	boolean HasTag;
 	HashMap<String, String> TagMap;
 	byte[] Digest;
 
-	GSNNode(GSNDoc BaseDoc, GSNNode ParentNode, int GoalLevel, GSNType NodeType, String LabelNumber, NodeHistory HistoryInfo, ArrayList<String> LineList) {
+	GSNNode(GSNDoc BaseDoc, GSNNode ParentNode, int GoalLevel, GSNType NodeType, String LabelNumber, NodeHistory HistoryInfo) {
 		this.BaseDoc = BaseDoc;
 		this.ParentNode = ParentNode;
 		this.GoalLevel = GoalLevel;
 		this.NodeType = NodeType;
 		this.LabelNumber = LabelNumber;
-		this.HistoryInfo = HistoryInfo == null ? BaseDoc.DefaultHistory : HistoryInfo;
+		this.SectionCount = 0;
 		this.SubNodeList = null;
-		if(LineList != null) {
-			StringBuilder sb = new StringBuilder();
-			MessageDigest md = MD5.GetMD5();
-			int linenum = 0;
-			for(String Line : LineList) {
-				int Loc = Line.indexOf("::");
-				if(Loc > 0) {
-					if(this.TagMap == null) {
-						this.TagMap = new HashMap<String, String>();
-					}
-					ASN.ParseTag(this.TagMap, Line);
-				}
-				if(linenum > 0) {
-					sb.append("\n");
-				}
-				sb.append(Line);
-				MD5.UpdateMD5(md, Line);
-				linenum++;
-			}
-			this.Digest = md.digest();
-			this.NodeDoc = sb.toString();
-		}
-		else {
-			this.Digest = null;
-			this.NodeDoc = "";
-		}
+		this.HistoryInfo = HistoryInfo == null ? BaseDoc.DocHistory : HistoryInfo;
+		this.Digest = null;
+		this.NodeDoc = StringWriter.LineFeed;
+		this.HasTag = false;
 		if(this.ParentNode != null) {
 			ParentNode.AppendSubNode(this);
 		}
 	}
 
-	boolean EqualsBody(GSNNode Node) {
-		if(this.Digest != null && Node.Digest != null) {
-			for(int i = 0; i < this.Digest.length; i++) {
-				if(this.Digest[i] != Node.Digest[i]) return false;
+	public GSNNode Duplicate(GSNDoc BaseDoc, GSNNode ParentNode) {
+		GSNNode NewNode = new GSNNode(BaseDoc, ParentNode, this.GoalLevel, this.NodeType, this.LabelNumber, null);
+		NewNode.Digest = this.Digest;
+		NewNode.NodeDoc = this.NodeDoc;
+		NewNode.HasTag = this.HasTag;
+		BaseDoc.UncheckAddNode(NewNode);
+		if(this.SubNodeList != null) {
+			for(GSNNode Node : this.SubNodeList) {
+				Node.Duplicate(BaseDoc, NewNode);
 			}
-			return true;
 		}
-		return (this.Digest == null && Node.Digest == null);
+		return NewNode;
 	}
 
+	void UpdateBody(ArrayList<String> LineList) {
+		int LineCount = 0;
+		StringWriter Writer = new StringWriter();
+		MessageDigest md = MD5.GetMD5();
+		for(String Line : LineList) {
+			int Loc = Line.indexOf("::");
+			if(Loc > 0) {
+				this.HasTag = true;
+			}
+			Writer.println();
+			Writer.print(Line);
+			if(Line.length() > 0) {
+				MD5.UpdateMD5(md, Line);
+				LineCount += 1;
+			}
+		}
+		if(LineCount > 0) {
+			this.Digest = md.digest();
+			this.NodeDoc = Writer.toString();
+		}
+		else {
+			this.Digest = null;
+			this.NodeDoc = StringWriter.LineFeed;
+		}
+	}
+	
+//	void UpdateBody() {
+//	StringStream Stream = new StringStream(Text);
+//	HashMap<String, String> TagMap = new HashMap<String, String>();
+//	StringWriter sb = new StringWriter();
+//	MessageDigest md = MD5.GetMD5();
+//	while(Stream.HasNext()) {
+//		String Line = Stream.ReadLine();
+//		int Loc = Line.indexOf("::");
+//		if(Loc > 0) {
+//			ASN.ParseTag(TagMap, Line);
+//		}
+//		sb.append(StringWriter.LineFeed);
+//		sb.append(Line);
+//		MD5.UpdateMD5(md, Line);
+//	}
+//	if(this.Digest == null) {
+//		this.Digest = md.digest();
+//		this.NodeDoc = sb.toString();
+//		if(TagMap.size() > 0) {
+//			this.TagMap = TagMap;
+//		}
+//	}
+//	else {
+//		byte[] Digest = md.digest();
+//		if(!MD5.EqualsDigest(this.Digest, Digest)) {
+//			this.Digest = Digest;
+//			this.NodeDoc = sb.toString();
+//			this.TagMap = (TagMap.size() > 0) ? TagMap : null;
+//		}
+//	}
+//}
+
+	HashMap<String,String> GetTagMap() {
+		if(this.TagMap == null && this.HasTag) {
+			this.TagMap = new HashMap<String,String>();
+			StringReader Reader = new StringReader(this.NodeDoc);
+			while(Reader.HasNext()) {
+				String Line = Reader.ReadLine();
+				int Loc = Line.indexOf("::");
+				if(Loc > 0) {
+					WikiSyntax.ParseTag(this.TagMap, Line);
+				}
+			}
+		}
+		return this.TagMap;
+	}
+	
 	void  AppendSubNode(GSNNode Node) {
 		if(this.SubNodeList == null) {
 			this.SubNodeList = new ArrayList<GSNNode>();
@@ -267,35 +401,93 @@ class GSNNode {
 			}
 		}
 		if(NodeType == GSNType.Strategy) {
-			return new GSNNode(this.BaseDoc, this, this.GoalLevel, GSNType.Strategy, this.LabelNumber, null, null);
+			return new GSNNode(this.BaseDoc, this, this.GoalLevel, GSNType.Strategy, this.LabelNumber, null);
 		}
 		return null;
 	}
 	
+	void FormatNode(HashMap<String, GSNNode> RefMap, StringWriter Stream) {
+		Stream.print(WikiSyntax.FormatGoalLevel(this.GoalLevel));
+		Stream.print(" ");
+		Stream.print(WikiSyntax.FormatNodeType(this.NodeType));
+		Stream.print(this.LabelNumber);
+//		Stream.append(" ");
+//		MD5.FormatDigest(this.Digest, Stream);
+		Stream.print(" ");
+		Stream.print(this.HistoryInfo.toString());
+		String RefKey = WikiSyntax.FormatRefKey(this.NodeType, this.LabelNumber, this.HistoryInfo);
+		GSNNode RefNode = null;
+		if(RefMap != null) {
+			RefNode = RefMap.get(RefKey);
+		}
+		if(RefNode == null) {
+			Stream.print(this.NodeDoc);
+			if(this.Digest != null) {
+				Stream.println();
+			}
+			if(RefMap != null) {
+				RefMap.put(RefKey, this);
+			}
+		}
+		else {
+			Stream.println();
+		}
+		if(this.SubNodeList != null) {
+			for(GSNNode Node : this.SubNodeList) {
+				Node.FormatNode(RefMap, Stream);
+			}
+		}
+	}
+
 }
 
 class GSNDoc {
 	GSNNode TopGoal;
 	HashMap<String, GSNNode> NodeMap;
 	HashMap<String, String> DocTagMap;
-	NodeHistory DefaultHistory;
+	NodeHistory DocHistory;
 	int GoalCount;
-	int Revision;
 
 	GSNDoc() {
 		this.TopGoal = null;
 		this.NodeMap = new HashMap<String, GSNNode>();
 		this.DocTagMap = new HashMap<String,String>();
-		this.DefaultHistory = NodeHistory.CreateDefaultHistory();
-		this.GoalCount = 1;
-		this.Revision = 0;
+		this.DocHistory = NodeHistory.CreateDefaultHistory();
+		this.GoalCount = 0;
+	}
+	
+	GSNDoc Duplicate(String Author, String Role, String Date, String Process) {
+		GSNDoc NewDoc = new GSNDoc();
+		NewDoc.GoalCount = this.GoalCount;
+		NewDoc.DocHistory = new NodeHistory(Author, Role, Date, Process);
+		NewDoc.DocTagMap = this.DuplicateTagMap(this.DocTagMap);
+		if(this.TopGoal != null) {
+			NewDoc.TopGoal = this.TopGoal.Duplicate(NewDoc, null);
+		}
+		return NewDoc;
+	}
+
+	HashMap<String,String> DuplicateTagMap(HashMap<String,String> TagMap) {
+		if(TagMap != null) {
+			HashMap<String, String> NewMap = new HashMap<String, String>();
+			for(String Key : TagMap.keySet()) {
+				NewMap.put(Key, TagMap.get(Key));
+			}
+			return NewMap;
+		}
+		return null;
+	}
+
+	void UncheckAddNode(GSNNode Node) {
+		String Key =  Node.NodeType + Node.LabelNumber;
+		this.NodeMap.put(Key, Node);
 	}
 	
 	void AddNode(GSNNode Node) {
 		String Key =  Node.NodeType + Node.LabelNumber;
 		GSNNode OldNode = this.NodeMap.get(Key);
 		if(OldNode != null) {
-			if(OldNode.EqualsBody(Node)) {
+			if(MD5.EqualsDigest(OldNode.Digest, Node.Digest)) {
 				Node.HistoryInfo = OldNode.HistoryInfo;
 			}
 		}
@@ -306,6 +498,7 @@ class GSNDoc {
 			}
 			try {
 				int num = Integer.parseInt(Node.LabelNumber);
+//				System.err.println("num = " + num + ", GoalCount = " + this.GoalCount);
 				if(num > this.GoalCount) {
 					this.GoalCount = num;
 				}
@@ -315,16 +508,15 @@ class GSNDoc {
 		}
 	}
 
-	private String UniqueNumber(GSNNode ParentNode, GSNType NodeType, String LabelNumber) {
-		GSNNode Node = this.NodeMap.get("" + NodeType + LabelNumber);
+	private String UniqueNumber(GSNType NodeType, String LabelNumber) {
+		GSNNode Node = this.NodeMap.get(WikiSyntax.FormatNodeType(NodeType) + LabelNumber);
 		if(Node == null) {
 			return LabelNumber;
 		}
-		return this.UniqueNumber(ParentNode, NodeType, LabelNumber+"'");
+		return this.UniqueNumber(NodeType, LabelNumber+"'");
 	}
 
-	String CheckLabelNumber(GSNNode ParentNode, GSNType NodeType, String LabelLine) {
-		String LabelNumber = ASN.ParseLabelNumber(LabelLine);
+	String CheckLabelNumber(GSNNode ParentNode, GSNType NodeType, String LabelNumber) {
 		if(LabelNumber == null) {
 			if(NodeType == GSNType.Goal) {
 				this.GoalCount += 1;
@@ -332,108 +524,65 @@ class GSNDoc {
 			}
 			else {
 				GSNNode GoalNode = ParentNode.GetCloseGoal();
-				LabelNumber = GoalNode.LabelNumber;
+				GoalNode.SectionCount += 1;
+				LabelNumber = GoalNode.LabelNumber + "." + GoalNode.SectionCount;
 			}
 		}
-		return this.UniqueNumber(ParentNode, NodeType, LabelNumber);
+		return this.UniqueNumber(NodeType, LabelNumber);
 	}
 	
-	void UpdateNode(GSNNode Node, StringStream Stream) {
-		ParserContext GoalStack = new ParserContext(this, Node);
-		String LabelLine = null;
-		ArrayList<String> BufferList = new ArrayList<String>();
-		boolean CommentingOut = false;
+	void UpdateNode(GSNNode Node, StringReader Stream, HashMap<String, GSNNode> RefMap) {
+		ParserContext Context = new ParserContext(this, Node);
+		GSNNode LastNode = null;
+		ArrayList<String> LineList = new ArrayList<String>();
 		while(Stream.HasNext()) {
 			String Line = Stream.ReadLine();
-			System.err.println(": " + Line);
-			if(CommentingOut) {
-				BufferList.add(Line);
-				if(Line.startsWith("***/")) {
-					CommentingOut=false;
+			if(Line.startsWith(WikiSyntax.VersionDelim)) {
+				break;
+			}
+			if(Line.startsWith("*")) {
+				if(Context.IsValidNode(Line)) {
+					if(LastNode != null) {
+						LastNode.UpdateBody(LineList);
+					}
+					LineList.clear();
+					if(!Context.CheckRefMap(RefMap, Line)) {
+						LastNode = Context.AppendNewNode(Line, RefMap);
+					}
+					else {
+						LastNode = null;
+					}
+					continue;
 				}
 			}
-			else {
-				if(Line.startsWith("/***")) {
-					CommentingOut = true;
-				}
-				if(Line.startsWith("========")) {
-					if(LabelLine != null) {
-						GoalStack.AppendNewNode(LabelLine, BufferList);
-					}
-					break;
-				}
-				if(Line.startsWith("*")) {
-					if(GoalStack.IsValidNode(Line)) {
-						if(LabelLine != null) {
-							GoalStack.AppendNewNode(LabelLine, BufferList);
-						}
-						LabelLine = Line;
-						BufferList.clear();
-						continue;
-					}
-				}
-				if(LabelLine == null) {
-					ASN.ParseTag(GoalStack.NewDoc.DocTagMap, Line);
-				}
-				BufferList.add(Line);
+			if(LastNode == null) {
+				WikiSyntax.ParseTag(Context.BaseDoc.DocTagMap, Line);
 			}
+			LineList.add(Line);
 		}
-		if(LabelLine != null) {
-			GoalStack.AppendNewNode(LabelLine, BufferList);
+		if(LastNode != null) {
+			LastNode.UpdateBody(LineList);
 		}
 	}
 
 	void RemoveNode(GSNNode Node) {
 
 	}
-}
-
-class StringStream {
-	int CurrentPos;
-	String Text;
-	StringStream(String Text) {
-		this.Text = Text;
-		this.CurrentPos = 0;
-	}
-	boolean HasNext() {
-		return this.CurrentPos < this.Text.length();
-	}
-	String ReadLine() {
-		int StartPos = this.CurrentPos;
-		int i;
-		for(i = this.CurrentPos; i < this.Text.length(); i++) {
-			char ch = this.Text.charAt(i);
-			if(ch == '\n') {
-				int EndPos = i;
-				this.CurrentPos = i + 1;
-				return this.Text.substring(StartPos, EndPos).trim();
-			}
-			if(ch == '\r') {
-				int EndPos = i;
-				if(i+1 < this.Text.length() && this.Text.charAt(i+1) == '\n') {
-					i++;
-				}
-				this.CurrentPos = i + 1;
-				return this.Text.substring(StartPos, EndPos).trim();
-			}
+	
+	void FormatDoc(HashMap<String, GSNNode> NodeRef, StringWriter Stream) {
+		if(this.TopGoal != null) {
+			this.TopGoal.FormatNode(NodeRef, Stream);
 		}
-		this.CurrentPos = i;
-		if(StartPos == this.CurrentPos) {
-			return null;
-		}
-		return this.Text.substring(StartPos, this.CurrentPos).trim();
 	}
 }
 
 class ParserContext {
-	GSNDoc NewDoc;
+	GSNDoc BaseDoc;
 	ArrayList<GSNNode> GoalStackList;
 	GSNNode LastGoalNode;
-	int GoalLevel;
-	int BaseLevel;
 
 	ParserContext(GSNDoc BaseDoc, GSNNode BaseNode) {
-		this.NewDoc = BaseDoc;
+		this.BaseDoc = BaseDoc;
 		this.GoalStackList = new ArrayList<GSNNode>();
 		if(BaseNode != null) {
 			this.LastGoalNode = BaseNode.GetCloseGoal();
@@ -445,7 +594,7 @@ class ParserContext {
 			this.LastGoalNode = null;
 		}
 	}
-		
+	
 	GSNNode GetGoalStackAt(int Level) {
 		if(Level < this.GoalStackList.size()) {
 			return this.GoalStackList.get(Level);
@@ -464,14 +613,15 @@ class ParserContext {
 	}
 
 	void SetGoalStackAt(int Level, GSNNode Node) {
-		this.GoalStackList.ensureCapacity(Level + 1);
+		while(this.GoalStackList.size() < Level + 1) {
+			this.GoalStackList.add(null);
+		}
 		this.GoalStackList.set(Level, Node);
 	}
 
-	public boolean IsValidNode(String Line) {
-		System.err.println("IsValidNode? " + Line);
-		int Level = ASN.ParseGoalLevel(Line);
-		GSNType NodeType = ASN.ParseNodelType(Line);
+	public boolean IsValidNode_(String Line) {
+		int Level = WikiSyntax.ParseGoalLevel(Line);
+		GSNType NodeType = WikiSyntax.ParseNodelType(Line);
 		if(NodeType == GSNType.Goal) {
 			GSNNode ParentNode = this.GetParentNodeOfGoal(Level);
 			if(ParentNode != null) {
@@ -500,15 +650,56 @@ class ParserContext {
 		return false;
 	}
 
-	void AppendNewNode(String LabelLine, ArrayList<String> BufferList) {
-		GSNType NodeType = ASN.ParseNodelType(LabelLine);
-		NodeHistory  GivenHistory = ASN.ParseHistory(LabelLine);
+	public boolean IsValidNode(String Line) {
+		boolean b = IsValidNode_(Line);
+		//System.err.println("IsValidNode? '" + Line + "' ? " + b);
+		return b;
+	}
+	
+	boolean CheckRefMap(HashMap<String, GSNNode> RefMap, String LabelLine) {
+		if(RefMap != null) {
+			GSNType NodeType = WikiSyntax.ParseNodelType(LabelLine);
+			String LabelNumber = WikiSyntax.ParseLabelNumber(LabelLine);
+			NodeHistory  GivenHistory = WikiSyntax.ParseHistory(LabelLine);
+			if(LabelNumber != null && GivenHistory != null) {
+				String RefKey = WikiSyntax.FormatRefKey(NodeType, LabelNumber, GivenHistory);
+				GSNNode RefNode = RefMap.get(RefKey);
+				GSNNode NewNode = null;
+				if(RefNode != null) {
+					if(NodeType == GSNType.Goal) {			
+						int Level = WikiSyntax.ParseGoalLevel(LabelLine);
+						GSNNode ParentNode = this.GetParentNodeOfGoal(Level);
+						NewNode = new GSNNode(this.BaseDoc, ParentNode, Level, NodeType, LabelNumber, GivenHistory);
+						this.SetGoalStackAt(Level, NewNode);
+						this.LastGoalNode = NewNode;
+					}
+					else {
+						GSNNode ParentNode = this.LastGoalNode;
+						if(NodeType == GSNType.Context) {
+							ParentNode = ParentNode.GetLastNodeOrSelf();
+						}
+						NewNode = new GSNNode(this.BaseDoc, ParentNode, ParentNode.GoalLevel, NodeType, LabelNumber, GivenHistory);
+					}
+					this.BaseDoc.AddNode(NewNode);
+					NewNode.NodeDoc = RefNode.NodeDoc;
+					NewNode.Digest = RefNode.Digest;
+					return true;
+				}
+			}
+		}
+		return false;
+	}
+	
+	public GSNNode AppendNewNode(String LabelLine, HashMap<String, GSNNode> RefMap) {
+		GSNType NodeType = WikiSyntax.ParseNodelType(LabelLine);
+		String LabelNumber = WikiSyntax.ParseLabelNumber(LabelLine);
+		NodeHistory  GivenHistory = WikiSyntax.ParseHistory(LabelLine);
 		GSNNode NewNode = null;
 		if(NodeType == GSNType.Goal) {			
-			int Level = ASN.ParseGoalLevel(LabelLine);
+			int Level = WikiSyntax.ParseGoalLevel(LabelLine);
 			GSNNode ParentNode = this.GetParentNodeOfGoal(Level);
-			String LabelNumber = this.NewDoc.CheckLabelNumber(ParentNode, NodeType, LabelLine);
-			NewNode = new GSNNode(this.NewDoc, ParentNode, Level, NodeType, LabelNumber, GivenHistory, BufferList);
+			LabelNumber = this.BaseDoc.CheckLabelNumber(ParentNode, NodeType, LabelNumber);
+			NewNode = new GSNNode(this.BaseDoc, ParentNode, Level, NodeType, LabelNumber, GivenHistory);
 			this.SetGoalStackAt(Level, NewNode);
 			this.LastGoalNode = NewNode;
 		}
@@ -517,39 +708,111 @@ class ParserContext {
 			if(NodeType == GSNType.Context) {
 				ParentNode = ParentNode.GetLastNodeOrSelf();
 			}
-			String LabelNumber = this.NewDoc.CheckLabelNumber(ParentNode, NodeType, LabelLine);
-			NewNode = new GSNNode(this.NewDoc, ParentNode, ParentNode.GoalLevel, NodeType, LabelNumber, GivenHistory, BufferList);
+			LabelNumber = this.BaseDoc.CheckLabelNumber(ParentNode, NodeType, LabelNumber);
+			NewNode = new GSNNode(this.BaseDoc, ParentNode, ParentNode.GoalLevel, NodeType, LabelNumber, GivenHistory);
 		}
-		this.NewDoc.AddNode(NewNode);
+		this.BaseDoc.AddNode(NewNode);
+		if(RefMap != null && GivenHistory != null) {
+			String RefKey = WikiSyntax.FormatRefKey(NodeType, LabelNumber, GivenHistory);
+			RefMap.put(RefKey, NewNode);
+		}
+		return NewNode;
 	}
 }
 
-public class AssureItNotation {
+class GSNCase {
+	ArrayList<GSNDoc> DocList;
+	GSNDoc EditingDoc;
+	
+	GSNCase() {
+		this.DocList = new ArrayList<GSNDoc>();
+		this.EditingDoc = null;
+	}
+		
+	void Parse(String TextDoc) {
+		HashMap<String, GSNNode> RefMap = new HashMap<String, GSNNode>();
+		StringReader Reader = new StringReader(TextDoc);
+		while(Reader.HasNext()) {
+			GSNDoc Doc = new GSNDoc();
+			Doc.UpdateNode(null, Reader, RefMap);
+			this.DocList.add(Doc);
+		}
+	}
 
-	public final static void main(String[] file) {
-		String LabelLine = "** Goal12' $1;kiki;developer;today;Development";
-		System.err.println("GoalLevel="+ASN.ParseGoalLevel(LabelLine));
-		System.err.println("NodeType="+ASN.ParseNodelType(LabelLine));
-		System.err.println("LabelNumber="+ASN.ParseLabelNumber(LabelLine));
-		System.err.println("History="+ASN.ParseHistory(LabelLine));
+//	public void Renumber() {
+//		HashMap<String, String> LabelMap = new HashMap<String, String>();
+//		GSNDoc LatestDoc = this.DocList.get(0);
+//		if(LatestDoc.TopGoal != null) {
+//			LatestDoc.TopGoal.CreateLabelMap(1, LabelMap);
+//		}
+//		for(GSNDoc Doc : this.DocList) {
+//			if(Doc.TopGoal != null) {
+//				Doc.TopGoal.Renumber(LabelMap);
+//			}
+//		}
+//	}
+	
+	public void FormatCase(StringWriter Writer) {
+		HashMap<String, GSNNode> RefMap = new HashMap<String, GSNNode>();
+		for(int i = 0; i < this.DocList.size(); i++) {
+			GSNDoc Doc = this.DocList.get(i);
+			Doc.FormatDoc(RefMap, Writer);
+			if(i != this.DocList.size() - 1) {
+				Writer.println(WikiSyntax.VersionDelim);
+			}
+		}
+	}
+
+	public void StartToEdit(String Author, String Role, String Date, String Process) {
+		if(this.EditingDoc == null) {
+			if(this.DocList.size() > 0) {
+				this.EditingDoc = this.DocList.get(0).Duplicate(Author, Role, Date, Process);
+			}
+			else {
+				this.EditingDoc = new GSNDoc();
+				this.EditingDoc.DocHistory = new NodeHistory(Author, Role, Date, Process);
+			}
+		}
+	}
+
+	public void Commit() {
+		// TODO Auto-generated method stub
 	}
 	
-	public final static void main2(String[] file) throws IOException {
-		BufferedReader br = new BufferedReader(new FileReader(file[0]));
-		StringBuilder sb = new StringBuilder();
-		String msg;
-		int linenum = 0;
-		while (( msg = br.readLine()) != null ) {
-			System.out.println(msg);
-			if(linenum > 0) {
-				sb.append("\n");
+}
+
+public class AssureItNotation {
+	
+	public static String ReadFile(String File) {
+		StringWriter sb = new StringWriter();
+		try {
+			BufferedReader br = new BufferedReader(new FileReader(File));
+			String Line;
+			int linenum = 0;
+			while (( Line = br.readLine()) != null ) {
+				if(linenum > 0) {
+					sb.print(StringWriter.LineFeed);
+				}
+				sb.print(Line);
+				linenum++;
 			}
-			sb.append(msg);
-			linenum++;
+			br.close();
 		}
-		br.close();
-		GSNDoc Doc = new GSNDoc();
-		Doc.UpdateNode(null, new StringStream(sb.toString()));
+		catch(IOException e) {
+			System.err.println("cannot open: " + File);
+		}
+		return sb.toString();
+	}
+	
+	public final static void main(String[] file) {
+		String TextDoc = ReadFile(file[0]);
+		GSNCase Case = new GSNCase();
+		Case.Parse(TextDoc);
+		Case.StartToEdit("u", "r", "d", "p");
+		Case.Commit();
+		StringWriter Writer = new StringWriter();
+		Case.FormatCase(Writer);
+		System.out.println("--------\n" + Writer.toString());
 	}
 }
 
