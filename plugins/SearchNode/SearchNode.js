@@ -34,6 +34,8 @@ var SearchWordKeyPlugIn = (function (_super) {
                     if ($('nav').css('display') == 'block') {
                         _this.Start(caseViewer, Case0, serverApi);
                     } else {
+                        _this.controllSearch = function (e) {
+                        };
                         $('body').unbind("keydown", _this.controllSearch);
                         _this.Color(_this.HitNodes, caseViewer, "Default");
                         _this.HitNodes = [];
@@ -111,10 +113,6 @@ var SearchWordKeyPlugIn = (function (_super) {
         CaseMap.SVGShape.EnableHighlight();
 
         this.controllSearch = function (e) {
-            if (e.ctrlKey) {
-                if (e.keyCode == 81) {
-                }
-            }
             if (!e.shiftKey) {
                 if (e.keyCode == 13) {
                     if (!moveFlag) {
