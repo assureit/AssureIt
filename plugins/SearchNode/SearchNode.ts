@@ -37,6 +37,7 @@ class SearchWordKeyPlugIn extends AssureIt.ShortcutKeyPlugIn {
 					if ($('nav').css('display') == 'block') {
 						this.Start(caseViewer, Case0, serverApi);
 					} else {
+						this.controllSearch = (e)=>{};
 						$('body').unbind("keydown",this.controllSearch);
 						this.Color(this.HitNodes, caseViewer, "Default");
 						this.HitNodes = [];
