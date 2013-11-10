@@ -3,3 +3,5 @@ server/node_modules
 misc/ER.mwb.bak
 upload
 npm-debug.log
+*.class
+AssureItNotation/AssureItNotation.jar
