@@ -94,8 +94,7 @@ class History {
 	String Process;
 	public GSNDoc Doc;
 
-	History(int Rev, String Author, String Role, String Date, String Process,
-			GSNDoc Doc) {
+	History(int Rev, String Author, String Role, String Date, String Process, GSNDoc Doc) {
 		this.Rev = Rev;
 		this.Author = Author;
 		this.Role = Role;
@@ -110,13 +109,11 @@ class History {
 	}
 
 	public String toString() {
-		return this.Author + ";" + this.Role + ";" + this.Date + ";"
-				+ this.Process;
+		return this.Author + ";" + this.Role + ";" + this.Date + ";" + this.Process;
 	}
 
 	public boolean EqualsHistory(History aHistory) {
-		return (this.Date.equals(aHistory.Date) && this.Author
-				.equals(aHistory.Author));
+		return (this.Date.equals(aHistory.Date) && this.Author.equals(aHistory.Author));
 	}
 
 	public int CompareDate(History aHistory) {
@@ -139,8 +136,7 @@ class WikiSyntax {
 	static int ParseGoalLevel(String LabelLine) {
 		int GoalLevel = 0;
 		for (int i = 0; i < LabelLine.length(); i++) {
-			if (LabelLine.charAt(i) != '*')
-				break;
+			if (LabelLine.charAt(i) != '*') break;
 			GoalLevel++;
 		}
 		return GoalLevel;
@@ -157,12 +153,10 @@ class WikiSyntax {
 	static GSNType ParseNodeType(String LabelLine) {
 		int i;
 		for (i = 0; i < LabelLine.length(); i++) {
-			if (LabelLine.charAt(i) != '*')
-				break;
+			if (LabelLine.charAt(i) != '*') break;
 		}
 		for (; i < LabelLine.length(); i++) {
-			if (LabelLine.charAt(i) != ' ')
-				break;
+			if (LabelLine.charAt(i) != ' ') break;
 		}
 		if (i < LabelLine.length()) {
 			char ch = LabelLine.charAt(i);
@@ -230,14 +224,10 @@ class WikiSyntax {
 			History[] HistoryTriple = new History[3];
 			String RevText = LabelLine.substring(Loc + 1).trim();
 			String RevSet[] = RevText.split(":");
-			HistoryTriple[0] = Record.GetHistory(WikiSyntax.ParseInt(RevSet[0],
-					-1)); // Created
-			HistoryTriple[1] = Record.GetHistory(WikiSyntax.ParseInt(RevSet[1],
-					-1)); // Branched
-			HistoryTriple[2] = Record.GetHistory(WikiSyntax.ParseInt(RevSet[2],
-					-1)); // LastModified
-			if (HistoryTriple[0] == null || HistoryTriple[1] == null
-					|| HistoryTriple[2] == null) {
+			HistoryTriple[0] = Record.GetHistory(WikiSyntax.ParseInt(RevSet[0], -1)); // Created
+			HistoryTriple[1] = Record.GetHistory(WikiSyntax.ParseInt(RevSet[1], -1)); // Branched
+			HistoryTriple[2] = Record.GetHistory(WikiSyntax.ParseInt(RevSet[2], -1)); // LastModified
+			if (HistoryTriple[0] == null || HistoryTriple[1] == null || HistoryTriple[2] == null) {
 				return null;
 			}
 			return HistoryTriple;
@@ -245,10 +235,8 @@ class WikiSyntax {
 		return null;
 	}
 
-	public static String FormatRefKey(GSNType NodeType, String LabelNumber,
-			String HistoryTriple) {
-		return WikiSyntax.FormatNodeType(NodeType) + LabelNumber
-				+ HistoryTriple;
+	public static String FormatRefKey(GSNType NodeType, String LabelNumber, String HistoryTriple) {
+		return WikiSyntax.FormatNodeType(NodeType) + LabelNumber + HistoryTriple;
 	}
 
 }
@@ -270,8 +258,7 @@ class TagUtils {
 			try {
 				String Value = Line.substring(loc + 1).trim();
 				String[] Records = Value.split(";");
-				Record.AddHistory(Integer.parseInt(Key.substring(1)),
-						Records[0], Records[1], Records[2], Records[3]);
+				Record.AddHistory(Integer.parseInt(Key.substring(1)), Records[0], Records[1], Records[2], Records[3]);
 			} catch (Exception e) { // any parse errors are ignored
 			}
 		}
@@ -285,8 +272,7 @@ class TagUtils {
 		}
 	}
 
-	static void FormatHistoryTag(ArrayList<History> HistoryList,
-			StringWriter Writer) {
+	static void FormatHistoryTag(ArrayList<History> HistoryList, StringWriter Writer) {
 		for (int i = 0; i < HistoryList.size(); i++) {
 			History History = HistoryList.get(i);
 			if (History != null) {
@@ -295,8 +281,7 @@ class TagUtils {
 		}
 	}
 
-	static String GetString(HashMap<String, String> TagMap, String Key,
-			String DefValue) {
+	static String GetString(HashMap<String, String> TagMap, String Key, String DefValue) {
 		if (TagMap != null) {
 			String Value = TagMap.get(Key);
 			if (Value != null) {
@@ -306,8 +291,7 @@ class TagUtils {
 		return DefValue;
 	}
 
-	static int GetInteger(HashMap<String, String> TagMap, String Key,
-			int DefValue) {
+	static int GetInteger(HashMap<String, String> TagMap, String Key, int DefValue) {
 		if (TagMap != null) {
 			try {
 				return Integer.parseInt(TagMap.get(Key));
@@ -376,8 +360,7 @@ class GSNNode {
 	HashMap<String, String> TagMap;
 	byte[] Digest;
 
-	GSNNode(GSNDoc BaseDoc, GSNNode ParentNode, int GoalLevel,
-			GSNType NodeType, String LabelNumber, History[] HistoryTriple) {
+	GSNNode(GSNDoc BaseDoc, GSNNode ParentNode, int GoalLevel, GSNType NodeType, String LabelNumber, History[] HistoryTriple) {
 		this.BaseDoc = BaseDoc;
 		this.ParentNode = ParentNode;
 		this.GoalLevel = GoalLevel;
@@ -403,8 +386,7 @@ class GSNNode {
 	}
 
 	public GSNNode Duplicate(GSNDoc BaseDoc, GSNNode ParentNode) {
-		GSNNode NewNode = new GSNNode(BaseDoc, ParentNode, this.GoalLevel,
-				this.NodeType, this.LabelNumber, null);
+		GSNNode NewNode = new GSNNode(BaseDoc, ParentNode, this.GoalLevel, this.NodeType, this.LabelNumber, null);
 		NewNode.Created = this.Created;
 		NewNode.Branched = this.Branched;
 		NewNode.LastModified = this.LastModified;
@@ -577,8 +559,7 @@ class GSNNode {
 		return false;
 	}
 
-	public void Merge(GSNDoc MasterDoc, int ModifiedRev,
-			ArrayList<GSNNode> ConflictList) {
+	public void Merge(GSNDoc MasterDoc, int ModifiedRev, ArrayList<GSNNode> ConflictList) {
 		if (ModifiedRev <= this.LastModified.Rev) {
 			GSNNode MasterNode = MasterDoc.GetNode(this.GetLabel());
 			if (MasterNode == null
@@ -717,8 +698,7 @@ class GSNDoc {
 		return this.UniqueNumber(NodeType, LabelNumber);
 	}
 
-	void UpdateNode(GSNNode Node, StringReader Reader,
-			HashMap<String, GSNNode> RefMap) {
+	void UpdateNode(GSNNode Node, StringReader Reader, HashMap<String, GSNNode> RefMap) {
 		ParserContext Context = new ParserContext(this, Node);
 		while (Reader.HasNext()) {
 			String Line = Reader.ReadLine();
@@ -765,9 +745,22 @@ class GSNDoc {
 		}
 	}
 
-	void RemoveNode(GSNNode Node) {
+//	void RemoveNode(GSNNode Node) {
+//		assert(this == Node.BaseDoc);
+//		if(Node.ParentNode != null) {
+//			Node.ParentNode.SubNodeList.remove(o)
+//		}
+//	}
 
+	
+	void AppendNode(GSNNode ParentNode, GSNNode NewNode) {
+		
 	}
+	
+	void ReplaceNode(GSNNode Node, GSNNode NewNode) {
+		
+	}
+
 
 	void FormatDoc(HashMap<String, GSNNode> NodeRef, StringWriter Stream) {
 		if (this.TopGoal != null) {
@@ -895,8 +888,7 @@ class ParserContext {
 		return false;
 	}
 
-	public GSNNode AppendNewNode(String LabelLine,
-			HashMap<String, GSNNode> RefMap) {
+	public GSNNode AppendNewNode(String LabelLine, HashMap<String, GSNNode> RefMap) {
 		GSNType NodeType = WikiSyntax.ParseNodeType(LabelLine);
 		String LabelNumber = WikiSyntax.ParseLabelNumber(LabelLine);
 		History[] HistoryTriple = WikiSyntax.ParseHistory(LabelLine,
@@ -1013,8 +1005,7 @@ class GSNRecord {
 	// }
 	// }
 
-	public void StartToEdit(String Author, String Role, String Date,
-			String Process) {
+	public void StartToEdit(String Author, String Role, String Date, String Process) {
 		if (this.EditingDoc == null) {
 			if (this.DocList.size() > 0) {
 				this.EditingDoc = this.DocList.get(0).Duplicate(Author, Role,
@@ -1119,12 +1110,31 @@ public class BlueParser {
 		}
 		return sb.toString();
 	}
-
+	
+//	public final Srting initData
+//		= "*G\n"
+//		+ "*C\n"
+//		+ "*S\n"
+//		+ "**G\n"
+//		+ "**G\n"
+//		+ "must be G3.\n"
+//		+ "**C\n"
+//		+ "**G\n";
+//	
+//	public final static void test() {
+//		GSNRecord Record = new GSNRecord();
+//		Record.StartToEdit("Robbin", "Master", null, "Planing");
+//		GSNDoc Doc = Record.GetEditingDoc();
+//		Doc.UpdateNode(null, Reader, RefMap);
+//	}
+	
 	public final static void main(String[] file) {
 		String TextDoc = ReadFile(file[0]);
 		GSNRecord Record = new GSNRecord();
 		Record.Parse(TextDoc);
 		// Record.StartToEdit("u", "r", "d", "p");
+		// Record.GetEditingNode();
+		// Record.ApplyTemplate("Label", Template);
 		// Record.Commit();
 		// Record.Merge(Record);
 		StringWriter Writer = new StringWriter();
