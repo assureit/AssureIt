@@ -4,43 +4,6 @@ var __extends = this.__extends || function (d, b) {
     __.prototype = b.prototype;
     d.prototype = new __();
 };
-var __dscript__ = {
-    script: {
-        main: "",
-        lib: {},
-        funcdef: {}
-    },
-    meta: {
-        actionmap: {}
-    }
-};
-__dscript__.script.funcdef = {
-    "PortScanMonitor()": "\n\
-print(\"PortScanMonitor called...\");\n\
-DFault ret = null;\n\
-if (Monitor) {\n\
-\tret = null;\n\
-}\n\
-else {\n\
-\tret = fault(Risk);\n\
-}\n\
-return ret;\n\
-",
-    "BlockIP()": "\n\
-print(\"BlockIP called...\");\n\
-DFault ret = null;\n\
-command rec, sleep;\n\
-int i = 0;\n\
-while(i < 10) {\n\
-\tprint(\"        *\");\n\
-\tsleep 1\n\
-\ti += 1;\n\
-}\n\
-rec -m pushRawData -l ServerA -t IsPortScaned -d 0\n\
-return ret;\n\
-"
-};
-
 var DScriptPlugIn = (function (_super) {
     __extends(DScriptPlugIn, _super);
     function DScriptPlugIn(plugInManager) {
@@ -67,10 +30,9 @@ var DScriptMenuPlugIn = (function (_super) {
     DScriptMenuPlugIn.prototype.Delegate = function (caseViewer, nodeModel, element, serverApi) {
         element.append('<a href="#" ><img id="dscript"  src="' + serverApi.basepath + 'images/dse.png" title="DScript" alt="dscript" /></a>');
         $('#dscript').unbind('click');
-        $('#dscript').bind('click', {
-            editorPlugIn: this.editorPlugIn,
-            nodeModel: nodeModel
-        }, this.editorPlugIn.ShowEditor);
+        $('#dscript').bind('click', function () {
+            this.editorPlugIn.ShowEditor(nodeModel);
+        });
         return true;
     };
     return DScriptMenuPlugIn;
@@ -82,35 +44,51 @@ var DScriptEditorPlugIn = (function (_super) {
         _super.call(this, plugInManager);
         var self = this;
 
-        this.Widgets = [];
+        this.Generator = new DScriptGenerator();
+
         this.ASNEditor = new CodeMirror($("<div/>").get(0), {
             lineNumbers: true,
             mode: "text/x-csrc",
             lineWrapping: true
         });
-        this.DScriptEditor = new CodeMirror($("<div/>").get(0), {
+        this.DScriptViewer = new CodeMirror($("<div/>").get(0), {
             lineNumbers: true,
             mode: "text/x-csrc",
             readOnly: true,
             placeholder: "Generated DScript code goes here.",
             lineWrapping: true
         });
-        this.NodeRelationTable = this.createTable(["Action", "Risk", "Reaction"], function (nRow, aData, iDisplayIndex, iDisplayIndexFull) {
+        this.NodeRelationTable = this.CreateTable(["Action", "Risk", "Reaction"], {
+            bAutoWidth: false,
+            aoColumns: [
+                { sWidth: '15%' },
+                { sWidth: '70%' },
+                { sWidth: '15%' }
+            ]
         });
-        this.ActionRelationTable = this.createTable(["Location", "Evidence", "Risk", "Reaction"], function (nRow, aData, iDisplayIndex, iDisplayIndexFull) {
-            if (aData[3].match("Undefined") != null) {
-                var $nRow = $(nRow);
-                if ($nRow.hasClass("odd")) {
-                    $nRow.children().css("background-color", "#FFDDDD");
-                } else if ($nRow.hasClass("even")) {
-                    $nRow.children().css("background-color", "#FFC4C4");
+        this.ActionRelationTable = this.CreateTable(["Location", "Goal", "FailureRisk", "Action"], {
+            bAutoWidth: false,
+            fnRowCallback: function (nRow, aData, iDisplayIndex, iDisplayIndexFull) {
+                var action = aData[3];
+                if (action.match(/\*/) != null || action.match(/-/) != null) {
+                    var $nRow = $(nRow);
+                    if ($nRow.hasClass("odd")) {
+                        $nRow.children().css("background-color", "#FFDDDD");
+                    } else if ($nRow.hasClass("even")) {
+                        $nRow.children().css("background-color", "#FFC4C4");
+                    }
                 }
-            }
-            return nRow;
+                return nRow;
+            },
+            aoColumns: [
+                { sWidth: '15%' },
+                { sWidth: '45%' },
+                { sWidth: '20%' },
+                { sWidth: '20%' }
+            ]
         });
-
         this.ASNEditor.on("change", function (e) {
-            self.GenerateCode();
+            self.UpdateAll();
         });
 
         var wrapper = $("#dscript-editor-wrapper");
@@ -126,7 +104,7 @@ var DScriptEditorPlugIn = (function (_super) {
 
         var paneManager = new DScriptPaneManager(wrapper, $(this.ASNEditor.getWrapperElement()));
         paneManager.AddToOptionsList($(this.ASNEditor.getWrapperElement()), "ASN Editor", false);
-        paneManager.AddToOptionsList($(this.DScriptEditor.getWrapperElement()), "DScript Viewer", false);
+        paneManager.AddToOptionsList($(this.DScriptViewer.getWrapperElement()), "DScript Viewer", false);
         paneManager.AddToOptionsList(this.NodeRelationTable.parent().css({
             width: "100%",
             height: "100%",
@@ -138,20 +116,81 @@ var DScriptEditorPlugIn = (function (_super) {
             overflow: "scroll"
         }), "Action Relation Table", false, false);
         paneManager.SetRefreshFunc(function () {
-            self.ASNEditor.refresh();
-            self.DScriptEditor.refresh();
+            self.UpdateASNEditor(null);
+            self.UpdateDScriptViewer(null);
         });
+        paneManager.ShowWidget("Action Relation Table");
+        paneManager.AddWidgetOnBottom(paneManager.Options["Action Relation Table"], paneManager.Options["Node Relation Table"]);
+        paneManager.AddWidgetOnRight(paneManager.Options["Node Relation Table"], paneManager.Options["DScript Viewer"]);
         this.PaneManager = paneManager;
     }
     DScriptEditorPlugIn.prototype.Delegate = function (caseViewer, case0, serverApi) {
         this.RootNodeModel = case0.ElementTop;
         this.CaseViewer = caseViewer;
+        this.Generator.LibraryManager.ServerApi = serverApi;
         return true;
     };
 
-    DScriptEditorPlugIn.prototype.ShowEditor = function (ev) {
-        var self = ev.data.editorPlugIn;
-        self.RootNodeModel = ev.data.nodeModel;
+    DScriptEditorPlugIn.prototype.ShowEditor = function (rootNodeModel) {
+        var self = this;
+        if (rootNodeModel != null)
+            self.RootNodeModel = rootNodeModel;
+
+        var wrapper = $("#dscript-editor-wrapper");
+        wrapper.css("display", "block").addClass("animated fadeInDown").focus().one("blur", function (e, node) {
+            self.plugInManager.UseUILayer(self);
+            var caseViewer = self.CaseViewer;
+            var rootNodeModel = self.RootNodeModel;
+            var rootNodeView = new AssureIt.NodeView(caseViewer, rootNodeModel);
+            var Parent = rootNodeModel.Parent;
+            if (Parent != null) {
+                rootNodeView.ParentShape = caseViewer.ViewMap[Parent.Label];
+            } else {
+                caseViewer.ElementTop = rootNodeModel;
+                rootNodeModel.Case.ElementTop = rootNodeModel;
+            }
+            caseViewer.DeleteViewsRecursive(caseViewer.ViewMap[rootNodeModel.Label]);
+            (function (model, view) {
+                caseViewer.ViewMap[model.Label] = view;
+                for (var i = 0; i < model.Children.length; i++) {
+                    var childModel = model.Children[i];
+                    var childView = new AssureIt.NodeView(caseViewer, childModel);
+                    arguments.callee(childModel, childView);
+                }
+                if (model.Parent != null)
+                    view.ParentShape = caseViewer.ViewMap[model.Parent.Label];
+            })(rootNodeModel, rootNodeView);
+
+            wrapper.addClass("animated fadeOutUp");
+            window.setTimeout(function () {
+                wrapper.removeClass();
+                wrapper.css("display", "none");
+            }, 1300);
+            rootNodeModel.EnableEditFlag();
+            caseViewer.Draw();
+
+            caseViewer.Draw();
+        });
+
+        var hideByClick = function () {
+            wrapper.blur();
+            wrapper.unbind("keydown", hideByKey);
+            $('#background').unbind("click", hideByClick);
+        };
+        var hideByKey = function (e) {
+            if (e.keyCode == 27) {
+                e.stopPropagation();
+                wrapper.blur();
+                wrapper.unbind("keydown", hideByKey);
+                $('#background').unbind("click", hideByClick);
+            }
+        };
+        $('#background').click(hideByClick);
+        wrapper.on("keydown", hideByKey);
+        window.setTimeout(function () {
+            wrapper.removeClass();
+        }, 1300);
+
         var encoder = new AssureIt.CaseEncoder();
         var encoded = encoder.ConvertToASN(self.RootNodeModel, false);
         self.ASNEditor.setValue(encoded);
@@ -160,48 +199,12 @@ var DScriptEditorPlugIn = (function (_super) {
         } else {
             self.ASNEditor.setOption("readOnly", true);
         }
-
-        var wrapper = $("#dscript-editor-wrapper");
-        wrapper.css("display", "block").addClass("animated fadeInDown").focus().one("blur", function (e, node) {
-            e.stopPropagation();
-            var topNodeModel = self.CaseViewer.ElementTop;
-            var topNodeView = self.CaseViewer.ViewMap[self.RootNodeModel.Label];
-            self.CaseViewer.DeleteViewsRecursive(topNodeView);
-            if (self.RootNodeModel.Parent == null) {
-                var caseView = new AssureIt.NodeView(self.CaseViewer, topNodeModel);
-                self.CaseViewer.ViewMap[topNodeModel.Label] = caseView;
-            }
-            self.CaseViewer.Draw();
-            var centeringNodeView = self.CaseViewer.ViewMap[self.RootNodeModel.Label];
-            self.CaseViewer.Screen.SetCaseCenter(centeringNodeView.AbsX, centeringNodeView.AbsY, centeringNodeView.HTMLDoc);
-
-            wrapper.addClass("animated fadeOutUp");
-            window.setTimeout(function () {
-                wrapper.removeClass();
-                wrapper.css("display", "none");
-            }, 1300);
-            topNodeModel.EnableEditFlag();
-        }).on("keydown", function (e) {
-            if (e.keyCode == 27) {
-                e.stopPropagation();
-                wrapper.blur();
-                wrapper.unbind('keydown');
-            }
-        });
-        $('#CodeMirror').focus();
-        $('#background').click(function () {
-            wrapper.blur();
-        });
-        window.setTimeout(function () {
-            wrapper.removeClass();
-        }, 1300);
-        self.ASNEditor.refresh();
-        self.DScriptEditor.refresh();
-        self.GenerateCode();
+        self.PaneManager.Refresh();
+        self.DScriptViewer.focus();
     };
 
-    DScriptEditorPlugIn.prototype.createTable = function (columnNames, callbackFunc) {
-        if (typeof callbackFunc === "undefined") { callbackFunc = null; }
+    DScriptEditorPlugIn.prototype.CreateTable = function (columnNames, initializationData) {
+        if (typeof initializationData === "undefined") { initializationData = null; }
         var table = $("<table/>");
         var header = $("<thead/>");
         var body = $("<tbody/>");
@@ -213,12 +216,21 @@ var DScriptEditorPlugIn = (function (_super) {
         header.append(tr);
         table.append(header).append(body);
         $("<div/>").append(table);
-        return (table).dataTable({
-            fnRowCallback: callbackFunc,
-            bAutoWidth: true
-        });
+        return (table).dataTable(initializationData);
     };
 
+    DScriptEditorPlugIn.prototype.UpdateASNEditor = function (ASNData) {
+        if (ASNData != null) {
+            this.ASNEditor.setValue(ASNData);
+        }
+        this.ASNEditor.refresh();
+    };
+    DScriptEditorPlugIn.prototype.UpdateDScriptViewer = function (script) {
+        if (script != null) {
+            this.DScriptViewer.setValue(script);
+        }
+        this.DScriptViewer.refresh();
+    };
     DScriptEditorPlugIn.prototype.UpdateNodeRelationTable = function (nodeRelation) {
         (this.NodeRelationTable).fnClearTable();
         for (var key in nodeRelation) {
@@ -231,14 +243,22 @@ var DScriptEditorPlugIn = (function (_super) {
             (this.NodeRelationTable).fnAddData(data);
         }
     };
-
     DScriptEditorPlugIn.prototype.UpdateActionRelationTable = function (actionRelation) {
         (this.ActionRelationTable).fnClearTable();
+        var elementMap = this.RootNodeModel.Case.ElementMap;
         for (var key in actionRelation) {
             var relationMap = actionRelation[key];
+            var goal = elementMap[relationMap["action"]["node"]];
+            while (goal.Type != AssureIt.NodeType.Goal) {
+                if (goal.Parent != null) {
+                    goal = goal.Parent;
+                } else {
+                    throw "in DScriptPlugIn, UpdateActionRelationTable Error";
+                }
+            }
             var data = [
                 relationMap["location"],
-                relationMap["action"]["func"] + " : " + relationMap["action"]["node"],
+                goal.Statement + " : " + goal.Label,
                 relationMap["risk"],
                 relationMap["reaction"]["func"] + " : " + relationMap["reaction"]["node"]
             ];
@@ -246,53 +266,64 @@ var DScriptEditorPlugIn = (function (_super) {
         }
     };
 
-    DScriptEditorPlugIn.prototype.GenerateCode = function () {
-        var decoder = new AssureIt.CaseDecoder();
-        var ASNData = this.ASNEditor.getValue();
+    DScriptEditorPlugIn.prototype.DecodeASN = function () {
         var case0 = this.RootNodeModel.Case;
-        var orig_IdCounters = case0.ReserveIdCounters(this.RootNodeModel);
-        var orig_ElementMap = case0.ReserveElementMap(this.RootNodeModel);
-        var nodeModel = decoder.ParseASN(case0, ASNData, this.RootNodeModel);
-        if (nodeModel == null) {
-            case0.IdCounters = orig_IdCounters;
-            case0.ElementMap = orig_ElementMap;
-            nodeModel = case0.ElementTop;
-        } else {
-            var ParentModel = this.RootNodeModel.Parent;
-            if (ParentModel != null) {
-                nodeModel.Parent = ParentModel;
-                for (var i in ParentModel.Children) {
-                    if (ParentModel.Children[i].Label == this.RootNodeModel.Label) {
-                        ParentModel.Children[i] = nodeModel;
+        var origModel = this.RootNodeModel;
+
+        var origIdCounters = case0.ReserveIdCounters(origModel);
+        var origElementMap = case0.ReserveElementMap(origModel);
+
+        var decoder = new AssureIt.CaseDecoder();
+        var newModel = decoder.ParseASN(case0, this.ASNEditor.getValue(), origModel);
+
+        if (newModel != null) {
+            var Parent = origModel.Parent;
+            if (Parent != null) {
+                newModel.Parent = Parent;
+                for (var j in Parent.Children) {
+                    if (Parent.Children[j].Label == origModel.Label) {
+                        Parent.Children[j] = newModel;
                     }
                 }
             } else {
-                this.CaseViewer.ElementTop = nodeModel;
-                case0.ElementTop = nodeModel;
+                case0.ElementTop = newModel;
             }
+            newModel.EnableEditFlag();
+            this.RootNodeModel = newModel;
+        } else {
+            case0.ElementMap = origElementMap;
+            case0.IdCounters = origIdCounters;
         }
-        this.RootNodeModel = nodeModel;
+    };
 
+    DScriptEditorPlugIn.prototype.UpdateAll = function () {
+        var ret = {
+            script: {
+                main: "",
+                lib: {}
+            },
+            meta: {
+                actionmap: {}
+            }
+        };
         try  {
-            nodeModel.UpdateEnvironment();
-            var generator = new DScriptGenerator();
-            var script = generator.CodeGen(nodeModel);
-            var dscriptActionMap = new DScriptActionMap(nodeModel);
+            this.DecodeASN();
+            this.RootNodeModel.UpdateEnvironment();
+            var script = this.Generator.CodeGen(this.RootNodeModel);
+            var dscriptActionMap = new DScriptActionMap(this.RootNodeModel);
             var nodeRelation = dscriptActionMap.GetNodeRelation();
             var actionRelation = dscriptActionMap.GetActionRelation();
-            __dscript__.script.main = script;
-            __dscript__.meta.actionmap = nodeRelation;
+            ret.script.main = script;
+            ret.meta.actionmap = nodeRelation;
+            this.UpdateASNEditor(null);
+            this.UpdateDScriptViewer(script);
             this.UpdateNodeRelationTable(nodeRelation);
             this.UpdateActionRelationTable(actionRelation);
-
-            this.DScriptEditor.setValue(script);
         } catch (e) {
-            console.log("error occured in DScript Generation");
+            console.log("DScript plugin : error occured in UpdateAll");
             console.log(e);
         }
-
-        this.ASNEditor.refresh();
-        this.DScriptEditor.refresh();
+        return ret;
     };
     return DScriptEditorPlugIn;
 })(AssureIt.ActionPlugIn);
@@ -315,20 +346,11 @@ var DScriptSideMenuPlugIn = (function (_super) {
         this.AssureItAgentAPI = new AssureIt.AssureItAgentAPI(serverApi.agentpath);
         ret.push(new AssureIt.SideMenuModel('#', 'Deploy', "deploy", "glyphicon-list-alt", function (ev) {
             self.editorPlugIn.RootNodeModel = case0.ElementTop;
-            self.editorPlugIn.GenerateCode();
-            __dscript__.script.lib = {
-                "GetDataFromRec.ds": "\n\
-int GetDataFromRec(String location, String type) {\n\
-command rec;\n\
-String data = rec -m getLatestData -t $type -l $location\n\
-return (int)data.replaceAll(\"\\n\", \"\");\n\
-}\n\
-"
-            };
-
+            var data = self.editorPlugIn.UpdateAll();
             var actionNodeManager = caseViewer.pluginManager.GetPlugInEnv("monitor").ActionNodeManager;
             var ElementMap = caseViewer.Source.ElementMap;
-            console.log(__dscript__);
+            data.script.lib["GetDataFromRec"] = "" + "int GetDataFromRec(String location, String type) {" + "\tcommand rec;\n" + "\tString data = rec -m getLatestData -t $type -l $location;\n" + "\treturn (int)data.replaceAll(\"\\n\", \"\");\n" + "}\n";
+            console.log(data);
             for (var label in ElementMap) {
                 var nodeModel = ElementMap[label];
 
@@ -340,22 +362,14 @@ return (int)data.replaceAll(\"\\n\", \"\");\n\
             }
 
             try  {
-                _this.AssureItAgentAPI.Deploy(__dscript__);
+                _this.AssureItAgentAPI.Deploy(data);
             } catch (e) {
                 alert("Assure-It Agent is not active.");
                 console.log(e);
             }
         }));
         ret.push(new AssureIt.SideMenuModel('#', 'Actions', "actions", "glyphicon-list-alt", function (ev) {
-            var paneManager = self.editorPlugIn.PaneManager;
-            self.editorPlugIn.ShowEditor({
-                data: {
-                    editorPlugIn: self.editorPlugIn,
-                    nodeModel: case0.ElementTop
-                }
-            });
-            paneManager.ShowWidget("Action Relation Table");
-            paneManager.AddWidgetOnBottom(paneManager.Options["Action Relation Table"], paneManager.Options["Node Relation Table"]);
+            self.editorPlugIn.ShowEditor(case0.ElementTop);
         }));
         return ret;
     };

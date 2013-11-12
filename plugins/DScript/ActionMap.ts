@@ -74,8 +74,8 @@ class DScriptActionMap {
 				reaction = (reaction != null ? reaction : "-");
 			}
 			else {
-				reactionNodeLabel = "Undefined";
-				reaction = "Undefined";
+				reactionNodeLabel = "*";
+				reaction = "ManagerCall()";
 			}
 			ret = {
 				"action" : {
@@ -181,7 +181,6 @@ class DScriptActionMap {
 		for (var key in riskRelation) {
 			if (key in this.NodeRelation) delete this.NodeRelation[key];
 		}
-		console.log(this);
 	}
 
 	GetNodeRelation(): any {

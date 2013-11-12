@@ -54,6 +54,13 @@ var DScriptPaneManager = (function () {
     DScriptPaneManager.prototype.SetRefreshFunc = function (func) {
         this.RefreshFunc = func;
     };
+    DScriptPaneManager.prototype.Refresh = function () {
+        var self = this;
+        $(".managed-frame").each(function () {
+            self.CheckFrameSize($(this));
+        });
+        self.RefreshFunc();
+    };
 
     DScriptPaneManager.prototype.RefreshDefaultWidget = function () {
         var usedList = [];

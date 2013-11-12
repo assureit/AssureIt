@@ -58,6 +58,13 @@ class DScriptPaneManager {
 	public SetRefreshFunc(func) {
 		this.RefreshFunc = func;
 	}
+	public Refresh() {
+		var self = this;
+		$(".managed-frame").each(function() {
+			self.CheckFrameSize($(this));
+		});
+		self.RefreshFunc();
+	}
 
 	private RefreshDefaultWidget(): void {
 		var usedList: string[] = [];

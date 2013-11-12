@@ -46,8 +46,8 @@ var DScriptActionMap = (function () {
                 reaction = reactionNode.GetNote("Action");
                 reaction = (reaction != null ? reaction : "-");
             } else {
-                reactionNodeLabel = "Undefined";
-                reaction = "Undefined";
+                reactionNodeLabel = "*";
+                reaction = "ManagerCall()";
             }
             ret = {
                 "action": {
@@ -154,7 +154,6 @@ var DScriptActionMap = (function () {
             if (key in this.NodeRelation)
                 delete this.NodeRelation[key];
         }
-        console.log(this);
     };
 
     DScriptActionMap.prototype.GetNodeRelation = function () {

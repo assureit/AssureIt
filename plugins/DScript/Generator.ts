@@ -1,15 +1,44 @@
 /// <reference path="../../src/CaseModel.ts" />
 /// <reference path="../../src/PlugInManager.ts" />
 
+class DScriptLibraryManager {
+	ServerApi: AssureIt.ServerAPI;
+	Cache: { [funcName: string]: string };
+
+	constructor() {
+		this.ServerApi = null;
+		this.Cache = {};
+	}
+	GetLibraryFunction(funcName: string): string {
+		var ret = "DFault ${funcName}() { return null; }".replace("${funcName}", funcName);
+		if (this.ServerApi == null) {
+			console.log("DScriptLibraryManager error : not set ServerApi yet");
+		}
+		else if (funcName in this.Cache) {
+			ret = this.Cache[funcName];
+		}
+		else {
+			var script = this.ServerApi.GetDScript(funcName);
+			if (script != null) {
+				ret = script.script;
+				this.Cache[funcName] = script.script;
+			}
+		}
+		return ret;
+	}
+}
+
 class DScriptGenerator {
 	Indent: string;
 	LineFeed: string;
 	GenMainFunctionFlag: boolean;
+	LibraryManager: DScriptLibraryManager;
 
 	constructor(genMainFunctionFlag: boolean = false) {
 		this.Indent = "\t";
 		this.LineFeed = "\n";
 		this.GenMainFunctionFlag = genMainFunctionFlag;
+		this.LibraryManager = new DScriptLibraryManager();
 	}
 
 // 	GenerateMainFunction(): string {
@@ -59,7 +88,14 @@ class DScriptGenerator {
 				continue;
 			}
 			else if (key == "Monitor") {
-				// lazy generation
+				/*lazy generation*/
+				// var condStr = env["Monitor"]
+				// 	.replace(/\{|\}/g, "")
+				// 	.replace(/[a-zA-Z]+/g, function(matchedStr) {
+				// 		return "GetDataFromRec(Location, \"" + matchedStr + "\")";
+				// 	})
+				// 	.trim();
+				// ret += this.Indent + "let Monitor = " + condStr + ";" + this.LineFeed;
 			}
 			else {
 				ret += this.Indent + "let " + key + " = \"" + env[key] + "\";" + this.LineFeed;
@@ -72,28 +108,19 @@ class DScriptGenerator {
 		ret += this.GenerateLocalVariable(env);
 
 		/* Define Action Function */
-		ret += this.Indent + "DFault " + funcName + " {" + this.LineFeed;
-
-		if("Monitor" in env) {
-			var condStr = env["Monitor"]
-							.replace(/\{|\}/g, "")
-							.replace(/[a-zA-Z]+/g, function(matchedStr) {
-									return "GetDataFromRec(Location, \"" + matchedStr + "\")";
-							})
-							.trim();
-			ret += this.Indent + this.Indent + "boolean Monitor = " + condStr + ";" + this.LineFeed;
+		var actionFunctionDef =	this.LibraryManager.GetLibraryFunction(funcName.replace("()", ""));
+		if (env["Monitor"] != null) {
+			var monitor: string = env["Monitor"]
+				.replace(/\{|\}/g, "")
+				.replace(/[a-zA-Z]+/g, function(matchedStr) {
+					return "GetDataFromRec(Location, \"" + matchedStr + "\")";
+				}).trim();
+			actionFunctionDef = actionFunctionDef
+				.replace(/[\(\w]Monitor[\)\w]/g, function(matchedStr) {
+					return matchedStr.replace("Monitor", monitor);
+				});
 		}
-
-		var funcdef = __dscript__.script.funcdef[funcName];
-		if (funcdef != null) { // FIXME
- 			ret += funcdef.replace(/\n/g, this.LineFeed + this.Indent + this.Indent)
-		}
-		else {
-			ret += this.Indent + this.Indent + "return null;";
-		}
-		ret += this.LineFeed;
-		ret = ret.replace(/\t\t\n/, "");
-		ret += this.Indent + "}" + this.LineFeed;
+		ret += this.Indent + actionFunctionDef.replace(/\n/g, "\n\t") + this.LineFeed;
 
 		/* Call Action Function */
 		ret += this.Indent + "DFault ret = null;" + this.LineFeed;
@@ -152,7 +179,6 @@ class DScriptGenerator {
 		var ret: string = "";
 		for (var i: number = 0; i < node.Children.length; i++) {
 			ret += this.GenerateNodeFunction(node.Children[i]);
-			ret += this.LineFeed;
 		}
 		switch(node.Type) {
  		case AssureIt.NodeType.Context:
@@ -161,9 +187,11 @@ class DScriptGenerator {
 		case AssureIt.NodeType.Goal:
 		case AssureIt.NodeType.Strategy:
 			ret += this.GenerateNodeFunction_GoalOrStrategy(node);
+			ret += this.LineFeed;
 			break;
 		case AssureIt.NodeType.Evidence:
 			ret += this.GenerateNodeFunction_Evidence(node);
+			ret += this.LineFeed;
 			break;
 		default:
 			console.log("DScriptGenerator: invalid Node Type")
