@@ -37,7 +37,7 @@ var SearchWordKeyPlugIn = (function (_super) {
                         }
                     } else {
                         Target.SetAllNodesColor(Target.HitNodes, caseViewer, "Default");
-                        Target.Reset();
+                        Target.ResetParam();
                     }
                 }
             }
@@ -122,7 +122,7 @@ var Search = (function () {
         }
     };
 
-    Search.prototype.Reset = function () {
+    Search.prototype.ResetParam = function () {
         this.HitNodes = [];
         this.NodeIndex = 0;
         this.SearchWord = "";

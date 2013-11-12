@@ -36,7 +36,7 @@ class SearchWordKeyPlugIn extends AssureIt.ShortcutKeyPlugIn{
 						}
 					} else {
 						Target.SetAllNodesColor(Target.HitNodes, caseViewer, "Default");
-						Target.Reset();
+						Target.ResetParam();
 					}
 				}
 			}
@@ -128,7 +128,7 @@ class Search {
 		}
 	}
 
-	Reset() : void {
+	ResetParam() : void {
 		this.HitNodes   = [];
 		this.NodeIndex  = 0;
 		this.SearchWord = "";
