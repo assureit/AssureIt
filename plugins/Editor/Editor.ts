@@ -17,7 +17,6 @@ class EditorPlugIn extends AssureIt.PlugInSet {
 		this.ActionPlugIn = new EditorActionPlugIn(plugInManager);
 		this.HTMLRenderPlugIn = new EditorLayoutPlugIn(plugInManager);
 	}
-
 }
 
 class EditorLayoutPlugIn extends AssureIt.HTMLRenderPlugIn {

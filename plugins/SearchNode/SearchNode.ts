@@ -12,222 +12,176 @@ class SearchNodePlugIn extends AssureIt.PlugInSet {
 	}
 }
 
-class SearchWordKeyPlugIn extends AssureIt.ShortcutKeyPlugIn {
-
-	caseViewer: AssureIt.CaseViewer;
-	HitNodes: AssureIt.NodeModel[] = [];
-	HasStarted: boolean;
-	FirstMove: boolean = false;
-	Keyword: string;
-	controllSearch: (e: any)=> void;
+class SearchWordKeyPlugIn extends AssureIt.ShortcutKeyPlugIn{
 
 	constructor(public plugInManager: AssureIt.PlugInManager) {
 		super(plugInManager);
 	}
 
 	RegisterKeyEvents(caseViewer: AssureIt.CaseViewer, Case0: AssureIt.Case, serverApi: AssureIt.ServerAPI): boolean {
-		this.caseViewer = caseViewer;
-		this.HasStarted = false;
-		this.CreateSearchWindow();
+		var Target : Search = new Search(this.plugInManager);
+		Target.CreateSearchWindow();
+		$('.form-control').focus();
+
 		$("body").keydown((e)=>{
 			if (e.ctrlKey) {
 				if (e.keyCode == 70/*f*/) {
 					e.preventDefault();
+
 					$('nav').toggle();
 					if ($('nav').css('display') == 'block') {
-						this.Start(caseViewer, Case0, serverApi);
+						console.log($('.form-control').val());
+						if ($('.form-control').val() != "") {
+							Target.Search(true, false, caseViewer, Case0);
+						}
 					} else {
-						this.controllSearch = (e)=>{};
-						$('body').unbind("keydown",this.controllSearch);
-						this.Color(this.HitNodes, caseViewer, "Default");
-						this.HitNodes = [];
-						this.HasStarted = false;
+						Target.SetAllNodesColor(Target.HitNodes, caseViewer, "Default");
+						Target.Reset();
 					}
 				}
+			}
+		});
+
+		$('.btn').click((ev: JQueryEventObject)=>{
+			ev.preventDefault();
+			if (!Target.MoveFlag) {
+				Target.Search(Target.CheckInput(caseViewer), ev.shiftKey, caseViewer, Case0);
 			}
 		});
 		return true;
 	}
+}
 
-	Start(caseViewer: AssureIt.CaseViewer, Case0: AssureIt.Case, serverApi: AssureIt.ServerAPI): void {
-		$('.form-control').focus();
-		$('.btn').click((ev: JQueryEventObject)=> {
-			ev.preventDefault();
-			if (!this.HasStarted) {
-				this.Search(caseViewer, Case0, serverApi);
-				this.HasStarted = true;
-			} else {
-				if ($('.form-control').val() != this.Keyword) {
-					this.FirstMove = true;
-					this.Color(this.HitNodes, caseViewer, "Default");
-					var Top:      AssureIt.NodeModel = Case0.ElementTop;
-					var TopLabel: string = Top.Label;
-					var TopMap:   AssureIt.NodeView  = caseViewer.ViewMap[TopLabel];
-					var TopHTML:  AssureIt.HTMLDoc   = TopMap.HTMLDoc;
-					var Screen:   AssureIt.ScreenManager = caseViewer.Screen;
-					var DestX: number = Screen.ConvertX(TopMap.AbsX, TopHTML);
-					var DestY: number = Screen.ConvertY(TopMap.AbsY, TopHTML);
-					this.Move(DestX, DestY, 100, ()=>{});
-					this.HitNodes = [];
-					this.Search(caseViewer, Case0, serverApi);
-					$('body').unbind("keydown",this.controllSearch);
-					this.controllSearch = null;
-					if (this.HitNodes.length == 0) {
-						this.HasStarted = false;
-					}
-				}
-			}
-		});
+class Search {
+
+	SearchWord  : string;
+	DestinationX: number;
+	DestinationY: number;
+	NodeIndex   : number;
+	MoveFlag    : boolean;
+	HitNodes    : AssureIt.NodeModel[];
+
+	constructor(plugInManager: AssureIt.PlugInManager) {
+		this.SearchWord   = "";
+		this.DestinationX = 0;
+		this.DestinationY = 0;
+		this.NodeIndex    = 0;
+		this.MoveFlag     = false;
+		this.HitNodes     = [];
 	}
 
-	Search(caseViewer: AssureIt.CaseViewer, Case0: AssureIt.Case, serverApi: AssureIt.ServerAPI): void {
-		this.Keyword = $('.form-control').val();
-		var nodeIndex: number = 0;
-		var moveFlag: boolean = false;
-		var TopNodeModel: AssureIt.NodeModel = Case0.ElementTop;
+	Search (IsFirst: boolean, ShiftKey: boolean, CaseViewer: AssureIt.CaseViewer, Case0: AssureIt.Case) : void {
+		if (IsFirst) {
+			var TopNodeModel: AssureIt.NodeModel = Case0.ElementTop;
+			this.SearchWord = $('.form-control').val();
 
-		if (this.Keyword == "") {
-			return;
-		}
+			if (this.SearchWord == "") {
+				return;
+			}
 
-		TopNodeModel.SearchNode(this.Keyword, this.HitNodes);
+			TopNodeModel.SearchNode(this.SearchWord, this.HitNodes);
 
-		if (this.HitNodes.length == 0) {
-			return;
-		}
+			console.log(this.HitNodes);
+			if (this.HitNodes.length == 0) {
+				return;
+			}
 
-		this.Color(this.HitNodes, caseViewer, "Search");
-		var NodeLabel:     string = this.HitNodes[nodeIndex].Label;
-		var CaseMap:       AssureIt.NodeView = caseViewer.ViewMap[NodeLabel];
-		var currentHTML:   AssureIt.HTMLDoc  = CaseMap.HTMLDoc;
-		var screenManager: AssureIt.ScreenManager  = caseViewer.Screen;
-		var NodePosX: number      = CaseMap.AbsX;
-		var NodePosY: number      = CaseMap.AbsY;
-		var destinationX: number  = screenManager.ConvertX(NodePosX, currentHTML);
-		var destinationY: number  = screenManager.ConvertY(NodePosY, currentHTML);
-
-		this.Move(destinationX, destinationY, 100, ()=>{
-			this.FirstMove = false;
-		});
-		CaseMap.SVGShape.EnableHighlight();
-
-		this.controllSearch = (e)=> {
-			if (!e.shiftKey) {
-				if (e.keyCode == 13/*Enter*/) {
-					if (!moveFlag) {
-						if (this.HitNodes.length == 1) {
-							return;
-						}
-						nodeIndex++;
-						if (nodeIndex == this.HitNodes.length) {
-							nodeIndex = 0;
-						}
-
-						NodeLabel    = this.HitNodes[nodeIndex].Label;
-						CaseMap      = caseViewer.ViewMap[NodeLabel];
-						NodePosX     = CaseMap.AbsX;
-						NodePosY     = CaseMap.AbsY;
-						currentHTML  = CaseMap.HTMLDoc;
-						destinationX = screenManager.ConvertX(NodePosX, currentHTML);
-						destinationY = screenManager.ConvertY(NodePosY, currentHTML);
-
-						moveFlag = true;
-
-						this.Move(destinationX, destinationY, 100, ()=>{
-							moveFlag = false;
-							if (nodeIndex == 0) {
-								caseViewer.ViewMap[this.HitNodes[this.HitNodes.length-1].Label].SVGShape.SetColor(AssureIt.Color.Searched);
-								caseViewer.ViewMap[this.HitNodes[this.HitNodes.length-1].Label].SVGShape.DisableHighlight();
-							} else {
-								caseViewer.ViewMap[this.HitNodes[nodeIndex-1].Label].SVGShape.SetColor(AssureIt.Color.Searched);
-								caseViewer.ViewMap[this.HitNodes[nodeIndex-1].Label].SVGShape.DisableHighlight();
-							}
-
-							if (!this.FirstMove) {
-								CaseMap.SVGShape.EnableHighlight();
-							}
-						});
-					}
+			this.MoveFlag = true;
+			this.SetAllNodesColor(this.HitNodes, CaseViewer, "Search");
+			this.SetDestination(this.HitNodes[0], CaseViewer);
+			CaseViewer.ViewMap[this.HitNodes[0].Label].SVGShape.EnableHighlight();
+			this.MoveToNext(CaseViewer,()=> {
+				this.MoveFlag = false;
+			});
+		} else {
+			if (!ShiftKey) {
+				this.NodeIndex++;
+				if (this.NodeIndex == this.HitNodes.length) {
+					this.NodeIndex = 0;
 				}
 			} else {
-				if (e.keyCode == 13/*Enter*/) {
-					if (!moveFlag) {
-						if (this.HitNodes.length == 1) {
-							return;
-						}
-
-						nodeIndex--;
-						if (nodeIndex == -1) {
-							nodeIndex = this.HitNodes.length - 1 ;
-						}
-
-						NodeLabel    = this.HitNodes[nodeIndex].Label;
-						CaseMap      = caseViewer.ViewMap[NodeLabel];
-						NodePosX     = CaseMap.AbsX;
-						NodePosY     = CaseMap.AbsY;
-						currentHTML  = CaseMap.HTMLDoc;
-						destinationX = screenManager.ConvertX(NodePosX, currentHTML);
-						destinationY = screenManager.ConvertY(NodePosY, currentHTML);
-
-						moveFlag = true;
-
-						this.Move(destinationX, destinationY, 100, ()=>{
-							moveFlag = false;
-
-							if (nodeIndex == this.HitNodes.length - 1) {
-								caseViewer.ViewMap[this.HitNodes[0].Label].SVGShape.SetColor(AssureIt.Color.Searched);
-								caseViewer.ViewMap[this.HitNodes[0].Label].SVGShape.DisableHighlight();
-							} else {
-								caseViewer.ViewMap[this.HitNodes[nodeIndex+1].Label].SVGShape.SetColor(AssureIt.Color.Searched);
-								caseViewer.ViewMap[this.HitNodes[nodeIndex+1].Label].SVGShape.DisableHighlight();
-							}
-							if (!this.FirstMove) {
-								CaseMap.SVGShape.EnableHighlight();
-							}
-						});
-					}
+				this.NodeIndex--;
+				if (this.NodeIndex == -1) {
+					this.NodeIndex = this.HitNodes.length - 1;
 				}
 			}
-		};
-		$('body').keydown(this.controllSearch);
-	}
 
-	CreateSearchWindow(): void {
-		$('<nav class="navbar pull-right" style="position: absolute"><form class="navbar-form" role="Search"><input type="text" class="form-control" placeholder="Search"/><input type="submit" value="search" class="btn"/></form></nav>').appendTo($('body'));
-
-
-		$('nav').css({display: 'none', width: '260px', margin: 0, height: '24px', top: '0', right: '0' });
-
-		$('.navbar-form').css({width: '230px', position: 'absolute'});
-
-		$('.form-control').css({width: '156px', position: 'absolute'});
-
-		$('.btn').css({position: 'absolute', left: '176px'});
-	}
-
-	Color (HitNodes: AssureIt.NodeModel[], caseViewer: AssureIt.CaseViewer, funcname: string): void {
-		switch (funcname) {
-			case "Default":
-				for (var i = 0; i < HitNodes.length; i++) {
-					var thisNodeLabel: string = HitNodes[i].Label;
-					caseViewer.ViewMap[thisNodeLabel].SVGShape.SetColor(AssureIt.Color.Default);
+			this.MoveFlag = true;
+			this.SetDestination(this.HitNodes[this.NodeIndex], CaseViewer);
+			this.MoveToNext(CaseViewer, ()=> {
+				CaseViewer.ViewMap[this.HitNodes[this.NodeIndex].Label].SVGShape.EnableHighlight();
+				if (!ShiftKey) {
+					if (this.NodeIndex == 0) {
+						CaseViewer.ViewMap[this.HitNodes[this.HitNodes.length-1].Label].SVGShape.DisableHighlight();
+					} else {
+						CaseViewer.ViewMap[this.HitNodes[this.NodeIndex-1].Label].SVGShape.DisableHighlight();
+					}
+				} else {
+					if (this.NodeIndex == this.HitNodes.length - 1) {
+						CaseViewer.ViewMap[this.HitNodes[0].Label].SVGShape.DisableHighlight();
+					} else {
+						CaseViewer.ViewMap[this.HitNodes[this.NodeIndex+1].Label].SVGShape.DisableHighlight();
+					}
 				}
-				break;
-
-			case "Search":
-				for (var i = 0; i < HitNodes.length; i++) {
-					var thisNodeLabel: string = this.HitNodes[i].Label;
-					caseViewer.ViewMap[thisNodeLabel].SVGShape.SetColor(AssureIt.Color.Searched);
-				}
-				break;
+				this.MoveFlag = false;
+			});
 		}
 	}
 
+	Reset() : void {
+		this.HitNodes   = [];
+		this.NodeIndex  = 0;
+		this.SearchWord = "";
+	}
 
-	Move (logicalOffsetX: number, logicalOffsetY: number, duration: number, callback: ()=> void): void {
+	CheckInput (CaseViewer: AssureIt.CaseViewer) : boolean {
+		if ($('.form-control').val() != this.SearchWord){
+			this.SetAllNodesColor(this.HitNodes, CaseViewer, "Default");
+			this.HitNodes = [];
+			return true;
+		} else {
+			return false;
+		}
+	}
+
+	SetAllNodesColor (HitNodes: AssureIt.NodeModel[], CaseViewer: AssureIt.CaseViewer, colortheme: string): void {
+		switch (colortheme) {
+		case "Default":
+			for (var i = 0; i < HitNodes.length; i++) {
+				var thisNodeLabel: string = HitNodes[i].Label;
+				CaseViewer.ViewMap[thisNodeLabel].SVGShape.SetColor(AssureIt.Color.Default);
+				CaseViewer.ViewMap[thisNodeLabel].SVGShape.DisableHighlight();
+			}
+			break;
+		case "Search":
+			for (var i = 0; i < HitNodes.length; i++) {
+				var thisNodeLabel: string = this.HitNodes[i].Label;
+				CaseViewer.ViewMap[thisNodeLabel].SVGShape.SetColor(AssureIt.Color.Searched);
+			}
+			break;
+		}
+	}
+
+	SetDestination (HitNode: AssureIt.NodeModel, CaseViewer: AssureIt.CaseViewer) : void{
+		var CaseMap: AssureIt.NodeView = CaseViewer.ViewMap[HitNode.Label];
+		var currentHTML: AssureIt.HTMLDoc = CaseMap.HTMLDoc;
+		var screenManager: AssureIt.ScreenManager = CaseViewer.Screen;
+		var NodePosX: number = CaseMap.AbsX;
+		var NodePosY: number = CaseMap.AbsY;
+		this.DestinationX = screenManager.ConvertX(NodePosX, currentHTML);
+		this.DestinationY = screenManager.ConvertY(NodePosY, currentHTML);
+		return;
+	}
+
+	MoveToNext (CaseViewer: AssureIt.CaseViewer, callback: ()=> void) : void {
+		this.Move(this.DestinationX, this.DestinationY, 100, CaseViewer);
+		callback();
+	}
+
+	Move (logicalOffsetX: number, logicalOffsetY: number, duration: number, CaseViewer: AssureIt.CaseViewer) : void {
 		var cycle = 1000/30;
 		var cycles = duration/cycle;
-		var screenManager = this.caseViewer.Screen;
+		var screenManager = CaseViewer.Screen;
 		var initialX = screenManager.GetOffsetX();
 		var initialY = screenManager.GetOffsetY();
 
@@ -247,9 +201,22 @@ class SearchWordKeyPlugIn extends AssureIt.ShortcutKeyPlugIn {
 				setTimeout(move, cycle);
 			} else {
 				screenManager.SetLogicalOffset(logicalOffsetX, logicalOffsetY, 1);
-				callback();
+				return;
 			}
 		}
 		move();
+	}
+
+	CreateSearchWindow(): void {
+		$('<nav class="navbar pull-right" style="position: absolute"><form class="navbar-form" role="Search"><input type="text" class="form-control" placeholder="Search"/><input type="submit" value="search" class="btn"/></form></nav>').appendTo($('body'));
+
+
+		$('nav').css({display: 'none', width: '260px', margin: 0, height: '24px', top: '0', right: '0' });
+
+		$('.navbar-form').css({width: '230px', position: 'absolute'});
+
+		$('.form-control').css({width: '156px', position: 'absolute'});
+
+		$('.btn').css({position: 'absolute', left: '176px'});
 	}
 }
