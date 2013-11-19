@@ -20,21 +20,16 @@ var SearchWordKeyPlugIn = (function (_super) {
         this.plugInManager = plugInManager;
     }
     SearchWordKeyPlugIn.prototype.RegisterKeyEvents = function (caseViewer, Case0, serverApi) {
-        var Target = new Search(this.plugInManager);
+        var Target = new Search();
         Target.CreateSearchWindow();
-        $('.form-control').focus();
 
         $("body").keydown(function (e) {
             if (e.ctrlKey) {
                 if (e.keyCode == 70) {
                     e.preventDefault();
-
                     $('nav').toggle();
                     if ($('nav').css('display') == 'block') {
-                        console.log($('.form-control').val());
-                        if ($('.form-control').val() != "") {
-                            Target.Search(true, false, caseViewer, Case0);
-                        }
+                        $('.form-control').focus();
                     } else {
                         Target.SetAllNodesColor(Target.HitNodes, caseViewer, "Default");
                         Target.ResetParam();
@@ -55,7 +50,7 @@ var SearchWordKeyPlugIn = (function (_super) {
 })(AssureIt.ShortcutKeyPlugIn);
 
 var Search = (function () {
-    function Search(plugInManager) {
+    function Search() {
         this.SearchWord = "";
         this.DestinationX = 0;
         this.DestinationY = 0;
@@ -129,12 +124,12 @@ var Search = (function () {
     };
 
     Search.prototype.CheckInput = function (CaseViewer) {
-        if ($('.form-control').val() != this.SearchWord) {
+        if ($('.form-control').val() == this.SearchWord) {
+            return false;
+        } else {
             this.SetAllNodesColor(this.HitNodes, CaseViewer, "Default");
             this.HitNodes = [];
             return true;
-        } else {
-            return false;
         }
     };
 

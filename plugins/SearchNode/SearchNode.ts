@@ -19,21 +19,16 @@ class SearchWordKeyPlugIn extends AssureIt.ShortcutKeyPlugIn{
 	}
 
 	RegisterKeyEvents(caseViewer: AssureIt.CaseViewer, Case0: AssureIt.Case, serverApi: AssureIt.ServerAPI): boolean {
-		var Target : Search = new Search(this.plugInManager);
+		var Target : Search = new Search();
 		Target.CreateSearchWindow();
-		$('.form-control').focus();
 
 		$("body").keydown((e)=>{
 			if (e.ctrlKey) {
 				if (e.keyCode == 70/*f*/) {
 					e.preventDefault();
-
 					$('nav').toggle();
 					if ($('nav').css('display') == 'block') {
-						console.log($('.form-control').val());
-						if ($('.form-control').val() != "") {
-							Target.Search(true, false, caseViewer, Case0);
-						}
+						$('.form-control').focus();
 					} else {
 						Target.SetAllNodesColor(Target.HitNodes, caseViewer, "Default");
 						Target.ResetParam();
@@ -61,7 +56,7 @@ class Search {
 	MoveFlag    : boolean;
 	HitNodes    : AssureIt.NodeModel[];
 
-	constructor(plugInManager: AssureIt.PlugInManager) {
+	constructor() {
 		this.SearchWord   = "";
 		this.DestinationX = 0;
 		this.DestinationY = 0;
@@ -135,12 +130,12 @@ class Search {
 	}
 
 	CheckInput (CaseViewer: AssureIt.CaseViewer) : boolean {
-		if ($('.form-control').val() != this.SearchWord){
+		if ($('.form-control').val() == this.SearchWord){
+			return false;
+		} else {
 			this.SetAllNodesColor(this.HitNodes, CaseViewer, "Default");
 			this.HitNodes = [];
 			return true;
-		} else {
-			return false;
 		}
 	}
 
