@@ -615,7 +615,7 @@ var AssureIt;
             this.CurrentY = 0;
             this.Dx = 0;
             this.Dy = 0;
-            this.MainPointerID = 0;
+            this.MainPointerID = null;
             this.Pointers = [];
             this.timer = 0;
             this.ANIMATE_THRESHOLD = 5;

@@ -610,7 +610,7 @@ module AssureIt {
 		CurrentY: number = 0;
 		Dx: number = 0;
 		Dy: number = 0;
-		MainPointerID: number = 0;
+		MainPointerID: number = null;
 		Pointers: Pointer[] = [];
 		timer: number = 0;
 		ANIMATE_THRESHOLD =	5;
