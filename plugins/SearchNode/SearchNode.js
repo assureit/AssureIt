@@ -85,6 +85,9 @@ var Search = (function () {
                 _this.MoveFlag = false;
             });
         } else {
+            if (this.HitNodes.length == 1) {
+                return;
+            }
             if (!ShiftKey) {
                 this.NodeIndex++;
                 if (this.NodeIndex == this.HitNodes.length) {
@@ -126,7 +129,7 @@ var Search = (function () {
     };
 
     Search.prototype.CheckInput = function (CaseViewer) {
-        if ($('.form-control').val() == this.SearchWord) {
+        if ($('.form-control').val() == this.SearchWord && this.HitNodes.length > 1) {
             return false;
         } else {
             this.SetAllNodesColor(this.HitNodes, CaseViewer, "Default");
@@ -154,6 +157,9 @@ var Search = (function () {
     };
 
     Search.prototype.SetDestination = function (HitNode, CaseViewer) {
+        if (HitNode == undefined) {
+            return;
+        }
         var CaseMap = CaseViewer.ViewMap[HitNode.Label];
         var currentHTML = CaseMap.HTMLDoc;
         var screenManager = CaseViewer.Screen;
