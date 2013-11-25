@@ -40,8 +40,11 @@ var SearchWordKeyPlugIn = (function (_super) {
 
         $('.btn').click(function (ev) {
             ev.preventDefault();
-            if (!Target.MoveFlag) {
+            if (!Target.MoveFlag && $('.form-control').val() != "") {
                 Target.Search(Target.CheckInput(caseViewer), ev.shiftKey, caseViewer, Case0);
+            } else {
+                Target.SetAllNodesColor(Target.HitNodes, caseViewer, "Default");
+                Target.ResetParam();
             }
         });
         return true;
@@ -83,6 +86,9 @@ var Search = (function () {
                 _this.MoveFlag = false;
             });
         } else {
+            if (this.HitNodes.length == 1) {
+                return;
+            }
             if (!ShiftKey) {
                 this.NodeIndex++;
                 if (this.NodeIndex == this.HitNodes.length) {
@@ -124,7 +130,7 @@ var Search = (function () {
     };
 
     Search.prototype.CheckInput = function (CaseViewer) {
-        if ($('.form-control').val() == this.SearchWord) {
+        if ($('.form-control').val() == this.SearchWord && this.HitNodes.length > 1) {
             return false;
         } else {
             this.SetAllNodesColor(this.HitNodes, CaseViewer, "Default");
@@ -152,6 +158,9 @@ var Search = (function () {
     };
 
     Search.prototype.SetDestination = function (HitNode, CaseViewer) {
+        if (HitNode == undefined) {
+            return;
+        }
         var CaseMap = CaseViewer.ViewMap[HitNode.Label];
         var currentHTML = CaseMap.HTMLDoc;
         var screenManager = CaseViewer.Screen;

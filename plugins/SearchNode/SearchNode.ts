@@ -39,8 +39,11 @@ class SearchWordKeyPlugIn extends AssureIt.ShortcutKeyPlugIn{
 
 		$('.btn').click((ev: JQueryEventObject)=>{
 			ev.preventDefault();
-			if (!Target.MoveFlag) {
+			if (!Target.MoveFlag && $('.form-control').val() != "") {
 				Target.Search(Target.CheckInput(caseViewer), ev.shiftKey, caseViewer, Case0);
+			} else {
+				Target.SetAllNodesColor(Target.HitNodes, caseViewer, "Default");
+				Target.ResetParam();
 			}
 		});
 		return true;
@@ -89,6 +92,9 @@ class Search {
 				this.MoveFlag = false;
 			});
 		} else {
+			if (this.HitNodes.length == 1 ) {
+				return;
+			}
 			if (!ShiftKey) {
 				this.NodeIndex++;
 				if (this.NodeIndex == this.HitNodes.length) {
@@ -100,6 +106,7 @@ class Search {
 					this.NodeIndex = this.HitNodes.length - 1;
 				}
 			}
+
 
 			this.MoveFlag = true;
 			this.SetDestination(this.HitNodes[this.NodeIndex], CaseViewer);
@@ -130,7 +137,7 @@ class Search {
 	}
 
 	CheckInput (CaseViewer: AssureIt.CaseViewer) : boolean {
-		if ($('.form-control').val() == this.SearchWord){
+		if ($('.form-control').val() == this.SearchWord && this.HitNodes.length > 1){
 			return false;
 		} else {
 			this.SetAllNodesColor(this.HitNodes, CaseViewer, "Default");
@@ -158,6 +165,9 @@ class Search {
 	}
 
 	SetDestination (HitNode: AssureIt.NodeModel, CaseViewer: AssureIt.CaseViewer) : void{
+		if (HitNode == undefined) {
+			return;
+		}
 		var CaseMap: AssureIt.NodeView = CaseViewer.ViewMap[HitNode.Label];
 		var currentHTML: AssureIt.HTMLDoc = CaseMap.HTMLDoc;
 		var screenManager: AssureIt.ScreenManager = CaseViewer.Screen;
