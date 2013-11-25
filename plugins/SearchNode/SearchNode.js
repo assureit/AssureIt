@@ -40,8 +40,11 @@ var SearchWordKeyPlugIn = (function (_super) {
 
         $('.btn').click(function (ev) {
             ev.preventDefault();
-            if (!Target.MoveFlag) {
+            if (!Target.MoveFlag && $('.form-control').val() != "") {
                 Target.Search(Target.CheckInput(caseViewer), ev.shiftKey, caseViewer, Case0);
+            } else {
+                Target.SetAllNodesColor(Target.HitNodes, caseViewer, "Default");
+                Target.ResetParam();
             }
         });
         return true;
@@ -67,11 +70,10 @@ var Search = (function () {
             if (this.SearchWord == "") {
                 return;
             }
-
             TopNodeModel.SearchNode(this.SearchWord, this.HitNodes);
 
-            console.log(this.HitNodes);
             if (this.HitNodes.length == 0) {
+                this.SearchWord = "";
                 return;
             }
 

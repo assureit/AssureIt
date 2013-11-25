@@ -39,8 +39,11 @@ class SearchWordKeyPlugIn extends AssureIt.ShortcutKeyPlugIn{
 
 		$('.btn').click((ev: JQueryEventObject)=>{
 			ev.preventDefault();
-			if (!Target.MoveFlag) {
+			if (!Target.MoveFlag && $('.form-control').val() != "") {
 				Target.Search(Target.CheckInput(caseViewer), ev.shiftKey, caseViewer, Case0);
+			} else  {
+				Target.SetAllNodesColor(Target.HitNodes, caseViewer, "Default");
+				Target.ResetParam();
 			}
 		});
 		return true;
@@ -73,11 +76,10 @@ class Search {
 			if (this.SearchWord == "") {
 				return;
 			}
-
 			TopNodeModel.SearchNode(this.SearchWord, this.HitNodes);
 
-			console.log(this.HitNodes);
 			if (this.HitNodes.length == 0) {
+				this.SearchWord = "";
 				return;
 			}
 
