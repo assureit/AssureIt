@@ -38,7 +38,7 @@ var SearchWordKeyPlugIn = (function (_super) {
             }
         });
 
-        $('.btn').click(function (ev) {
+        $('#searchbtn').click(function (ev) {
             ev.preventDefault();
             if (!Target.MoveFlag && $('.form-control').val() != "") {
                 Target.Search(Target.CheckInput(caseViewer), ev.shiftKey, caseViewer, Case0);
@@ -205,7 +205,7 @@ var Search = (function () {
     };
 
     Search.prototype.CreateSearchWindow = function () {
-        $('<nav class="navbar pull-right" style="position: absolute"><form class="navbar-form" role="Search"><input type="text" class="form-control" placeholder="Search"/><input type="submit" value="search" class="btn"/></form></nav>').appendTo($('body'));
+        $('<nav class="navbar pull-right" style="position: absolute"><form class="navbar-form" role="Search"><input type="text" class="form-control" placeholder="Search"/><input type="submit" value="search" class="btn" id="searchbtn"/></form></nav>').appendTo($('body'));
 
         $('nav').css({ display: 'none', width: '260px', margin: 0, height: '24px', top: '0', right: '0' });
 
@@ -213,7 +213,7 @@ var Search = (function () {
 
         $('.form-control').css({ width: '156px', position: 'absolute' });
 
-        $('.btn').css({ position: 'absolute', left: '176px' });
+        $('#searchbtn').css({ position: 'absolute', left: '176px' });
     };
     return Search;
 })();
