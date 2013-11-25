@@ -608,8 +608,13 @@ module AssureIt {
 		InitialY: number = 0;
 		CurrentX: number = 0;
 		CurrentY: number = 0;
-		MainPointerID: number = 0;
+		Dx: number = 0;
+		Dy: number = 0;
+		MainPointerID: number = null;
 		Pointers: Pointer[] = [];
+		timer: number = 0;
+		ANIMATE_THRESHOLD =	5;
+		SPEED_MAX =	100;
 
 		private SetInitialOffset(InitialOffsetX: number, InitialOffsetY: number) {
 			this.InitialOffsetX = InitialOffsetX;
@@ -619,9 +624,18 @@ module AssureIt {
 		private StartDrag(InitialX: number, InitialY: number) {
 			this.InitialX = InitialX;
 			this.InitialY = InitialY;
+			this.CurrentX = InitialX;
+			this.CurrentY = InitialY;
 		}
 
 		private UpdateDrag(CurrentX: number, CurrentY: number) {
+			this.Dx = CurrentX - this.CurrentX;
+			this.Dy = CurrentY - this.CurrentY;
+			var speed: number = this.Dx * this.Dx + this.Dy + this.Dy;
+			if (speed > this.SPEED_MAX * this.SPEED_MAX) {
+				this.Dx *= ((this.SPEED_MAX * this.SPEED_MAX) / speed);
+				this.Dy *= ((this.SPEED_MAX * this.SPEED_MAX) / speed);
+			}
 			this.CurrentX = CurrentX;
 			this.CurrentY = CurrentY;
 		}
@@ -647,6 +661,12 @@ module AssureIt {
 			return this.MainPointerID != null;
 		}
 
+		private StopAnimation() {
+			clearInterval(this.timer);
+			this.Dx = 0;
+			this.Dy = 0;
+		}
+
 		OnPointerEvent(e: PointerEvent, Screen: ScreenManager) {
 			this.Pointers = e.getPointerList();
 			if (this.Pointers.length > 0) {
@@ -659,12 +679,30 @@ module AssureIt {
 						this.MainPointerID = null;
 					}
 				} else {
+					this.StopAnimation();
+					this.timer = null;
 					var mainPointer = this.Pointers[0];
 					this.MainPointerID = mainPointer.identifier;
 					this.SetInitialOffset(Screen.GetOffsetX(), Screen.GetOffsetY());
 					this.StartDrag(mainPointer.pageX, mainPointer.pageY);
 				}
 			} else {
+				if (this.IsDragging()) {
+					if (this.timer) {
+						this.StopAnimation();
+						this.timer = null;
+					}
+					this.timer = setInterval( () => {
+						if (Math.abs(this.Dx) < this.ANIMATE_THRESHOLD && Math.abs(this.Dy) < this.ANIMATE_THRESHOLD) {
+							this.StopAnimation();
+						}
+						this.CurrentX += this.Dx;
+						this.CurrentY += this.Dy;
+						this.Dx *= 0.95;
+						this.Dy *= 0.95;
+						Screen.SetOffset(this.CalcOffsetX(), this.CalcOffsetY());
+					} , 16);
+				}
 				this.MainPointerID = null;
 			}
 		}
