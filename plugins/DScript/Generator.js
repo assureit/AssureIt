@@ -50,7 +50,11 @@ var DScriptGenerator = (function () {
     };
 
     DScriptGenerator.prototype.GenerateDShellDecl = function () {
-        return "require dshell;" + this.LineFeed + this.LineFeed;
+        var ret = "";
+        ret += "class DFault;" + this.LineFeed;
+        ret += "let LOCATION = \"ServerA\";" + this.LineFeed;
+        ret += this.LineFeed;
+        return ret;
     };
     DScriptGenerator.prototype.GenerateRuntimeContextDecl = function () {
         return "class RuntimeContext {" + this.LineFeed + "}" + this.LineFeed + this.LineFeed;

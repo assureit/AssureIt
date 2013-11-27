@@ -76,7 +76,12 @@ class DScriptGenerator {
 	}
 
 	GenerateDShellDecl(): string {
-		return "require dshell;" + this.LineFeed + this.LineFeed;
+//		return "require dshell;" + this.LineFeed + this.LineFeed;
+		var ret: string = ""
+		ret += "class DFault;" + this.LineFeed;
+		ret += "let LOCATION = \"ServerA\";" + this.LineFeed;
+		ret += this.LineFeed;
+		return ret;
 	}
 	GenerateRuntimeContextDecl(): string {
 		return "class RuntimeContext {" + this.LineFeed + "}" + this.LineFeed + this.LineFeed;
@@ -206,8 +211,8 @@ class DScriptGenerator {
 			//pass
 		}
 		else {
-			//res += this.GenerateDShellDecl();
-			//res += this.GenerateRuntimeContextDecl();
+			//ret += this.GenerateDShellDecl();
+			//ret += this.GenerateRuntimeContextDecl();
 			ret += this.GenerateNodeFunction(rootNode);
 // 			if (this.genMainFunctionFlag) {
 // 				ret += GenerateMainFunction();

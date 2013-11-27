@@ -375,6 +375,7 @@ class DScriptEditorPlugIn extends AssureIt.ActionPlugIn {
   			this.UpdateNodeRelationTable(nodeRelation);
  			this.UpdateActionRelationTable(actionRelation);
 //			this.UpdateLineComment(this.ASNEditor, this.Widgets, generator);
+			(<any>this).TypeCheck();
 		}
 		catch(e) {
 			//TODO:

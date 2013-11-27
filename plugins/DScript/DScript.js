@@ -319,6 +319,8 @@ var DScriptEditorPlugIn = (function (_super) {
             this.UpdateDScriptViewer(script);
             this.UpdateNodeRelationTable(nodeRelation);
             this.UpdateActionRelationTable(actionRelation);
+
+            (this).TypeCheck();
         } catch (e) {
             console.log("DScript plugin : error occured in UpdateAll");
             console.log(e);
