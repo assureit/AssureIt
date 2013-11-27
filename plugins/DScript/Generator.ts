@@ -124,9 +124,9 @@ class DScriptGenerator {
 
 		/* Call Action Function */
 		ret += this.Indent + "DFault ret = null;" + this.LineFeed;
-		ret += this.Indent + "if(Location == LOCATION) {" + this.LineFeed;
-		ret += this.Indent + this.Indent + "ret = dlog " + funcName + ";" + this.LineFeed;
-		ret += this.Indent + "}" + this.LineFeed;
+		//ret += this.Indent + "if(Location == LOCATION) {" + this.LineFeed;
+		ret += this.Indent + "ret = dlog " + funcName + ";" + this.LineFeed;
+		//ret += this.Indent + "}" + this.LineFeed;
 		ret += this.Indent + "return ret;" + this.LineFeed;
 
 		return ret;
