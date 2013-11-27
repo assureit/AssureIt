@@ -1,6 +1,11 @@
 DScriptEditorPlugIn.prototype.TypeCheck = function() {
-	var dummy_decl = "class DFault {};\nlet LOCATION = \"UnKnown\";\n";
 	var src = this.DScriptViewer.getValue();
+	var dummy_decl = ""
+		+ "class DFault {};\n"
+		+ "let LOCATION = \"UnKnown\";\n"
+		+ "int GetDataFromRec(String Location, String Type) { return 0; }"
+		+ "DFault fault(String FaultInfo) { return null; }";
+
 	try{
 		LibGreenTea.Program = "";
 		LibGreenTea.WriteCode = function(OutputFile, SourceCode) {
