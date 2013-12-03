@@ -55,7 +55,7 @@ class DScriptEditorPlugIn extends AssureIt.ActionPlugIn {
 		super(plugInManager);
 		var self = this;
 
-		this.Generator = new DScriptGenerator();
+		this.Generator = new DShellCodeGenerator();
 
 		this.ASNEditor = new CodeMirror($("<div/>").get(0), {
 			lineNumbers: true,
@@ -364,7 +364,7 @@ class DScriptEditorPlugIn extends AssureIt.ActionPlugIn {
 		try {
 			this.DecodeASN();
  			this.RootNodeModel.UpdateEnvironment();
- 			var script = this.Generator.CodeGen(this.RootNodeModel);
+ 			var script = this.RootNodeModel.CodeGen(this.Generator);
 			var dscriptActionMap: DScriptActionMap = new DScriptActionMap(this.RootNodeModel);
  			var nodeRelation = dscriptActionMap.GetNodeRelation();
  			var actionRelation = dscriptActionMap.GetActionRelation();

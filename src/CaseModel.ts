@@ -199,6 +199,7 @@ module AssureIt {
 		//	return recall;
 		//}
 
+		/*FIX ME!! for DScript*/
 		UpdateEnvironment(proto = {}): void {
 			var env = null;
 			var context = this.GetContext();
@@ -219,7 +220,26 @@ module AssureIt {
 				this.Children[i].UpdateEnvironment(env);
 			}
 		}
-
+		CodeGen(generator: DScriptGenerator): string {
+			var ret: string = "";
+			for (var i: number = 0; i < this.Children.length; i++) {
+				ret += this.Children[i].CodeGen(generator);
+			}
+			if (this.Type == NodeType.Goal) {
+				ret += generator.VisitGoalNode(this);
+			}
+			else if (this.Type == NodeType.Context) {
+				ret += generator.VisitContextNode(this);
+			}
+			else if (this.Type == NodeType.Strategy) {
+				ret += generator.VisitStrategyNode(this);
+			}
+			else if (this.Type == NodeType.Evidence) {
+				ret += generator.VisitEvidenceNode(this);
+			}
+			ret += generator.LineFeed;
+			return ret;
+		}
 	}
 
 	export class Case {

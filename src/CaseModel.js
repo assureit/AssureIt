@@ -194,6 +194,23 @@ var AssureIt;
                 this.Children[i].UpdateEnvironment(env);
             }
         };
+        NodeModel.prototype.CodeGen = function (generator) {
+            var ret = "";
+            for (var i = 0; i < this.Children.length; i++) {
+                ret += this.Children[i].CodeGen(generator);
+            }
+            if (this.Type == NodeType.Goal) {
+                ret += generator.VisitGoalNode(this);
+            } else if (this.Type == NodeType.Context) {
+                ret += generator.VisitContextNode(this);
+            } else if (this.Type == NodeType.Strategy) {
+                ret += generator.VisitStrategyNode(this);
+            } else if (this.Type == NodeType.Evidence) {
+                ret += generator.VisitEvidenceNode(this);
+            }
+            ret += generator.LineFeed;
+            return ret;
+        };
         return NodeModel;
     })();
     AssureIt.NodeModel = NodeModel;
