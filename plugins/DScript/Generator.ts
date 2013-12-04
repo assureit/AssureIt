@@ -18,6 +18,9 @@ class DScriptGenerator {
 	VisitContextNode(node: AssureIt.NodeModel): string {
 		return "";
 	}
+	GenerateMainFunction(): string {
+		return "";
+	}
 };
 
 class DShellCodeGenerator extends DScriptGenerator {
@@ -107,6 +110,11 @@ class DShellCodeGenerator extends DScriptGenerator {
 		ret += "DFault " + node.Label + "() {" + this.LineFeed;
 		ret += this.Indent + "return null;" + this.LineFeed;
 		ret += "}" + this.LineFeed;
+		return ret;
+	}
+
+	GenerateMainFunction(): string { //TODO
+		var ret: string = "";
 		return ret;
 	}
 }

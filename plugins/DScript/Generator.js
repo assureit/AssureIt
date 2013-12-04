@@ -22,6 +22,9 @@ var DScriptGenerator = (function () {
     DScriptGenerator.prototype.VisitContextNode = function (node) {
         return "";
     };
+    DScriptGenerator.prototype.GenerateMainFunction = function () {
+        return "";
+    };
     return DScriptGenerator;
 })();
 ;
@@ -109,6 +112,11 @@ var DShellCodeGenerator = (function (_super) {
         ret += "DFault " + node.Label + "() {" + this.LineFeed;
         ret += this.Indent + "return null;" + this.LineFeed;
         ret += "}" + this.LineFeed;
+        return ret;
+    };
+
+    DShellCodeGenerator.prototype.GenerateMainFunction = function () {
+        var ret = "";
         return ret;
     };
     return DShellCodeGenerator;

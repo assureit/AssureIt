@@ -309,10 +309,10 @@ var DScriptEditorPlugIn = (function (_super) {
         try  {
             this.DecodeASN();
             this.RootNodeModel.UpdateEnvironment();
-            var script = this.RootNodeModel.CodeGen(this.Generator);
             var dscriptActionMap = new DScriptActionMap(this.RootNodeModel);
             var nodeRelation = dscriptActionMap.GetNodeRelation();
             var actionRelation = dscriptActionMap.GetActionRelation();
+            var script = this.RootNodeModel.CodeGen(this.Generator);
             ret.script.main = script;
             ret.meta.actionmap = nodeRelation;
             this.UpdateASNEditor(null);
