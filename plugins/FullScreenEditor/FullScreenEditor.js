@@ -195,6 +195,7 @@ var FullScreenEditorActionPlugIn = (function (_super) {
                         case0.ElementMap = orig_ElementMap;
                         case0.IdCounters = orig_idCounters;
                     }
+                    caseViewer.DeleteHTMLElementAll();
                     caseViewer.Draw();
 
                     caseViewer.Draw();

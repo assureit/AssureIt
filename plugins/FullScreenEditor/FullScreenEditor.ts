@@ -209,6 +209,7 @@ class FullScreenEditorActionPlugIn extends AssureIt.ActionPlugIn {
 							case0.ElementMap = orig_ElementMap;
 							case0.IdCounters = orig_idCounters;
 						}
+						caseViewer.DeleteHTMLElementAll();
 						caseViewer.Draw();
 						/* TODO We need to Draw twice for some unknown reason */ 
 						caseViewer.Draw();
