@@ -49,7 +49,7 @@ class ListPattern extends Pattern {
 	parentModel: AssureIt.NodeModel;
 	Match(model: AssureIt.NodeModel): boolean {
 		return this.Type(model, this.Context, () => {
-			return this.Note(model, "Risk", (value: string) => {
+			return this.Note(model, "List", (value: string) => {
 				this.ListItem = value.split(",");
 				for (var i in this.ListItem) {
 					this.ListItem[i] = this.ListItem[i].replace(/[ ]$/g, "");	

@@ -59,7 +59,7 @@ var ListPattern = (function (_super) {
     ListPattern.prototype.Match = function (model) {
         var _this = this;
         return this.Type(model, this.Context, function () {
-            return _this.Note(model, "Risk", function (value) {
+            return _this.Note(model, "List", function (value) {
                 _this.ListItem = value.split(",");
                 for (var i in _this.ListItem) {
                     _this.ListItem[i] = _this.ListItem[i].replace(/[ ]$/g, "");
