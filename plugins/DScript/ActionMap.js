@@ -1,163 +1,138 @@
 var DScriptActionMap = (function () {
-    function DScriptActionMap(RootNode) {
-        this.NodeRelation = {};
+    function DScriptActionMap(root) {
+        this.NodeRelations = [];
         this.ActionRelation = {};
-        this.RootNode = RootNode;
-        this.Extract();
+        this.RootNode = root;
+        this.ErrorInfo = [];
+        this.ElementMap = this.CreateLocalElementMap(root);
+        this.ExtractRelation();
     }
-    DScriptActionMap.prototype.SearchNodeByType = function (root, type) {
-        var ret = [];
-        if (root.Type == type) {
-            ret.push(root);
-        }
-        for (var i = 0; i < root.Children.length; i++) {
-            var child = root.Children[i];
-            ret = ret.concat(this.SearchNodeByType(child, type));
+    DScriptActionMap.prototype.CreateLocalElementMap = function (root) {
+        var ret = {};
+        var list = this.ExtractNode(root, function (node) {
+            return true;
+        }, -1, AssureIt.Direction.Bottom);
+        for (var i = 0; i < list.length; i++) {
+            var node = list[i];
+            ret[node.Label] = node;
         }
         return ret;
     };
 
-    DScriptActionMap.prototype.GenNodeRelation = function (node) {
-        var ret = null;
-        var action = node.GetNote("Reaction");
-        if (!(action == null)) {
-            var reaction = node.Parent.Label;
-            ret = {
-                "action": action,
-                "reaction": reaction,
-                "actiontype": "Monitor",
-                "risk": "*"
-            };
-        }
-        return ret;
-    };
-    DScriptActionMap.prototype.AddNodeRelation = function (nodeRelation) {
-        this.NodeRelation[nodeRelation["action"]] = nodeRelation;
-    };
-
-    DScriptActionMap.prototype.GenActionRelation = function (actionNode, reactionNode, risk, location) {
-        var ret = null;
-        var action = actionNode.GetNote("Action");
-        if (!(action == null)) {
-            var reaction = null;
-            var reactionNodeLabel = null;
-            if (reactionNode != null) {
-                reactionNodeLabel = reactionNode.Label;
-                reaction = reactionNode.GetNote("Action");
-                reaction = (reaction != null ? reaction : "-");
-            } else {
-                reactionNodeLabel = "*";
-                reaction = "ManagerCall()";
-            }
-            ret = {
-                "action": {
-                    "node": actionNode.Label,
-                    "func": action
-                },
-                "reaction": {
-                    "node": reactionNodeLabel,
-                    "func": reaction
-                },
-                "risk": risk,
-                "location": location
-            };
-        }
-        return ret;
-    };
-    DScriptActionMap.prototype.AddActionRelation = function (actionRelation) {
-        var key = actionRelation["action"]["func"];
-        if (key in this.ActionRelation) {
-            var i = 1;
-            do {
-                var newKey = key + String(i);
-                i++;
-            } while(newKey in this.ActionRelation);
-            this.ActionRelation[newKey] = actionRelation;
+    DScriptActionMap.CreateNodeRelation = function (src, dist, type) {
+        var ret = {};
+        if (src != null) {
+            ret["node"] = src.Label;
         } else {
-            this.ActionRelation[key] = actionRelation;
+            ret["node"] = "*";
         }
+        if (dist != null) {
+            ret[type] = dist.Label;
+        } else {
+            ret[type] = "*";
+        }
+        return ret;
     };
 
-    DScriptActionMap.prototype.Extract = function () {
-        var case0 = this.RootNode.Case;
-        var elementMap = case0.ElementMap;
-        for (var key in elementMap) {
-            var node = elementMap[key];
-            if (node.Type != AssureIt.NodeType.Context)
-                continue;
-            var nodeRelation = this.GenNodeRelation(node);
-            if (nodeRelation == null)
-                continue;
-            this.AddNodeRelation(nodeRelation);
-        }
+    DScriptActionMap.prototype.AddNodeRelation = function (relation) {
+        this.NodeRelations.push(relation);
+    };
 
-        var riskRelation = {};
-        for (var key in this.NodeRelation) {
-            if (!(key in elementMap)) {
-                var reactionNodes = this.SearchNodeByType(elementMap[this.NodeRelation[key]["reaction"]], AssureIt.NodeType.Evidence);
-                riskRelation[key] = reactionNodes;
+    DScriptActionMap.prototype.ExtractNode = function (root, thFunc, maxDepth, dir) {
+        var ret = [];
+        if (maxDepth != 0) {
+            var searchList;
+            if (dir == AssureIt.Direction.Top) {
+                searchList = [root.Parent];
+            } else if (dir == AssureIt.Direction.Bottom) {
+                searchList = root.Children;
+            } else if (dir == null) {
+                searchList = root.Children.concat(root.Parent);
             } else {
-                var actionNodes = this.SearchNodeByType(elementMap[this.NodeRelation[key]["action"]], AssureIt.NodeType.Evidence);
-                var reactionNodes = this.SearchNodeByType(elementMap[this.NodeRelation[key]["reaction"]], AssureIt.NodeType.Evidence);
-                for (var i = 0; i < actionNodes.length; i++) {
-                    var actionNode = actionNodes[i];
-                    var location = actionNode.Environment.Location;
-                    for (var j = 0; j < reactionNodes.length; j++) {
-                        var reactionNode = reactionNodes[j];
-                        var actionRelation = this.GenActionRelation(actionNode, reactionNode, "*", location != null ? location : "*");
-                        if (actionRelation == null)
-                            continue;
-                        this.AddActionRelation(actionRelation);
-                        reactionNode.Case = null;
+                searchList = [];
+            }
+            for (var i = 0; i < searchList.length; i++) {
+                ret = ret.concat(this.ExtractNode(searchList[i], thFunc, maxDepth - 1, dir));
+            }
+        }
+        if (thFunc.call(this, root)) {
+            ret = ret.concat(root);
+        }
+        return ret;
+    };
+
+    DScriptActionMap.prototype.ExtractReactionRelation = function () {
+        var reactionNodes = this.ExtractNode(this.RootNode, function (node) {
+            var ret = false;
+            if (node.GetNote("Reaction") != null) {
+                if (node.Type == AssureIt.NodeType.Context) {
+                    ret = true;
+                } else {
+                    this.ErrorInfo.push("node ${LABEL} is not Context, but has Reaction info (ignored)".replace("${LABEL}", node.Label));
+                }
+            }
+            return ret;
+        }, -1, AssureIt.Direction.Bottom);
+
+        for (var i = 0; i < reactionNodes.length; i++) {
+            var reactionNode = reactionNodes[i];
+            var reactionValue = reactionNode.GetNote("Reaction");
+            var src = this.ElementMap[reactionValue];
+            var dist = reactionNode.Parent;
+            if (src != null) {
+                var relation = DScriptActionMap.CreateNodeRelation(src, dist, "reaction");
+                this.AddNodeRelation(relation);
+            } else {
+                var srcList = this.ExtractNode(this.RootNode, function (node) {
+                    var ret = false;
+                    if (node.Type == AssureIt.NodeType.Evidence && node.Environment["Risk"] == reactionValue)
+                        ret = true;
+                    return ret;
+                }, -1, AssureIt.Direction.Bottom);
+                if (srcList.length == 0) {
+                    this.ErrorInfo.push("invalid Reaction target ${TARGET} (ignored)".replace("${TARGET}", reactionValue));
+                } else {
+                    for (var j = 0; j < srcList.length; j++) {
+                        var relation = DScriptActionMap.CreateNodeRelation(srcList[j], dist, "reaction");
+                        this.AddNodeRelation(relation);
                     }
-                    actionNode.Case = null;
                 }
             }
         }
-
-        for (var key in elementMap) {
-            var node = elementMap[key];
-            if (node.Type != AssureIt.NodeType.Evidence)
-                continue;
-            if (node.Case == null) {
-                node.Case = case0;
-                continue;
-            }
-            var risk = node.Environment.Risk;
-            var location = node.Environment.Location;
-            location = (location != null ? location : "*");
-            if (risk != null && risk in riskRelation) {
-                var reactionNodes = riskRelation[risk];
-                for (var i = 0; i < reactionNodes.length; i++) {
-                    var reactionNode = reactionNodes[i];
-                    var actionRelation = this.GenActionRelation(node, reactionNode, risk, location);
-                    if (actionRelation == null)
-                        continue;
-                    this.AddActionRelation(actionRelation);
-                    if (reactionNode.GetNote("Action") in this.ActionRelation) {
-                        delete this.ActionRelation[reactionNode.GetNote("Action")];
-                    } else {
-                        reactionNode.Case = null;
-                        this.NodeRelation[key] = $.extend(true, {}, this.NodeRelation[risk]);
-                        this.NodeRelation[key]["action"] = node.Label;
-                        this.NodeRelation[key]["risk"] = risk;
-                    }
+    };
+    DScriptActionMap.prototype.ExtractPresumeRelation = function () {
+        var presumeNodes = this.ExtractNode(this.RootNode, function (node) {
+            var ret = false;
+            if (node.GetNote("Presume") != null) {
+                if (node.Type == AssureIt.NodeType.Context) {
+                    ret = true;
+                } else {
+                    this.ErrorInfo.push("node ${LABEL} is not Context, but has Presume info (ignored)".replace("${LABEL}", node.Label));
                 }
-            } else {
-                var actionRelation = this.GenActionRelation(node, null, "*", location);
-                if (actionRelation == null)
-                    continue;
-                this.AddActionRelation(actionRelation);
             }
-        }
-        for (var key in riskRelation) {
-            if (key in this.NodeRelation)
-                delete this.NodeRelation[key];
+            return ret;
+        }, -1, AssureIt.Direction.Bottom);
+
+        for (var i = 0; i < presumeNodes.length; i++) {
+            var presumeNode = presumeNodes[i];
+            var presumeValue = presumeNode.GetNote("Presume");
+            var src = this.ElementMap[presumeValue];
+            var dist = presumeNode.Parent;
+            if (src != null) {
+                var relation = DScriptActionMap.CreateNodeRelation(src, dist, "presume");
+                this.AddNodeRelation(relation);
+            } else {
+                this.ErrorInfo.push("invalid Presume target ${TARGET} (ignored)".replace("${TARGET}", presumeValue));
+            }
         }
     };
+    DScriptActionMap.prototype.ExtractRelation = function () {
+        this.ExtractReactionRelation();
+        this.ExtractPresumeRelation();
+    };
 
-    DScriptActionMap.prototype.GetNodeRelation = function () {
-        return this.NodeRelation;
+    DScriptActionMap.prototype.GetNodeRelations = function () {
+        return this.NodeRelations;
     };
 
     DScriptActionMap.prototype.GetActionRelation = function () {

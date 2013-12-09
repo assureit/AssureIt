@@ -310,17 +310,16 @@ var DScriptEditorPlugIn = (function (_super) {
             this.DecodeASN();
             this.RootNodeModel.UpdateEnvironment();
             var dscriptActionMap = new DScriptActionMap(this.RootNodeModel);
-            var nodeRelation = dscriptActionMap.GetNodeRelation();
+            console.log(dscriptActionMap);
+
             var actionRelation = dscriptActionMap.GetActionRelation();
             var script = this.RootNodeModel.CodeGen(this.Generator);
             ret.script.main = script;
-            ret.meta.actionmap = nodeRelation;
+
             this.UpdateASNEditor(null);
             this.UpdateDScriptViewer(script);
-            this.UpdateNodeRelationTable(nodeRelation);
-            this.UpdateActionRelationTable(actionRelation);
 
-            (this).TypeCheck();
+            this.UpdateActionRelationTable(actionRelation);
         } catch (e) {
             console.log("DScript plugin : error occured in UpdateAll");
             console.log(e);
