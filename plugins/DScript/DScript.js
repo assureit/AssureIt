@@ -312,14 +312,11 @@ var DScriptEditorPlugIn = (function (_super) {
             var dscriptActionMap = new DScriptActionMap(this.RootNodeModel);
             console.log(dscriptActionMap);
 
-            var actionRelation = dscriptActionMap.GetActionRelation();
             var script = this.RootNodeModel.CodeGen(this.Generator);
             ret.script.main = script;
 
             this.UpdateASNEditor(null);
             this.UpdateDScriptViewer(script);
-
-            this.UpdateActionRelationTable(actionRelation);
         } catch (e) {
             console.log("DScript plugin : error occured in UpdateAll");
             console.log(e);

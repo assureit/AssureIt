@@ -367,14 +367,14 @@ class DScriptEditorPlugIn extends AssureIt.ActionPlugIn {
 			var dscriptActionMap: DScriptActionMap = new DScriptActionMap(this.RootNodeModel);
 			console.log(dscriptActionMap);
 // 			var nodeRelation = dscriptActionMap.GetNodeRelation();
- 			var actionRelation = dscriptActionMap.GetActionRelation();
+// 			var actionRelation = dscriptActionMap.GetActionRelation();
  			var script = this.RootNodeModel.CodeGen(this.Generator);
   			ret.script.main = script;
 //  			ret.meta.actionmap = nodeRelation;
 			this.UpdateASNEditor(null);
  			this.UpdateDScriptViewer(script);
 //  			this.UpdateNodeRelationTable(nodeRelation);
- 			this.UpdateActionRelationTable(actionRelation);
+// 			this.UpdateActionRelationTable(actionRelation);
 //			this.UpdateLineComment(this.ASNEditor, this.Widgets, generator);
 //			(<any>this).TypeCheck();
 		}
