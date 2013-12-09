@@ -69,8 +69,9 @@ var DScriptEditorPlugIn = (function (_super) {
         this.ActionRelationTable = this.CreateTable(["Location", "Goal", "FailureRisk", "Action"], {
             bAutoWidth: false,
             fnRowCallback: function (nRow, aData, iDisplayIndex, iDisplayIndexFull) {
+                var location = aData[0];
                 var action = aData[3];
-                if (action.match(/\*/) != null || action.match(/-/) != null) {
+                if (location == "Undefined" || action.match(/Undefined : E[0-9]+/) != null || action == "NotExists") {
                     var $nRow = $(nRow);
                     if ($nRow.hasClass("odd")) {
                         $nRow.children().css("background-color", "#FFDDDD");
@@ -231,10 +232,10 @@ var DScriptEditorPlugIn = (function (_super) {
         }
         this.DScriptViewer.refresh();
     };
-    DScriptEditorPlugIn.prototype.UpdateNodeRelationTable = function (relationMap) {
+    DScriptEditorPlugIn.prototype.UpdateNodeRelationTable = function (nodeRelationMap) {
         (this.NodeRelationTable).fnClearTable();
-        for (var key in relationMap) {
-            var relation = relationMap[key];
+        for (var key in nodeRelationMap) {
+            var relation = nodeRelationMap[key];
             var data = [
                 relation.BaseNode,
                 relation.ReactionsToString(),
@@ -243,26 +244,32 @@ var DScriptEditorPlugIn = (function (_super) {
             (this.NodeRelationTable).fnAddData(data);
         }
     };
-    DScriptEditorPlugIn.prototype.UpdateActionRelationTable = function (actionRelation) {
+    DScriptEditorPlugIn.prototype.UpdateActionRelationTable = function (actionRelations) {
         (this.ActionRelationTable).fnClearTable();
-        var elementMap = this.RootNodeModel.Case.ElementMap;
-        for (var key in actionRelation) {
-            var relationMap = actionRelation[key];
-            var goal = elementMap[relationMap["action"]["node"]];
-            while (goal.Type != AssureIt.NodeType.Goal) {
-                if (goal.Parent != null) {
-                    goal = goal.Parent;
-                } else {
-                    throw "in DScriptPlugIn, UpdateActionRelationTable Error";
+        for (var j = 0; j < actionRelations.length; j++) {
+            var actionRelation = actionRelations[j];
+            var targetNode = actionRelation.GetTargetNode();
+            var reactionNodes = actionRelation.GetReactionNodes();
+            if (reactionNodes.length == 0) {
+                var data = [
+                    reactionNode.Environment.Location != null ? reactionNode.Environment.Location : "Undefined",
+                    (targetNode.Statement != null ? targetNode.Statement : "NoStatement") + " : " + targetNode.Label,
+                    actionRelation.Risk != null ? actionRelation.Risk : "*",
+                    "NotExists"
+                ];
+                (this.ActionRelationTable).fnAddData(data);
+            } else {
+                for (var i = 0; i < reactionNodes.length; i++) {
+                    var reactionNode = reactionNodes[i];
+                    var data = [
+                        reactionNode.Environment.Location != null ? reactionNode.Environment.Location : "Undefined",
+                        (targetNode.Statement != null ? targetNode.Statement : "NoStatement") + " : " + targetNode.Label,
+                        actionRelation.Risk != null ? actionRelation.Risk : "*",
+                        (reactionNode.GetNote("Action") != null ? reactionNode.GetNote("Action") : "Undefined") + " : " + reactionNode.Label
+                    ];
+                    (this.ActionRelationTable).fnAddData(data);
                 }
             }
-            var data = [
-                relationMap["location"],
-                goal.Statement + " : " + goal.Label,
-                relationMap["risk"],
-                relationMap["reaction"]["func"] + " : " + relationMap["reaction"]["node"]
-            ];
-            (this.ActionRelationTable).fnAddData(data);
         }
     };
 
@@ -311,14 +318,15 @@ var DScriptEditorPlugIn = (function (_super) {
             this.RootNodeModel.UpdateEnvironment();
             var dscriptActionMap = new DScriptActionMap(this.RootNodeModel);
             console.log(dscriptActionMap);
-            var relationMap = dscriptActionMap.GetRelationMap();
-
+            var nodeRelationMap = dscriptActionMap.GetNodeRelationMap();
+            var actionRelations = dscriptActionMap.GetActionRelations();
             var script = this.RootNodeModel.CodeGen(this.Generator);
             ret.script.main = script;
 
             this.UpdateASNEditor(null);
             this.UpdateDScriptViewer(script);
-            this.UpdateNodeRelationTable(relationMap);
+            this.UpdateNodeRelationTable(nodeRelationMap);
+            this.UpdateActionRelationTable(actionRelations);
         } catch (e) {
             console.log("DScript plugin : error occured in UpdateAll");
             console.log(e);

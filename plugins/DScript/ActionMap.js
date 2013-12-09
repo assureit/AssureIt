@@ -39,11 +39,63 @@ var DScriptNodeRelation = (function () {
     return DScriptNodeRelation;
 })();
 
+var DScriptActionRelation = (function () {
+    function DScriptActionRelation(src, dist, risk) {
+        this.SrcNode = src;
+        this.DistNode = dist;
+        this.Risk = risk;
+    }
+    DScriptActionRelation.prototype.GetTargetNode = function () {
+        var ret = this.SrcNode;
+        while (ret.Type != AssureIt.NodeType.Goal) {
+            if (ret.Parent != null) {
+                ret = ret.Parent;
+            } else {
+                throw "in DScriptPlugIn, UpdateActionRelationTable Error";
+            }
+        }
+        return ret;
+    };
+
+    DScriptActionRelation.prototype.ExtractNode = function (root, thFunc, maxDepth, dir) {
+        var ret = [];
+        if (maxDepth != 0) {
+            var searchList;
+            if (dir == AssureIt.Direction.Top) {
+                searchList = [root.Parent];
+            } else if (dir == AssureIt.Direction.Bottom) {
+                searchList = root.Children;
+            } else if (dir == null) {
+                searchList = root.Children.concat(root.Parent);
+            } else {
+                searchList = [];
+            }
+            for (var i = 0; i < searchList.length; i++) {
+                ret = ret.concat(this.ExtractNode(searchList[i], thFunc, maxDepth - 1, dir));
+            }
+        }
+        if (thFunc.call(this, root)) {
+            ret = ret.concat(root);
+        }
+        return ret;
+    };
+    DScriptActionRelation.prototype.GetReactionNodes = function () {
+        return this.ExtractNode(this.DistNode, function (node) {
+            if (node.Type == AssureIt.NodeType.Evidence) {
+                return true;
+            } else {
+                return false;
+            }
+        }, -1, AssureIt.Direction.Bottom);
+    };
+    return DScriptActionRelation;
+})();
+
 var DScriptActionMap = (function () {
     function DScriptActionMap(root) {
         this.ErrorInfo = [];
         this.RootNode = root;
-        this.RelationMap = {};
+        this.NodeRelationMap = {};
         this.ElementMap = this.CreateLocalElementMap(root);
         this.ExtractRelation();
     }
@@ -61,12 +113,12 @@ var DScriptActionMap = (function () {
 
     DScriptActionMap.prototype.GetOrCreateNodeRelation = function (label) {
         var relation;
-        if (label in this.RelationMap) {
-            relation = this.RelationMap[label];
+        if (label in this.NodeRelationMap) {
+            relation = this.NodeRelationMap[label];
         } else {
             relation = new DScriptNodeRelation();
             relation.BaseNode = label;
-            this.RelationMap[label] = relation;
+            this.NodeRelationMap[label] = relation;
         }
         return relation;
     };
@@ -151,7 +203,7 @@ var DScriptActionMap = (function () {
             } else {
                 var srcList = this.ExtractNode(this.RootNode, function (node) {
                     var ret = false;
-                    if (node.Type == AssureIt.NodeType.Evidence && node.Environment["Risk"] == reactionValue)
+                    if (node.Type == AssureIt.NodeType.Evidence && node.Environment.Risk == reactionValue)
                         ret = true;
                     return ret;
                 }, -1, AssureIt.Direction.Bottom);
@@ -199,8 +251,20 @@ var DScriptActionMap = (function () {
         this.ExtractPresumeRelation();
     };
 
-    DScriptActionMap.prototype.GetRelationMap = function () {
-        return this.RelationMap;
+    DScriptActionMap.prototype.GetNodeRelationMap = function () {
+        return this.NodeRelationMap;
+    };
+    DScriptActionMap.prototype.GetActionRelations = function () {
+        var ret = [];
+        for (var key in this.NodeRelationMap) {
+            var nodeRelation = this.NodeRelationMap[key];
+            for (var i = 0; i < nodeRelation.Reactions.length; i++) {
+                var actionRelation = new DScriptActionRelation(this.ElementMap[nodeRelation.BaseNode], this.ElementMap[nodeRelation.Reactions[i]["dist"]], nodeRelation.Reactions[i]["risk"]);
+                ret.push(actionRelation);
+            }
+        }
+        console.log(ret);
+        return ret;
     };
     return DScriptActionMap;
 })();

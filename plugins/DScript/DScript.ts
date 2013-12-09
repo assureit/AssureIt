@@ -85,8 +85,11 @@ class DScriptEditorPlugIn extends AssureIt.ActionPlugIn {
 			{
 				bAutoWidth : false,
 				fnRowCallback : function(nRow, aData, iDisplayIndex, iDisplayIndexFull) {
+					var location = aData[0];
 					var action = aData[3];
-					if (action.match(/\*/) != null || action.match(/-/) != null) {
+					if (location == "Undefined" ||
+						action.match(/Undefined : E[0-9]+/) != null ||
+						action == "NotExists") {
 						var $nRow = $(nRow);
 						if ($nRow.hasClass("odd")) {
 							$nRow.children().css("background-color", "#FFDDDD");
@@ -280,10 +283,10 @@ class DScriptEditorPlugIn extends AssureIt.ActionPlugIn {
 		}
 		this.DScriptViewer.refresh();
 	}
-	UpdateNodeRelationTable(relationMap: { [index: string]: DScriptNodeRelation }): void {
+	UpdateNodeRelationTable(nodeRelationMap: { [index: string]: DScriptNodeRelation }): void {
 		(<any>this.NodeRelationTable).fnClearTable();
-		for (var key in relationMap) {
-			var relation: DScriptNodeRelation = relationMap[key];
+		for (var key in nodeRelationMap) {
+			var relation: DScriptNodeRelation = nodeRelationMap[key];
 			var data = [
 				relation.BaseNode,
 				relation.ReactionsToString(),
@@ -292,28 +295,33 @@ class DScriptEditorPlugIn extends AssureIt.ActionPlugIn {
 			(<any>this.NodeRelationTable).fnAddData(data);
 		}
 	}
-	UpdateActionRelationTable(actionRelation): void {
+	UpdateActionRelationTable(actionRelations: DScriptActionRelation[]): void {
 		(<any>this.ActionRelationTable).fnClearTable();
-		var elementMap = this.RootNodeModel.Case.ElementMap;
-		for (var key in actionRelation) {
-			var relationMap = actionRelation[key];
-			var goal = elementMap[relationMap["action"]["node"]];
-			while (goal.Type != AssureIt.NodeType.Goal) {
-				if (goal.Parent != null) {
-					goal = goal.Parent;
-				}
-				else {
-					throw "in DScriptPlugIn, UpdateActionRelationTable Error";
+		for (var j: number = 0; j < actionRelations.length; j++) {
+			var actionRelation: DScriptActionRelation = actionRelations[j];
+			var targetNode: AssureIt.NodeModel = actionRelation.GetTargetNode();
+			var reactionNodes: AssureIt.NodeModel[] = actionRelation.GetReactionNodes();
+			if (reactionNodes.length == 0) {
+				var data: string[] = [
+					reactionNode.Environment.Location != null ? reactionNode.Environment.Location : "Undefined",
+					(targetNode.Statement != null ? targetNode.Statement : "NoStatement") + " : " + targetNode.Label,
+					actionRelation.Risk != null ? actionRelation.Risk : "*",
+					"NotExists",
+				];
+				(<any>this.ActionRelationTable).fnAddData(data);
+			}
+			else {
+				for (var i: number = 0; i < reactionNodes.length; i++) {
+					var reactionNode: AssureIt.NodeModel = reactionNodes[i];
+					var data: string[] = [
+						reactionNode.Environment.Location != null ? reactionNode.Environment.Location : "Undefined",
+						(targetNode.Statement != null ? targetNode.Statement : "NoStatement") + " : " + targetNode.Label,
+						actionRelation.Risk != null ? actionRelation.Risk : "*",
+						(reactionNode.GetNote("Action") != null ? reactionNode.GetNote("Action") : "Undefined") + " : " + reactionNode.Label
+					];
+					(<any>this.ActionRelationTable).fnAddData(data);
 				}
 			}
-			var data: string[] = [
-				relationMap["location"],
-//				relationMap["action"]["func"] + " : " + relationMap["action"]["node"],
-				goal.Statement + " : " + goal.Label,
-				relationMap["risk"],
-				relationMap["reaction"]["func"] + " : " + relationMap["reaction"]["node"],
-			];
-			(<any>this.ActionRelationTable).fnAddData(data);
 		}
 	}
 
@@ -366,15 +374,15 @@ class DScriptEditorPlugIn extends AssureIt.ActionPlugIn {
  			this.RootNodeModel.UpdateEnvironment();
 			var dscriptActionMap: DScriptActionMap = new DScriptActionMap(this.RootNodeModel);
 			console.log(dscriptActionMap);
- 			var relationMap = dscriptActionMap.GetRelationMap();
-// 			var actionRelation = dscriptActionMap.GetActionRelation();
+ 			var nodeRelationMap: { [index: string]: DScriptNodeRelation } = dscriptActionMap.GetNodeRelationMap();
+ 			var actionRelations: DScriptActionRelation[] = dscriptActionMap.GetActionRelations();
  			var script = this.RootNodeModel.CodeGen(this.Generator);
   			ret.script.main = script;
 //  			ret.meta.actionmap = nodeRelation;
 			this.UpdateASNEditor(null);
  			this.UpdateDScriptViewer(script);
-  			this.UpdateNodeRelationTable(relationMap);
-// 			this.UpdateActionRelationTable(actionRelation);
+  			this.UpdateNodeRelationTable(nodeRelationMap);
+ 			this.UpdateActionRelationTable(actionRelations);
 //			this.UpdateLineComment(this.ASNEditor, this.Widgets, generator);
 //			(<any>this).TypeCheck();
 		}

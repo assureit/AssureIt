@@ -44,16 +44,78 @@ class DScriptNodeRelation {
 	}
 }
 
+class DScriptActionRelation { //for reaction
+	public SrcNode: AssureIt.NodeModel;
+	public DistNode: AssureIt.NodeModel;
+	public Risk: string;
+
+	constructor(src: AssureIt.NodeModel, dist: AssureIt.NodeModel, risk: string) {
+		this.SrcNode = src;
+		this.DistNode = dist;
+		this.Risk = risk;
+	}
+
+	public GetTargetNode(): AssureIt.NodeModel {
+		var ret: AssureIt.NodeModel = this.SrcNode;
+		while (ret.Type != AssureIt.NodeType.Goal) {
+			if (ret.Parent != null) {
+				ret = ret.Parent;
+			}
+			else {
+				throw "in DScriptPlugIn, UpdateActionRelationTable Error";
+			}
+		}
+		return ret;
+	}
+
+	public ExtractNode(root: AssureIt.NodeModel, thFunc: (node: AssureIt.NodeModel) => boolean, maxDepth: number, dir: AssureIt.Direction): AssureIt.NodeModel[] {
+		var ret: AssureIt.NodeModel[] = [];
+		if (maxDepth != 0) {
+			var searchList: AssureIt.NodeModel[];
+			if (dir == AssureIt.Direction.Top) {
+				searchList = [root.Parent];
+			}
+			else if (dir == AssureIt.Direction.Bottom) {
+				searchList = root.Children;
+			}
+			else if (dir == null) {
+				searchList = root.Children.concat(root.Parent);
+			}
+			else {
+				//undefined direction
+				searchList = [];
+			}
+			for (var i: number = 0; i < searchList.length; i++) {
+				ret = ret.concat(this.ExtractNode(searchList[i], thFunc, maxDepth - 1, dir));
+			}
+		}
+		if (thFunc.call(this, root)) {
+			ret = ret.concat(root);
+		}
+		return ret;
+	}
+	public GetReactionNodes(): AssureIt.NodeModel[] {
+		return this.ExtractNode(this.DistNode, function(node: AssureIt.NodeModel) {
+			if (node.Type == AssureIt.NodeType.Evidence) {
+				return true;
+			}
+			else {
+				return false;
+			}
+		}, -1, AssureIt.Direction.Bottom);
+	}
+}
+
 class DScriptActionMap {
 	public ErrorInfo: string[];
 	private RootNode: AssureIt.NodeModel;
-	private RelationMap: { [index: string]: DScriptNodeRelation };
+	private NodeRelationMap: { [index: string]: DScriptNodeRelation };
 	private ElementMap: { [index: string]: AssureIt.NodeModel };
 
 	constructor(root: AssureIt.NodeModel) {
 		this.ErrorInfo = [];
 		this.RootNode = root;
-		this.RelationMap = {};
+		this.NodeRelationMap = {};
 		this.ElementMap = this.CreateLocalElementMap(root);
 		this.ExtractRelation();
 	}
@@ -72,13 +134,13 @@ class DScriptActionMap {
 
 	public GetOrCreateNodeRelation(label: string): DScriptNodeRelation {
 		var relation: DScriptNodeRelation;
-		if (label in this.RelationMap) {
-			relation = this.RelationMap[label];
+		if (label in this.NodeRelationMap) {
+			relation = this.NodeRelationMap[label];
 		}
 		else {
 			relation = new DScriptNodeRelation();
 			relation.BaseNode = label;
-			this.RelationMap[label] = relation;
+			this.NodeRelationMap[label] = relation;
 		}
 		return relation;
 	}
@@ -172,7 +234,7 @@ class DScriptActionMap {
 			else { //Reaction for Risk
 				var srcList: AssureIt.NodeModel[] = this.ExtractNode(this.RootNode, function(node: AssureIt.NodeModel) {
 					var ret: boolean = false;
-					if (node.Type == AssureIt.NodeType.Evidence && node.Environment["Risk"] == reactionValue) ret = true;
+					if (node.Type == AssureIt.NodeType.Evidence && node.Environment.Risk == reactionValue) ret = true;
 					return ret;
 				}, -1, AssureIt.Direction.Bottom);
 				if (srcList.length == 0) {
@@ -222,7 +284,23 @@ class DScriptActionMap {
 		this.ExtractPresumeRelation();
 	}
 
-	GetRelationMap(): { [index: string]: DScriptNodeRelation } {
-		return this.RelationMap;
+	GetNodeRelationMap(): { [index: string]: DScriptNodeRelation } {
+		return this.NodeRelationMap;
+	}
+	GetActionRelations(): DScriptActionRelation[] {
+		var ret: DScriptActionRelation[] = [];
+		for (var key in this.NodeRelationMap) {
+			var nodeRelation = this.NodeRelationMap[key];
+			for (var i: number = 0; i < nodeRelation.Reactions.length; i++) {
+				var actionRelation = new DScriptActionRelation(
+					this.ElementMap[nodeRelation.BaseNode],
+					this.ElementMap[nodeRelation.Reactions[i]["dist"]],
+					nodeRelation.Reactions[i]["risk"]
+				);
+				ret.push(actionRelation);
+			}
+		}
+		console.log(ret);
+		return ret;
 	}
 }
