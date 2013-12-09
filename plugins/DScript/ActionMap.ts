@@ -11,6 +11,37 @@ class DScriptNodeRelation {
 		this.Presumes = [];
 		this.Reactions = [];
 	}
+	PresumesToString(): string {
+		var ret: string = "";
+		if (this.Presumes.length != 0) {
+			var i: number = 0;
+			for (; i < this.Presumes.length; i++) {
+				ret += this.Presumes[i];
+				if (i < this.Presumes.length - 1) ret += ", ";
+			}
+		}
+		else {
+			ret = "-";
+		}
+		return ret;
+	}
+	ReactionsToString(): string {
+		var ret: string = "";
+		if (this.Reactions.length != 0) {
+			var reaction: { dist: string; risk: string; };
+			var i: number = 0;
+			for (; i < this.Reactions.length; i++) {
+				reaction = this.Reactions[i];
+				ret += reaction["dist"];
+				if (reaction["risk"] != null) ret += "(" + reaction["risk"] + ")";
+				if (i < this.Reactions.length - 1) ret += ", ";
+			}
+		}
+		else {
+			ret = "-";
+		}
+		return ret;
+	}
 }
 
 class DScriptActionMap {
@@ -146,7 +177,6 @@ class DScriptActionMap {
 				}, -1, AssureIt.Direction.Bottom);
 				if (srcList.length == 0) {
 					this.ErrorInfo.push("invalid Reaction target ${TARGET} (ignored)".replace("${TARGET}", reactionValue));
-					this.AddReaction(null, dist, reactionValue);
 				}
 				else {
 					for (var j: number = 0; j < srcList.length; j++) {
@@ -173,19 +203,26 @@ class DScriptActionMap {
 		for (var i: number = 0; i < presumeNodes.length; i++) {
 			var presumeNode: AssureIt.NodeModel = presumeNodes[i];
 			var presumeValue: string = presumeNode.GetNote("Presume");
-			var src: AssureIt.NodeModel = this.ElementMap[presumeValue];
-			var dist: AssureIt.NodeModel = presumeNode.Parent;
-			if (src != null) {
-				this.AddPresume(src, dist);
-			}
-			else {
-				this.ErrorInfo.push("invalid Presume target ${TARGET} (ignored)".replace("${TARGET}", presumeValue));
-				this.AddPresume(null, dist);
+			var targets: string[] = presumeValue.split(/[\s,]/);
+			var src: AssureIt.NodeModel = presumeNode.Parent;
+			for (var j: number = 0; j < targets.length; j++) {
+				var target: string = targets[j];
+				var dist: AssureIt.NodeModel = this.ElementMap[target];
+				if (src != null) {
+					this.AddPresume(src, dist);
+				}
+				else {
+					this.ErrorInfo.push("invalid Presume target ${TARGET} (ignored)".replace("${TARGET}", target));
+				}
 			}
 		}
 	}
 	private ExtractRelation(): void {
 		this.ExtractReactionRelation();
 		this.ExtractPresumeRelation();
+	}
+
+	GetRelationMap(): { [index: string]: DScriptNodeRelation } {
+		return this.RelationMap;
 	}
 }

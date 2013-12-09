@@ -4,6 +4,38 @@ var DScriptNodeRelation = (function () {
         this.Presumes = [];
         this.Reactions = [];
     }
+    DScriptNodeRelation.prototype.PresumesToString = function () {
+        var ret = "";
+        if (this.Presumes.length != 0) {
+            var i = 0;
+            for (; i < this.Presumes.length; i++) {
+                ret += this.Presumes[i];
+                if (i < this.Presumes.length - 1)
+                    ret += ", ";
+            }
+        } else {
+            ret = "-";
+        }
+        return ret;
+    };
+    DScriptNodeRelation.prototype.ReactionsToString = function () {
+        var ret = "";
+        if (this.Reactions.length != 0) {
+            var reaction;
+            var i = 0;
+            for (; i < this.Reactions.length; i++) {
+                reaction = this.Reactions[i];
+                ret += reaction["dist"];
+                if (reaction["risk"] != null)
+                    ret += "(" + reaction["risk"] + ")";
+                if (i < this.Reactions.length - 1)
+                    ret += ", ";
+            }
+        } else {
+            ret = "-";
+        }
+        return ret;
+    };
     return DScriptNodeRelation;
 })();
 
@@ -125,7 +157,6 @@ var DScriptActionMap = (function () {
                 }, -1, AssureIt.Direction.Bottom);
                 if (srcList.length == 0) {
                     this.ErrorInfo.push("invalid Reaction target ${TARGET} (ignored)".replace("${TARGET}", reactionValue));
-                    this.AddReaction(null, dist, reactionValue);
                 } else {
                     for (var j = 0; j < srcList.length; j++) {
                         this.AddReaction(srcList[j], dist, reactionValue);
@@ -150,19 +181,26 @@ var DScriptActionMap = (function () {
         for (var i = 0; i < presumeNodes.length; i++) {
             var presumeNode = presumeNodes[i];
             var presumeValue = presumeNode.GetNote("Presume");
-            var src = this.ElementMap[presumeValue];
-            var dist = presumeNode.Parent;
-            if (src != null) {
-                this.AddPresume(src, dist);
-            } else {
-                this.ErrorInfo.push("invalid Presume target ${TARGET} (ignored)".replace("${TARGET}", presumeValue));
-                this.AddPresume(null, dist);
+            var targets = presumeValue.split(/[\s,]/);
+            var src = presumeNode.Parent;
+            for (var j = 0; j < targets.length; j++) {
+                var target = targets[j];
+                var dist = this.ElementMap[target];
+                if (src != null) {
+                    this.AddPresume(src, dist);
+                } else {
+                    this.ErrorInfo.push("invalid Presume target ${TARGET} (ignored)".replace("${TARGET}", target));
+                }
             }
         }
     };
     DScriptActionMap.prototype.ExtractRelation = function () {
         this.ExtractReactionRelation();
         this.ExtractPresumeRelation();
+    };
+
+    DScriptActionMap.prototype.GetRelationMap = function () {
+        return this.RelationMap;
     };
     return DScriptActionMap;
 })();

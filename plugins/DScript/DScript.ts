@@ -70,13 +70,13 @@ class DScriptEditorPlugIn extends AssureIt.ActionPlugIn {
 			lineWrapping: true,
 		});
 		this.NodeRelationTable = this.CreateTable(
-			["Action", "Risk", "Reaction"],
+			["Node", "Reaction", "Presume"],
 			{
 				bAutoWidth : false,
 				aoColumns : [
-					{ sWidth: '15%' },
-					{ sWidth: '70%' },
-					{ sWidth: '15%' }
+					{ sWidth: '10%' },
+					{ sWidth: '45%' },
+					{ sWidth: '45%' }
 				],
 			}
 		);
@@ -280,14 +280,14 @@ class DScriptEditorPlugIn extends AssureIt.ActionPlugIn {
 		}
 		this.DScriptViewer.refresh();
 	}
-	UpdateNodeRelationTable(nodeRelation): void {
+	UpdateNodeRelationTable(relationMap: { [index: string]: DScriptNodeRelation }): void {
 		(<any>this.NodeRelationTable).fnClearTable();
-		for (var key in nodeRelation) {
-			var relationMap = nodeRelation[key];
-			var data: string[] = [
-				relationMap["action"],
-				relationMap["risk"],
-				relationMap["reaction"],
+		for (var key in relationMap) {
+			var relation: DScriptNodeRelation = relationMap[key];
+			var data = [
+				relation.BaseNode,
+				relation.ReactionsToString(),
+				relation.PresumesToString()
 			];
 			(<any>this.NodeRelationTable).fnAddData(data);
 		}
@@ -366,14 +366,14 @@ class DScriptEditorPlugIn extends AssureIt.ActionPlugIn {
  			this.RootNodeModel.UpdateEnvironment();
 			var dscriptActionMap: DScriptActionMap = new DScriptActionMap(this.RootNodeModel);
 			console.log(dscriptActionMap);
-// 			var nodeRelation = dscriptActionMap.GetNodeRelation();
+ 			var relationMap = dscriptActionMap.GetRelationMap();
 // 			var actionRelation = dscriptActionMap.GetActionRelation();
  			var script = this.RootNodeModel.CodeGen(this.Generator);
   			ret.script.main = script;
 //  			ret.meta.actionmap = nodeRelation;
 			this.UpdateASNEditor(null);
  			this.UpdateDScriptViewer(script);
-//  			this.UpdateNodeRelationTable(nodeRelation);
+  			this.UpdateNodeRelationTable(relationMap);
 // 			this.UpdateActionRelationTable(actionRelation);
 //			this.UpdateLineComment(this.ASNEditor, this.Widgets, generator);
 //			(<any>this).TypeCheck();

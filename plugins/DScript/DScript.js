@@ -58,12 +58,12 @@ var DScriptEditorPlugIn = (function (_super) {
             placeholder: "Generated DScript code goes here.",
             lineWrapping: true
         });
-        this.NodeRelationTable = this.CreateTable(["Action", "Risk", "Reaction"], {
+        this.NodeRelationTable = this.CreateTable(["Node", "Reaction", "Presume"], {
             bAutoWidth: false,
             aoColumns: [
-                { sWidth: '15%' },
-                { sWidth: '70%' },
-                { sWidth: '15%' }
+                { sWidth: '10%' },
+                { sWidth: '45%' },
+                { sWidth: '45%' }
             ]
         });
         this.ActionRelationTable = this.CreateTable(["Location", "Goal", "FailureRisk", "Action"], {
@@ -231,14 +231,14 @@ var DScriptEditorPlugIn = (function (_super) {
         }
         this.DScriptViewer.refresh();
     };
-    DScriptEditorPlugIn.prototype.UpdateNodeRelationTable = function (nodeRelation) {
+    DScriptEditorPlugIn.prototype.UpdateNodeRelationTable = function (relationMap) {
         (this.NodeRelationTable).fnClearTable();
-        for (var key in nodeRelation) {
-            var relationMap = nodeRelation[key];
+        for (var key in relationMap) {
+            var relation = relationMap[key];
             var data = [
-                relationMap["action"],
-                relationMap["risk"],
-                relationMap["reaction"]
+                relation.BaseNode,
+                relation.ReactionsToString(),
+                relation.PresumesToString()
             ];
             (this.NodeRelationTable).fnAddData(data);
         }
@@ -311,12 +311,14 @@ var DScriptEditorPlugIn = (function (_super) {
             this.RootNodeModel.UpdateEnvironment();
             var dscriptActionMap = new DScriptActionMap(this.RootNodeModel);
             console.log(dscriptActionMap);
+            var relationMap = dscriptActionMap.GetRelationMap();
 
             var script = this.RootNodeModel.CodeGen(this.Generator);
             ret.script.main = script;
 
             this.UpdateASNEditor(null);
             this.UpdateDScriptViewer(script);
+            this.UpdateNodeRelationTable(relationMap);
         } catch (e) {
             console.log("DScript plugin : error occured in UpdateAll");
             console.log(e);
