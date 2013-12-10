@@ -6,6 +6,10 @@ class DScriptGenerator {
  	LineFeed: string = "\n";
  	LibraryManager: DScriptLibraryManager = new DScriptLibraryManager();
 
+	constructor() {
+		this.LibraryManager.DefaultFuncTpl = "";
+	}
+
 	VisitGoalNode(node: AssureIt.NodeModel): string {
 		return "";
 	}
@@ -27,6 +31,11 @@ class DScriptGenerator {
 };
 
 class DShellCodeGenerator extends DScriptGenerator {
+	constructor() {
+		super();
+		this.LibraryManager.DefaultFuncTpl = "DFault ${funcName}() { return null; }";
+	}
+
 	VisitGoalOrStrategyNode(node: AssureIt.NodeModel): string {
 		var ret: string = "";
 		ret += "DFault " + node.Label + "() {" + this.LineFeed;
@@ -123,6 +132,11 @@ class DShellCodeGenerator extends DScriptGenerator {
 }
 
 class ErlangCodeGenerator extends DScriptGenerator {
+	constructor() {
+		super();
+		this.LibraryManager.DefaultFuncTpl = "${funcName}()";
+	}
+
 	GenNodeFuncName(node: AssureIt.NodeModel): string {
 		return node.Label.toLowerCase();
 	}
@@ -221,11 +235,13 @@ class ErlangCodeGenerator extends DScriptGenerator {
 		var ret: string = "";
 		ret += "-module(dscript)." + this.LineFeed;
 		ret += "-export([main/0])." + this.LineFeed;
+		ret += this.LineFeed;
 		ret += "main() -> null." + this.LineFeed;
 		ret += "add(null, null) -> null;" + this.LineFeed;
 		ret += "add(null, Ret) -> Ret;" + this.LineFeed;
 		ret += "add(X, null) -> X;" + this.LineFeed;
 		ret += "add(_X, _Ret) -> dfault." + this.LineFeed;
+		ret += this.LineFeed;
 		return ret;
 	}
 	GenerateMainFunction(dscriptActionMap: DScriptActionMap): string {
@@ -234,15 +250,17 @@ class ErlangCodeGenerator extends DScriptGenerator {
 };
 
 class DScriptLibraryManager {
-	ServerApi: AssureIt.ServerAPI;
-	Cache: { [funcName: string]: string };
+	public ServerApi: AssureIt.ServerAPI;
+	public Cache: { [funcName: string]: string };
+	public DefaultFuncTpl: string;
 
 	constructor() {
 		this.ServerApi = null;
 		this.Cache = {};
+		this.DefaultFuncTpl = "";
 	}
 	GetLibraryFunction(funcName: string): string {
-		var ret = "DFault ${funcName}() { return null; }".replace("${funcName}", funcName);
+		var ret: string = this.DefaultFuncTpl.replace(/\$\{funcName\}/g, funcName);
 		if (this.ServerApi == null) {
 			console.log("DScriptLibraryManager error : not set ServerApi yet");
 		}
