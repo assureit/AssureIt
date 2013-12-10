@@ -55,7 +55,8 @@ class DScriptEditorPlugIn extends AssureIt.ActionPlugIn {
 		super(plugInManager);
 		var self = this;
 
-		this.Generator = new DShellCodeGenerator();
+		//this.Generator = new DShellCodeGenerator();
+		this.Generator = new ErlangCodeGenerator();
 
 		this.ASNEditor = new CodeMirror($("<div/>").get(0), {
 			lineNumbers: true,
@@ -376,7 +377,10 @@ class DScriptEditorPlugIn extends AssureIt.ActionPlugIn {
 			console.log(dscriptActionMap);
  			var nodeRelationMap: { [index: string]: DScriptNodeRelation } = dscriptActionMap.GetNodeRelationMap();
  			var actionRelations: DScriptActionRelation[] = dscriptActionMap.GetActionRelations();
- 			var script = this.RootNodeModel.CodeGen(this.Generator) + this.Generator.GenerateMainFunction(dscriptActionMap);
+ 			var script = ""
+				+ this.Generator.GeneratePreface()
+				+ this.RootNodeModel.CodeGen(this.Generator)
+				+ this.Generator.GenerateMainFunction(dscriptActionMap);
   			ret.script.main = script;
 //  			ret.meta.actionmap = nodeRelation;
 			this.UpdateASNEditor(null);
