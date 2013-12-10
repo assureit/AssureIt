@@ -320,7 +320,7 @@ var DScriptEditorPlugIn = (function (_super) {
             console.log(dscriptActionMap);
             var nodeRelationMap = dscriptActionMap.GetNodeRelationMap();
             var actionRelations = dscriptActionMap.GetActionRelations();
-            var script = this.RootNodeModel.CodeGen(this.Generator);
+            var script = this.RootNodeModel.CodeGen(this.Generator) + this.Generator.GenerateMainFunction(dscriptActionMap);
             ret.script.main = script;
 
             this.UpdateASNEditor(null);

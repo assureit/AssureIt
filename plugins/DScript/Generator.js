@@ -22,7 +22,7 @@ var DScriptGenerator = (function () {
     DScriptGenerator.prototype.VisitContextNode = function (node) {
         return "";
     };
-    DScriptGenerator.prototype.GenerateMainFunction = function () {
+    DScriptGenerator.prototype.GenerateMainFunction = function (dscriptActionMap) {
         return "";
     };
     return DScriptGenerator;
@@ -115,7 +115,7 @@ var DShellCodeGenerator = (function (_super) {
         return ret;
     };
 
-    DShellCodeGenerator.prototype.GenerateMainFunction = function () {
+    DShellCodeGenerator.prototype.GenerateMainFunction = function (dscriptActionMap) {
         var ret = "";
         return ret;
     };
