@@ -131,7 +131,8 @@ var ErlangCodeGenerator = (function (_super) {
     __extends(ErlangCodeGenerator, _super);
     function ErlangCodeGenerator() {
         _super.call(this);
-        this.LibraryManager.DefaultFuncTpl = "${funcName}()";
+        this.LibraryManager.DefaultFuncTpl = "${funcName}() -> null.%% undefined action";
+        this.ActionList = [];
     }
     ErlangCodeGenerator.prototype.GenNodeFuncName = function (node) {
         return node.Label.toLowerCase();
@@ -168,29 +169,13 @@ var ErlangCodeGenerator = (function (_super) {
         }
         return ret;
     };
-    ErlangCodeGenerator.prototype.GenerateAction = function (node) {
+    ErlangCodeGenerator.prototype.GenerateActionFunctions = function () {
         var ret = "";
-
-        ret += this.GenerateLocalVariable(node);
-        var funcName = node.GetNote("Action");
-        var actionFunctionDef = this.LibraryManager.GetLibraryFunction(funcName.replace("()", ""));
-        var monitor_raw = node.Environment["Monitor"];
-        if (monitor_raw != null) {
-            var monitor_fixed = monitor_raw.replace(/\{|\}/g, "").replace(/[a-zA-Z]+/g, function (matchedStr) {
-                return "GetDataFromRec(Location, \"" + matchedStr + "\")";
-            }).trim();
-            actionFunctionDef = actionFunctionDef.replace(/[\(\w]Monitor[\)\w]/g, function (matchedStr) {
-                return matchedStr.replace("Monitor", monitor_fixed);
-            });
+        for (var i = 0; i < this.ActionList.length; i++) {
+            var funcCall = this.ActionList[i];
+            var actionFunctionDef = this.LibraryManager.GetLibraryFunction(funcCall.replace("()", ""));
+            ret += actionFunctionDef + this.LineFeed;
         }
-        ret += this.Indent + actionFunctionDef.replace(/\n/g, "\n\t") + this.LineFeed;
-
-        ret += this.Indent + "DFault ret = null;" + this.LineFeed;
-        ret += this.Indent + "if(Location == LOCATION) {" + this.LineFeed;
-        ret += this.Indent + this.Indent + "ret = dlog " + funcName + ";" + this.LineFeed;
-        ret += this.Indent + "}" + this.LineFeed;
-        ret += this.Indent + "return ret;" + this.LineFeed;
-
         return ret;
     };
 
@@ -202,9 +187,12 @@ var ErlangCodeGenerator = (function (_super) {
     };
     ErlangCodeGenerator.prototype.VisitEvidenceNode = function (node) {
         var ret = "";
+        var action = node.GetNote("Action");
         ret += this.GenNodeFuncName(node) + "() ->" + this.LineFeed;
-        if (node.GetNote("Action") != null) {
-            ret += this.Indent + "null.%%static evidence";
+        if (action != null) {
+            if (!(action in this.ActionList))
+                this.ActionList.push(action);
+            ret += this.Indent + action + ".";
         } else {
             ret += this.Indent + "null.%%static evidence";
         }
@@ -231,7 +219,9 @@ var ErlangCodeGenerator = (function (_super) {
         return ret;
     };
     ErlangCodeGenerator.prototype.GenerateMainFunction = function (dscriptActionMap) {
-        return "";
+        var ret = "";
+        ret += this.GenerateActionFunctions();
+        return ret;
     };
     return ErlangCodeGenerator;
 })(DScriptGenerator);

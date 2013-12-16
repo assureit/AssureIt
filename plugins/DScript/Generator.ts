@@ -132,9 +132,11 @@ class DShellCodeGenerator extends DScriptGenerator {
 }
 
 class ErlangCodeGenerator extends DScriptGenerator {
+	ActionList: string[];
 	constructor() {
 		super();
-		this.LibraryManager.DefaultFuncTpl = "${funcName}()";
+		this.LibraryManager.DefaultFuncTpl = "${funcName}() -> null.%% undefined action";
+		this.ActionList = [];
 	}
 
 	GenNodeFuncName(node: AssureIt.NodeModel): string {
@@ -173,36 +175,14 @@ class ErlangCodeGenerator extends DScriptGenerator {
 		}
 		return ret;
 	}
-	GenerateAction(node: AssureIt.NodeModel): string {
+	GenerateActionFunctions(): string {
 		var ret: string = "";
-
-		/* Define Action Function */
-		ret += this.GenerateLocalVariable(node);
-		var funcName = node.GetNote("Action"); //already check whether funcName is Null
-		var actionFunctionDef = this.LibraryManager.GetLibraryFunction(funcName.replace("()", ""));
-		var monitor_raw = node.Environment["Monitor"];
-		if (monitor_raw != null) {
-			var monitor_fixed: string = monitor_raw
-				.replace(/\{|\}/g, "")
-				.replace(/[a-zA-Z]+/g, function(matchedStr) {
-					return "GetDataFromRec(Location, \"" + matchedStr + "\")";
-				}).trim();
-			actionFunctionDef = actionFunctionDef
-				.replace(/[\(\w]Monitor[\)\w]/g, function(matchedStr) {
-					return matchedStr.replace("Monitor", monitor_fixed);
-				});
+		for (var i: number = 0; i < this.ActionList.length; i++) {
+			var funcCall: string = this.ActionList[i];
+			var actionFunctionDef: string = this.LibraryManager.GetLibraryFunction(funcCall.replace("()", ""));
+			ret += actionFunctionDef + this.LineFeed;
 		}
-		ret += this.Indent + actionFunctionDef.replace(/\n/g, "\n\t") + this.LineFeed;
-
-		/* Call Action Function */
-		ret += this.Indent + "DFault ret = null;" + this.LineFeed;
-		ret += this.Indent + "if(Location == LOCATION) {" + this.LineFeed;
-		ret += this.Indent + this.Indent + "ret = dlog " + funcName + ";" + this.LineFeed;
-		ret += this.Indent + "}" + this.LineFeed;
-		ret += this.Indent + "return ret;" + this.LineFeed;
-
 		return ret;
-
 	}
 
 	VisitGoalNode(node: AssureIt.NodeModel): string {
@@ -213,11 +193,11 @@ class ErlangCodeGenerator extends DScriptGenerator {
 	}
 	VisitEvidenceNode(node: AssureIt.NodeModel): string {
 		var ret: string = "";
+		var action: string = node.GetNote("Action");
 		ret += this.GenNodeFuncName(node) + "() ->" + this.LineFeed;
-		if (node.GetNote("Action") != null) {
-			//FIX ME!!
-			//ret += this.GenerateAction(node);
-			ret += this.Indent + "null.%%static evidence";
+		if (action != null) {
+			if (!(action in this.ActionList)) this.ActionList.push(action);
+			ret += this.Indent + action + ".";
 		}
 		else {
 			ret += this.Indent + "null.%%static evidence";
@@ -245,7 +225,9 @@ class ErlangCodeGenerator extends DScriptGenerator {
 		return ret;
 	}
 	GenerateMainFunction(dscriptActionMap: DScriptActionMap): string {
-		return "";
+		var ret: string = "";
+		ret += this.GenerateActionFunctions();
+		return ret;
 	}
 };
 
