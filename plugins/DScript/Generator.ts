@@ -196,7 +196,7 @@ class ErlangCodeGenerator extends DScriptGenerator {
 		var action: string = node.GetNote("Action");
 		ret += this.GenNodeFuncName(node) + "() ->" + this.LineFeed;
 		if (action != null) {
-			if (!(action in this.ActionList)) this.ActionList.push(action);
+			if (this.ActionList.indexOf(action) == -1) this.ActionList.push(action);
 			ret += this.Indent + action + ".";
 		}
 		else {
@@ -216,7 +216,6 @@ class ErlangCodeGenerator extends DScriptGenerator {
 		ret += "-module(dscript)." + this.LineFeed;
 		ret += "-export([main/0])." + this.LineFeed;
 		ret += this.LineFeed;
-		ret += "main() -> null." + this.LineFeed;
 		ret += "add(null, null) -> null;" + this.LineFeed;
 		ret += "add(null, Ret) -> Ret;" + this.LineFeed;
 		ret += "add(X, null) -> X;" + this.LineFeed;
@@ -227,6 +226,7 @@ class ErlangCodeGenerator extends DScriptGenerator {
 	GenerateMainFunction(dscriptActionMap: DScriptActionMap): string {
 		var ret: string = "";
 		ret += this.GenerateActionFunctions();
+		ret += "main() -> io:format(\"main is called...\n\")." + this.LineFeed;
 		return ret;
 	}
 };

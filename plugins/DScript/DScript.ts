@@ -446,6 +446,7 @@ class DScriptSideMenuPlugIn extends AssureIt.SideMenuPlugIn {
 				alert("Assure-It Agent is not active.");
 				console.log(e);
 			}
+			serverApi.ExecDScript("erlang", self.editorPlugIn.DScriptViewer.getValue());
 		}));
 		ret.push(new AssureIt.SideMenuModel('#', 'Actions', "actions", "glyphicon-list-alt", (ev:Event)=>{
 			self.editorPlugIn.ShowEditor(case0.ElementTop);

@@ -190,7 +190,7 @@ var ErlangCodeGenerator = (function (_super) {
         var action = node.GetNote("Action");
         ret += this.GenNodeFuncName(node) + "() ->" + this.LineFeed;
         if (action != null) {
-            if (!(action in this.ActionList))
+            if (this.ActionList.indexOf(action) == -1)
                 this.ActionList.push(action);
             ret += this.Indent + action + ".";
         } else {
@@ -210,7 +210,6 @@ var ErlangCodeGenerator = (function (_super) {
         ret += "-module(dscript)." + this.LineFeed;
         ret += "-export([main/0])." + this.LineFeed;
         ret += this.LineFeed;
-        ret += "main() -> null." + this.LineFeed;
         ret += "add(null, null) -> null;" + this.LineFeed;
         ret += "add(null, Ret) -> Ret;" + this.LineFeed;
         ret += "add(X, null) -> X;" + this.LineFeed;
@@ -221,6 +220,7 @@ var ErlangCodeGenerator = (function (_super) {
     ErlangCodeGenerator.prototype.GenerateMainFunction = function (dscriptActionMap) {
         var ret = "";
         ret += this.GenerateActionFunctions();
+        ret += "main() -> io:format(\"main is called...\n\")." + this.LineFeed;
         return ret;
     };
     return ErlangCodeGenerator;

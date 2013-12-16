@@ -127,6 +127,12 @@ var AssureIt;
                 funcName: funcName
             });
         };
+        ServerAPI.prototype.ExecDScript = function (lang, script) {
+            return this.RemoteCall("execDScript", {
+                lang: lang,
+                script: script
+            });
+        };
         return ServerAPI;
     })();
     AssureIt.ServerAPI = ServerAPI;
