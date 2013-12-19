@@ -48,11 +48,18 @@ def main():
         "Accept" : "application/json",
         }
     try:
-        req = urllib2.Request(default_url, req_data, header) 
+        req = urllib2.Request(default_url, req_data, header)
         response = urllib2.urlopen(req)
-        res_data = response.read()
-        if json.loads(res_data)["result"]:
-            print(json.loads(res_data)["result"]["data"])
+        res_raw = response.read()
+        res_json = json.loads(res_raw)
+        #print(res_json)
+        if "result" in res_json:
+            if res_json["result"] != None:
+                print(res_json["result"]["data"])
+            else:
+                print(0)
+        else:
+            print(0)
     except urllib2.URLError as e:
         #print(e)
         print(e.read())
