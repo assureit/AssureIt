@@ -63,6 +63,10 @@ var DShellCodeGenerator = (function (_super) {
         for (var key in env) {
             if (key == "prototype" || key == "Reaction") {
                 continue;
+            }
+            if (key == "Location") {
+                ret += this.Indent + "location lLocation = \"" + env[key] + "\";" + this.LineFeed;
+                ret += this.Indent + "let sLocation = \"" + env[key] + "\";" + this.LineFeed;
             } else {
                 ret += this.Indent + "let " + key + " = \"" + env[key] + "\";" + this.LineFeed;
             }
@@ -78,7 +82,7 @@ var DShellCodeGenerator = (function (_super) {
         var monitor_raw = node.Environment["Monitor"];
         if (monitor_raw != null) {
             var monitor_fixed = monitor_raw.replace(/\{|\}/g, "").replace(/[a-zA-Z]+/g, function (matchedStr) {
-                return "GetDataFromRec(Location, \"" + matchedStr + "\")";
+                return "GetDataFromRec(sLocation, \"" + matchedStr + "\")";
             }).trim();
             actionFunctionDef = actionFunctionDef.replace(/[\(\w]Monitor[\)\w]/g, function (matchedStr) {
                 return matchedStr.replace("Monitor", monitor_fixed);
@@ -86,11 +90,8 @@ var DShellCodeGenerator = (function (_super) {
         }
         ret += this.Indent + actionFunctionDef.replace(/\n/g, "\n\t") + this.LineFeed;
 
-        ret += this.Indent + "DFault ret = null;" + this.LineFeed;
-        ret += this.Indent + "if(Location == LOCATION) {" + this.LineFeed;
-        ret += this.Indent + this.Indent + "ret = dlog " + funcName + ";" + this.LineFeed;
-        ret += this.Indent + "}" + this.LineFeed;
-        ret += this.Indent + "return ret;" + this.LineFeed;
+        ret += this.Indent + "Task t = lLocation " + funcName.replace("()", "") + ";" + this.LineFeed;
+        ret += this.Indent + "return t.getResult();" + this.LineFeed;
 
         return ret;
     };
@@ -120,8 +121,20 @@ var DShellCodeGenerator = (function (_super) {
         return ret;
     };
 
+    DShellCodeGenerator.prototype.GeneratePreface = function () {
+        var ret = "";
+        ret += "require d2shell;" + this.LineFeed;
+        ret += 'let RECServerURL = "http://localhost:3001/api/2.0/";' + this.LineFeed;
+        ret += "\n" + "int GetDataFromRec(String l, String t) {\n" + "\tcommand rec;\n" + "\tString data = localhost rec -m getLatestData -t $t -l $l;\n" + "\treturn (int)data.replaceAll(\"\\n\", \"\");\n" + "}\n";
+        ret += this.LineFeed;
+        return ret;
+    };
     DShellCodeGenerator.prototype.GenerateMainFunction = function (dscriptActionMap) {
         var ret = "";
+        ret += "@Export void main() {" + this.LineFeed;
+        ret += this.Indent + "println(\"Call main...\");" + this.LineFeed;
+        ret += this.Indent + "G1();" + this.LineFeed;
+        ret += "}";
         return ret;
     };
     return DShellCodeGenerator;
@@ -155,18 +168,6 @@ var ErlangCodeGenerator = (function (_super) {
             ret += "null.%%undevelopped";
         }
         ret += this.LineFeed;
-        return ret;
-    };
-    ErlangCodeGenerator.prototype.GenerateLocalVariable = function (node) {
-        var ret = "";
-        var env = node.Environment;
-        for (var key in env) {
-            if (key == "prototype" || key == "Reaction") {
-                continue;
-            } else {
-                ret += this.Indent + "let " + key + " = \"" + env[key] + "\";" + this.LineFeed;
-            }
-        }
         return ret;
     };
     ErlangCodeGenerator.prototype.GenerateActionFunctions = function () {

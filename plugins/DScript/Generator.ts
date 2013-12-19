@@ -62,7 +62,10 @@ class DShellCodeGenerator extends DScriptGenerator {
 			if (key == "prototype" || key == "Reaction") {
 				continue;
 			}
-			else {
+			if (key == "Location") {
+				ret += this.Indent + "location lLocation = \"" + env[key] + "\";" + this.LineFeed;
+				ret += this.Indent + "let sLocation = \"" + env[key] + "\";" + this.LineFeed;
+			} else {
 				ret += this.Indent + "let " + key + " = \"" + env[key] + "\";" + this.LineFeed;
 			}
 		}
@@ -73,14 +76,14 @@ class DShellCodeGenerator extends DScriptGenerator {
 
  		/* Define Action Function */
 		ret += this.GenerateLocalVariable(node);
-		var funcName: string = node.GetNote("Action"); //already check whether funcName is Null
+		var funcName: string = node.GetNote("Action"); //already check whether funcName is null
 		var actionFunctionDef: string = this.LibraryManager.GetLibraryFunction(funcName.replace("()", ""));
 		var monitor_raw: string = node.Environment["Monitor"];
 		if (monitor_raw != null) {
 			var monitor_fixed: string = monitor_raw
 				.replace(/\{|\}/g, "")
 				.replace(/[a-zA-Z]+/g, function(matchedStr) {
-					return "GetDataFromRec(Location, \"" + matchedStr + "\")";
+					return "GetDataFromRec(sLocation, \"" + matchedStr + "\")";
 				}).trim();
 			actionFunctionDef = actionFunctionDef
 				.replace(/[\(\w]Monitor[\)\w]/g, function(matchedStr) {
@@ -90,11 +93,8 @@ class DShellCodeGenerator extends DScriptGenerator {
 		ret += this.Indent + actionFunctionDef.replace(/\n/g, "\n\t") + this.LineFeed;
 
 		/* Call Action Function */
-		ret += this.Indent + "DFault ret = null;" + this.LineFeed;
-		ret += this.Indent + "if(Location == LOCATION) {" + this.LineFeed;
-		ret += this.Indent + this.Indent + "ret = dlog " + funcName + ";" + this.LineFeed;
-		ret += this.Indent + "}" + this.LineFeed;
-		ret += this.Indent + "return ret;" + this.LineFeed;
+		ret += this.Indent + "Task t = lLocation " + funcName.replace("()", "") + ";" + this.LineFeed;
+		ret += this.Indent + "return t.getResult();" + this.LineFeed;
 
 		return ret;
 	}
@@ -125,8 +125,25 @@ class DShellCodeGenerator extends DScriptGenerator {
 		return ret;
 	}
 
+	GeneratePreface(): string {
+		var ret: string = "";
+		ret += "require d2shell;" + this.LineFeed;
+		ret += 'let RECServerURL = "http://localhost:3001/api/2.0/";' + this.LineFeed;
+		ret += "\n"
+			+ "int GetDataFromRec(String l, String t) {\n"
+			+ "\tcommand rec;\n"
+			+ "\tString data = localhost rec -m getLatestData -t $t -l $l;\n"
+			+ "\treturn (int)data.replaceAll(\"\\n\", \"\");\n"
+			+ "}\n";
+		ret += this.LineFeed;
+		return ret;
+	}
 	GenerateMainFunction(dscriptActionMap: DScriptActionMap): string { //TODO
 		var ret: string = "";
+		ret += "@Export void main() {" + this.LineFeed;
+		ret += this.Indent + "println(\"Call main...\");" + this.LineFeed;
+		ret += this.Indent + "G1();" + this.LineFeed;
+		ret += "}";
 		return ret;
 	}
 }
@@ -160,19 +177,6 @@ class ErlangCodeGenerator extends DScriptGenerator {
 			ret += "null.%%undevelopped";
 		}
 		ret += this.LineFeed;
-		return ret;
-	}
-	GenerateLocalVariable(node: AssureIt.NodeModel): string {
-		var ret: string = "";
-		var env = node.Environment;
-		for (var key in env) {
-			if (key == "prototype" || key == "Reaction") {
-				continue;
-			}
-			else {
-				ret += this.Indent + "let " + key + " = \"" + env[key] + "\";" + this.LineFeed;
-			}
-		}
 		return ret;
 	}
 	GenerateActionFunctions(): string {

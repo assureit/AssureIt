@@ -55,8 +55,8 @@ class DScriptEditorPlugIn extends AssureIt.ActionPlugIn {
 		super(plugInManager);
 		var self = this;
 
-		//this.Generator = new DShellCodeGenerator();
-		this.Generator = new ErlangCodeGenerator();
+		this.Generator = new DShellCodeGenerator();
+		//this.Generator = new ErlangCodeGenerator();
 
 		this.ASNEditor = new CodeMirror($("<div/>").get(0), {
 			lineNumbers: true,
@@ -423,9 +423,9 @@ class DScriptSideMenuPlugIn extends AssureIt.SideMenuPlugIn {
 			var actionNodeManager: ActionNodeManager = caseViewer.pluginManager.GetPlugInEnv("monitor").ActionNodeManager;
 			var ElementMap = caseViewer.Source.ElementMap;
 			data.script.lib["GetDataFromRec"] = ""
-				+ "int GetDataFromRec(String location, String type) {"
+				+ "int GetDataFromRec(String l, String t) {"
 				+ "\tcommand rec;\n"
-				+ "\tString data = rec -m getLatestData -t $type -l $location;\n"
+				+ "\tString data = rec -m getLatestData -t $t -l $l;\n"
 				+ "\treturn (int)data.replaceAll(\"\\n\", \"\");\n"
 				+ "}\n";
 			console.log(data);
@@ -446,7 +446,7 @@ class DScriptSideMenuPlugIn extends AssureIt.SideMenuPlugIn {
 				alert("Assure-It Agent is not active.");
 				console.log(e);
 			}
-			serverApi.ExecDScript("erlang", self.editorPlugIn.DScriptViewer.getValue());
+			serverApi.ExecDScript("dshell", self.editorPlugIn.DScriptViewer.getValue());
 		}));
 		ret.push(new AssureIt.SideMenuModel('#', 'Actions', "actions", "glyphicon-list-alt", (ev:Event)=>{
 			self.editorPlugIn.ShowEditor(case0.ElementTop);
